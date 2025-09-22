@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}AI Teaching Assistant - Tutor's Assistant{% endblock %}
+
+{% block content %}
+<div class="chatbot-page">
+    <h1>AI Teaching Assistant</h1>
+    
+    <div class="chat-container">
+        <div class="chat-messages" id="chatMessages">
+            <div class="bot-message">
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <p>Hello! I'm your AI Teaching Assistant. Type "hi" to see how I can help you with lesson planning, activities, and more!</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" placeholder="Type your message here..." autocomplete="off">
+            <button id="sendButton" class="btn btn-primary">Send</button>
+        </div>
+    </div>
+    
+    <div class="chat-help">
+        <h3>Quick Commands</h3>
+        <div class="command-list">
+            <span class="command-item" onclick="sendMessage('hi')">hi - Show main menu</span>
+            <span class="command-item" onclick="sendMessage('help with lesson plan')">Help with lesson plan</span>
+            <span class="command-item" onclick="sendMessage('activities')">Get activity suggestions</span>
+            <span class="command-item" onclick="sendMessage('definitions')">Get definitions</span>
+        </div>
+        
+        <div class="lesson-plan-format">
+            <h4>Lesson Plan Format</h4>
+            <p>For lesson planning help, use: <strong>subject: [subject] grade: [grade] topic: [topic]</strong></p>
+            <p>Example: <em>subject: Maths grade: 3 topic: multiplication tables</em></p>
+        </div>
+    </div>
+</div>
+
+<script>
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendButton = document.getElementById('sendButton');
+
+function addMessage(content, isUser = false) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = isUser ? 'user-message' : 'bot-message';
+    
+    messageDiv.innerHTML = `
+        <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+        <div class="message-content">
+            ${typeof content === 'string' ? `<p>${content}</p>` : formatBotResponse(content)}
+        </div>
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function formatBotResponse(response) {
+    let html = `<p>${response.message}</p>`;
+    
+    if (response.options) {
+        html += '<div class="response-options">';
+        response.options.forEach(option => {
+            html += `<button class="option-btn" onclick="sendMessage('${option.toLowerCase()}')">${option}</button>`;
+        });
+        html += '</div>';
+    }
+    
+    if (response.questions) {
+        html += '<div class="response-questions">';
+        response.questions.forEach(question => {
+            html += `<p class="question-item">• ${question}</p>`;
+        });
+        html += '</div>';
+    }
+    
+    return html;
+}
+
+async function sendMessage(message = null) {
+    const messageText = message || chatInput.value.trim();
+    if (!messageText) return;
+    
+    addMessage(messageText, true);
+    if (!message) chatInput.value = '';
+    
+    try {
+        const response = await fetch('/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: messageText })
+        });
+        
+        const data = await response.json();
+        addMessage(data);
+    } catch (error) {
+        addMessage('Sorry, I encountered an error. Please try again.');
+    }
+}
+
+sendButton.addEventListener('click', () => sendMessage());
+
+chatInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendMessage();
+    }
+});
+</script>
+{% endblock %}

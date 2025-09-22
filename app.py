@@ -231,57 +231,17 @@ def chatbot():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    # Guard against malformed requests
+    if not request.json or 'message' not in request.json:
+        return jsonify({'message': 'Invalid request format'})
+    
     user_message = request.json.get('message', '').lower().strip()
     
-    if user_message == 'hi':
-        response = {
-            'message': 'Hello! I\'m your AI Teaching Assistant. How can I help you today?',
-            'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions']
-        }
-    elif 'lesson plan' in user_message:
-        response = {
-            'message': 'I\'d be happy to help with lesson planning! Please provide:',
-            'questions': ['What subject?', 'What grade level (1-5)?', 'What specific topic?']
-        }
-    elif 'activities' in user_message:
-        response = {
-            'message': 'What type of activities would you like suggestions for?',
-            'options': ['Classroom Games', 'Group Work', 'Individual Tasks', 'Creative Projects']
-        }
-    elif 'definitions' in user_message:
-        response = {
-            'message': 'What term or concept would you like me to define?',
-            'placeholder': 'Enter a word or concept...'
-        }
-    else:
-        # Try to extract lesson plan information
-        if all(keyword in user_message for keyword in ['subject:', 'grade:', 'topic:']):
-            parts = user_message.split()
-            subject = grade = topic = ''
-            
-            for i, part in enumerate(parts):
-                if part == 'subject:' and i + 1 < len(parts):
-                    subject = parts[i + 1]
-                elif part == 'grade:' and i + 1 < len(parts):
-                    grade = parts[i + 1]
-                elif part == 'topic:' and i + 1 < len(parts):
-                    topic = ' '.join(parts[i + 1:])
-                    break
-            
-            if subject and grade and topic:
-                lesson_plan = generate_lesson_plan_response(subject.title(), grade, topic)
-                response = {
-                    'message': lesson_plan,
-                    'type': 'lesson_plan'
-                }
-            else:
-                response = {
-                    'message': 'Please provide all required information in this format: "subject: [subject] grade: [grade] topic: [topic]"'
-                }
-        else:
-            response = {
-                'message': 'I understand you want help, but I need more specific information. Type "hi" to see the menu of options.'
-            }
+    # Always show main menu for any message
+    response = {
+        'message': 'Hello! I\'m your AI Teaching Assistant. How can I help you today?',
+        'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions']
+    }
     
     return jsonify(response)
 

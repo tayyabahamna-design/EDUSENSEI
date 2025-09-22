@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance - Tutor's Assistant{% endblock %}
+
+{% block content %}
+<div class="attendance-page">
+    <h1>Attendance & Roster Management</h1>
+    <div class="date-info">
+        <h2>Date: {{ today }}</h2>
+    </div>
+    
+    <div class="roster-management">
+        <h3>Manage Student Roster</h3>
+        <div class="add-student-form">
+            <form method="POST" action="{{ url_for('add_student') }}">
+                <input type="text" name="student_name" placeholder="Enter student name" required>
+                <button type="submit" class="btn btn-success">Add Student</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="attendance-section">
+        <h3>Mark Attendance</h3>
+        {% if students %}
+            <form method="POST" action="{{ url_for('mark_attendance') }}">
+                <div class="student-list">
+                    {% for student in students %}
+                        <div class="student-item">
+                            <span class="student-name">{{ student }}</span>
+                            <div class="attendance-controls">
+                                <label class="radio-label">
+                                    <input type="radio" name="attendance_{{ student }}" value="present" 
+                                           {% if today_attendance.get(student) == 'present' %}checked{% endif %}>
+                                    <span class="radio-custom present">Present</span>
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="attendance_{{ student }}" value="absent"
+                                           {% if today_attendance.get(student) == 'absent' %}checked{% endif %}>
+                                    <span class="radio-custom absent">Absent</span>
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-danger btn-sm" onclick="removeStudent('{{ student }}')">Remove</button>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" class="btn btn-primary btn-large">Save Attendance</button>
+            </form>
+        {% else %}
+            <p class="no-students">No students in roster. Add students using the form above.</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function removeStudent(studentName) {
+    if (confirm('Are you sure you want to remove ' + studentName + ' from the roster?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{{ url_for("remove_student") }}';
+        
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'student_name';
+        input.value = studentName;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,787 @@
+/* Tutor's Assistant - Pink, Yellow, and Blue Color Scheme */
+:root {
+    --pink-primary: #ff69b4;
+    --pink-light: #ffb3d9;
+    --pink-dark: #e1477a;
+    --yellow-primary: #ffd700;
+    --yellow-light: #ffeb80;
+    --yellow-dark: #cc9c00;
+    --blue-primary: #4169e1;
+    --blue-light: #87ceeb;
+    --blue-dark: #1e3a8a;
+    --white: #ffffff;
+    --gray-light: #f8f9fa;
+    --gray-medium: #6c757d;
+    --gray-dark: #343a40;
+    --success: #28a745;
+    --danger: #dc3545;
+    --warning: #ffc107;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--pink-light) 0%, var(--blue-light) 50%, var(--yellow-light) 100%);
+    min-height: 100vh;
+    line-height: 1.6;
+    color: var(--gray-dark);
+}
+
+/* Navigation */
+.navbar {
+    background: linear-gradient(90deg, var(--pink-primary) 0%, var(--blue-primary) 50%, var(--yellow-primary) 100%);
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+}
+
+.nav-title {
+    color: var(--white);
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.nav-menu {
+    display: flex;
+    list-style: none;
+    gap: 1.5rem;
+}
+
+.nav-link {
+    color: var(--white);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+}
+
+/* Main Content */
+.main-content {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+/* Flash Messages */
+.flash-messages {
+    margin-bottom: 2rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.alert-success {
+    background: var(--success);
+    color: var(--white);
+}
+
+.alert-danger {
+    background: var(--danger);
+    color: var(--white);
+}
+
+/* Dashboard */
+.dashboard {
+    text-align: center;
+}
+
+.welcome-section {
+    background: var(--white);
+    padding: 3rem;
+    border-radius: 20px;
+    margin-bottom: 3rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.welcome-section h1 {
+    color: var(--blue-primary);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.welcome-section p {
+    color: var(--gray-medium);
+    font-size: 1.2rem;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+    color: var(--blue-primary);
+    margin-bottom: 1rem;
+}
+
+.feature-card p {
+    color: var(--gray-medium);
+    margin-bottom: 1.5rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--pink-primary), var(--blue-primary));
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+    background: var(--gray-medium);
+    color: var(--white);
+}
+
+.btn-success {
+    background: var(--success);
+    color: var(--white);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: var(--white);
+}
+
+.btn-large {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Page Headers */
+h1 {
+    color: var(--blue-primary);
+    margin-bottom: 2rem;
+    font-size: 2.2rem;
+    text-align: center;
+}
+
+h2 {
+    color: var(--pink-primary);
+    margin-bottom: 1.5rem;
+}
+
+h3 {
+    color: var(--blue-dark);
+    margin-bottom: 1rem;
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--blue-dark);
+}
+
+input[type="text"], select, textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--blue-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, select:focus, textarea:focus {
+    border-color: var(--pink-primary);
+    outline: none;
+}
+
+/* Attendance Page */
+.attendance-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.date-info {
+    background: var(--yellow-light);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.roster-management {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--gray-light);
+    border-radius: 10px;
+}
+
+.add-student-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+.add-student-form input {
+    flex: 1;
+}
+
+.student-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.student-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: var(--white);
+    border-radius: 10px;
+    border-left: 4px solid var(--pink-primary);
+}
+
+.student-name {
+    font-weight: 500;
+    color: var(--blue-dark);
+    flex: 1;
+}
+
+.attendance-controls {
+    display: flex;
+    gap: 1rem;
+    margin: 0 1rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+    display: none;
+}
+
+.radio-custom {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    border: 2px solid var(--gray-medium);
+    transition: all 0.3s ease;
+}
+
+.radio-label input[type="radio"]:checked + .radio-custom.present {
+    background: var(--success);
+    color: var(--white);
+    border-color: var(--success);
+}
+
+.radio-label input[type="radio"]:checked + .radio-custom.absent {
+    background: var(--danger);
+    color: var(--white);
+    border-color: var(--danger);
+}
+
+/* Planner Page */
+.planner-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.planner-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.month-navigation {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.filters {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+}
+
+.filters select {
+    width: auto;
+    min-width: 120px;
+}
+
+.calendar-grid {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.calendar-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: var(--blue-primary);
+}
+
+.calendar-header div {
+    padding: 1rem;
+    text-align: center;
+    color: var(--white);
+    font-weight: bold;
+}
+
+.calendar-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-day {
+    min-height: 120px;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-light);
+    background: var(--white);
+    position: relative;
+}
+
+.calendar-day.empty {
+    background: var(--gray-light);
+}
+
+.day-number {
+    font-weight: bold;
+    color: var(--blue-dark);
+    margin-bottom: 0.5rem;
+}
+
+.day-classes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.class-item {
+    background: var(--pink-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+.add-class-btn {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background: var(--yellow-primary);
+    color: var(--blue-dark);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.add-class-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: var(--white);
+    margin: 15% auto;
+    padding: 2rem;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.close {
+    color: var(--gray-medium);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: var(--danger);
+}
+
+/* Grading Page */
+.grading-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.student-grading-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.student-grading-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    background: var(--gray-light);
+    border-radius: 10px;
+    border-left: 4px solid var(--yellow-primary);
+}
+
+.student-info h4 {
+    color: var(--blue-dark);
+    margin-bottom: 0.5rem;
+}
+
+.grade-result {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.score {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--success);
+}
+
+.timestamp, .method {
+    font-size: 0.9rem;
+    color: var(--gray-medium);
+}
+
+.not-graded {
+    color: var(--gray-medium);
+    font-style: italic;
+}
+
+.grading-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Quiz Generator */
+.quiz-generator-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.generator-form {
+    background: var(--gray-light);
+    padding: 2rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.info-card {
+    background: var(--blue-light);
+    padding: 1.5rem;
+    border-radius: 10px;
+    color: var(--blue-dark);
+}
+
+.info-card h4 {
+    margin-bottom: 0.5rem;
+}
+
+/* Chatbot */
+.chatbot-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.chat-container {
+    background: var(--gray-light);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.bot-message, .user-message {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.bot-message .message-avatar {
+    background: var(--blue-light);
+}
+
+.user-message .message-avatar {
+    background: var(--pink-light);
+}
+
+.message-content {
+    background: var(--white);
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    max-width: 80%;
+}
+
+.user-message .message-content {
+    background: var(--pink-primary);
+    color: var(--white);
+}
+
+.response-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.option-btn {
+    background: var(--yellow-primary);
+    color: var(--blue-dark);
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.option-btn:hover {
+    background: var(--yellow-dark);
+    transform: translateY(-2px);
+}
+
+.response-questions {
+    margin-top: 1rem;
+    background: var(--blue-light);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.question-item {
+    margin-bottom: 0.5rem;
+    color: var(--blue-dark);
+}
+
+.chat-input-container {
+    display: flex;
+    padding: 1rem;
+    gap: 1rem;
+    background: var(--white);
+}
+
+.chat-input-container input {
+    flex: 1;
+    border: 2px solid var(--blue-light);
+}
+
+.chat-help {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.command-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.command-item {
+    background: var(--yellow-light);
+    color: var(--blue-dark);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.command-item:hover {
+    background: var(--yellow-primary);
+    transform: translateY(-2px);
+}
+
+.lesson-plan-format {
+    background: var(--pink-light);
+    padding: 1.5rem;
+    border-radius: 10px;
+}
+
+.lesson-plan-format h4 {
+    color: var(--pink-dark);
+    margin-bottom: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-menu {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .planner-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .month-navigation {
+        justify-content: center;
+    }
+    
+    .filters {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .student-item, .student-grading-item {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .chat-help {
+        grid-template-columns: 1fr;
+    }
+    
+    .calendar-day {
+        min-height: 80px;
+    }
+}
+
+/* Utility Classes */
+.no-students {
+    text-align: center;
+    color: var(--gray-medium);
+    font-style: italic;
+    padding: 2rem;
+    background: var(--gray-light);
+    border-radius: 10px;
+}
