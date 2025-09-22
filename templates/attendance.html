@@ -72,7 +72,13 @@
                                     <img src="{{ url_for('static', filename='profile_pictures/' + student.profile_picture) }}" 
                                          alt="{{ student_name }}" class="profile-picture-small">
                                 {% else %}
-                                    <div class="profile-picture-placeholder">•</div>
+                                    {% if student is mapping and student.gender == 'male' %}
+                                        <div class="animated-avatar-small boy-avatar-small"></div>
+                                    {% elif student is mapping and student.gender == 'female' %}
+                                        <div class="animated-avatar-small girl-avatar-small"></div>
+                                    {% else %}
+                                        <div class="animated-avatar-small neutral-avatar-small"></div>
+                                    {% endif %}
                                 {% endif %}
                                 <div class="student-details">
                                     <div class="student-name-container">

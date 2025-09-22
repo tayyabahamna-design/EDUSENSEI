@@ -48,7 +48,7 @@ def save_data(file_path, data):
         json.dump(data, f, indent=2)
 
 # Student profile helper functions
-def create_student_profile(name, guardian_name="", guardian_phone="", address="", profile_picture=""):
+def create_student_profile(name, guardian_name="", guardian_phone="", address="", profile_picture="", gender=""):
     """Create a new student profile object"""
     return {
         "id": f"student_{uuid.uuid4().hex[:8]}",
@@ -56,7 +56,8 @@ def create_student_profile(name, guardian_name="", guardian_phone="", address=""
         "guardian_name": guardian_name.strip(),
         "guardian_phone": guardian_phone.strip(),
         "address": address.strip(),
-        "profile_picture": profile_picture
+        "profile_picture": profile_picture,
+        "gender": gender.strip()
     }
 
 def get_student_by_name(students, name):
@@ -376,6 +377,7 @@ def update_student_profile(student_id):
     student['guardian_name'] = request.form.get('guardian_name', '').strip()
     student['guardian_phone'] = request.form.get('guardian_phone', '').strip()
     student['address'] = request.form.get('address', '').strip()
+    student['gender'] = request.form.get('gender', '').strip()
     
     # Handle profile picture upload
     if 'profile_picture' in request.files:

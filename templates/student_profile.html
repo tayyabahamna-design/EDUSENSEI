@@ -12,7 +12,13 @@
                 <img src="{{ url_for('static', filename='profile_pictures/' + student.profile_picture) }}" 
                      alt="{{ student.name }}" class="profile-image">
             {% else %}
-                <div class="profile-placeholder-large">•</div>
+                {% if student.gender == 'male' %}
+                    <div class="animated-avatar boy-avatar"></div>
+                {% elif student.gender == 'female' %}
+                    <div class="animated-avatar girl-avatar"></div>
+                {% else %}
+                    <div class="animated-avatar neutral-avatar"></div>
+                {% endif %}
             {% endif %}
         </div>
         <div class="profile-basic-info">
@@ -29,6 +35,14 @@
             <div class="form-group">
                 <label for="name">Student Name *</label>
                 <input type="text" id="name" name="name" value="{{ student.name }}" required>
+            </div>
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender">
+                    <option value="">Select Gender</option>
+                    <option value="male" {% if student.gender == 'male' %}selected{% endif %}>Male</option>
+                    <option value="female" {% if student.gender == 'female' %}selected{% endif %}>Female</option>
+                </select>
             </div>
         </div>
 
