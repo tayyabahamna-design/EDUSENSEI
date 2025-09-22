@@ -113,11 +113,15 @@ body::before {
 }
 
 .nav-title {
-    color: var(--paper-light);
-    font-size: 1.5rem;
-    font-weight: 700;
+    background: linear-gradient(45deg, var(--baby-pink), var(--pretty-yellow), var(--calm-blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2rem;
+    font-weight: 900;
     letter-spacing: -0.025em;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    text-shadow: none;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .nav-menu {
