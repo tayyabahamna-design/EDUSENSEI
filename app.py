@@ -5,6 +5,8 @@ import uuid
 from datetime import datetime, date
 import calendar
 from werkzeug.utils import secure_filename
+import requests
+import re
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'tutor-assistant-secret-key')
@@ -156,37 +158,123 @@ def clear_session_data():
         session.pop(key, None)
 
 def generate_lesson_plan_with_ai(subject, grade, topic):
-    """Generate detailed lesson plan using Gemini AI API"""
+    """Generate detailed lesson plan using educational templates"""
+    # Use structured lesson plan template for consistency
+    return generate_simple_lesson_plan(subject, grade, topic)
+
+def get_wikipedia_definition(term):
+    """Get definition from Wikipedia API"""
     try:
-        from google import genai
-        import os
+        # First, search for the term
+        search_url = "https://en.wikipedia.org/api/rest_v1/page/summary/" + term.replace(' ', '_').replace('(', '%28').replace(')', '%29')
         
-        client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
-        
-        prompt = f"""
-Create a detailed lesson plan for Grade {grade} {subject} on the topic "{topic}".
-
-Please include:
-1. Learning objectives (2-3 clear goals)
-2. Materials needed
-3. Lesson structure (Introduction, Main Activity, Conclusion)
-4. Activities and exercises
-5. Assessment methods
-6. Time allocation for each section
-
-Make it practical and age-appropriate for Grade {grade} students.
-"""
-        
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-        
-        return response.text
-        
+        response = requests.get(search_url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            
+            # Extract and clean the summary
+            summary = data.get('extract', '')
+            if summary:
+                # Clean up the summary for elementary teachers
+                summary = re.sub(r'\([^)]*\)', '', summary)  # Remove parenthetical notes
+                summary = summary.strip()
+                
+                # Keep it concise for elementary level
+                sentences = summary.split('. ')
+                if len(sentences) > 3:
+                    summary = '. '.join(sentences[:3]) + '.'
+                
+                return f"**{term.title()}**: {summary}\n\nThis information comes from Wikipedia and is suitable for elementary education."
+            
     except Exception as e:
-        # Fallback to simple response if Gemini fails
-        return generate_simple_lesson_plan(subject, grade, topic)
+        pass
+    
+    # Fallback if Wikipedia fails
+    return f"I'd be happy to help define '{term}' for you! For detailed definitions, I recommend checking educational resources like dictionaries, encyclopedia, or asking a librarian for age-appropriate explanations."
+
+def get_teaching_guidance(question):
+    """Provide teaching guidance based on common educational practices"""
+    question_lower = question.lower()
+    
+    # Common teaching topics and responses
+    if any(word in question_lower for word in ['classroom management', 'behavior', 'discipline']):
+        return """**Classroom Management Tips:**
+        
+• Set clear, consistent rules and expectations from day one
+• Use positive reinforcement more than negative consequences  
+• Create engaging activities to prevent boredom-related issues
+• Build relationships with students - they behave better for teachers they like
+• Use non-verbal cues like hand signals for quiet redirection
+• Have a calm, consistent response to disruptions
+
+For persistent issues, involve parents and school counselors as partners in supporting the student."""
+    
+    elif any(word in question_lower for word in ['lesson plan', 'planning', 'curriculum']):
+        return """**Lesson Planning Best Practices:**
+        
+• Start with clear learning objectives - what should students know/do by the end?
+• Include a hook or engaging opening to capture attention
+• Break content into 10-15 minute chunks for elementary students
+• Plan interactive activities, not just lectures
+• Include multiple ways to practice the skill (visual, auditory, kinesthetic)
+• End with a quick assessment or summary
+• Always have backup activities ready
+
+Remember: Good planning prevents poor performance!"""
+    
+    elif any(word in question_lower for word in ['motivation', 'engage', 'interest']):
+        return """**Student Engagement Strategies:**
+        
+• Connect lessons to students' real lives and interests
+• Use games, movement, and hands-on activities
+• Give students choices when possible (topics, seating, partners)
+• Celebrate effort and improvement, not just achievement
+• Use technology thoughtfully to enhance learning
+• Break up long activities with brain breaks
+• Tell stories and use humor appropriately
+
+Engaged students learn better and cause fewer problems!"""
+    
+    elif any(word in question_lower for word in ['parent', 'communication', 'family']):
+        return """**Parent Communication Tips:**
+        
+• Contact parents with GOOD news first, before any problems arise
+• Use clear, jargon-free language
+• Be specific about what's happening and what you need
+• Offer solutions, not just problems
+• Respond to parent concerns promptly and professionally
+• Use multiple communication methods (email, phone, notes)
+• Include parents as partners in their child's education
+
+Strong parent partnerships make teaching much easier!"""
+    
+    elif any(word in question_lower for word in ['assessment', 'grade', 'test', 'evaluate']):
+        return """**Assessment Ideas:**
+        
+• Use formative assessment (exit tickets, thumbs up/down) to check understanding daily
+• Try alternative assessments: projects, presentations, portfolios
+• Give students opportunities to show learning in different ways
+• Provide clear rubrics so students know expectations
+• Use peer assessment and self-reflection
+• Focus on growth over absolute scores
+• Give timely, specific feedback
+
+Assessment should help learning, not just measure it!"""
+    
+    else:
+        # General teaching advice
+        return f"""Thanks for your question about: "{question}"
+        
+**General Teaching Tips:**
+        
+• Build positive relationships with all students
+• Keep lessons interactive and hands-on
+• Use clear expectations and consistent routines
+• Differentiate instruction for different learning styles
+• Communicate regularly with parents
+• Take care of yourself - you can't pour from an empty cup!
+        
+For specific guidance on this topic, I recommend consulting with your school's instructional coach, mentor teacher, or educational resources like Edutopia.org or your district's curriculum materials."""
 
 def generate_simple_lesson_plan(subject, grade, topic):
     """Fallback lesson plan generation"""
@@ -924,24 +1012,10 @@ def handle_activities(user_message):
         })
 
 def handle_definitions(user_message):
-    """Handle definition requests"""
+    """Handle definition requests using Wikipedia API"""
     if user_message.strip():
         term = user_message.strip()
-        
-        try:
-            from google import genai
-            import os
-            
-            client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
-            
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=f"Provide a clear, educational definition of '{term}' suitable for elementary school teachers. Include examples if helpful. Keep it concise and easy to understand."
-            )
-            
-            definition = response.text
-        except Exception as e:
-            definition = f"I'd be happy to help define '{term}' for you, but I'm having trouble accessing detailed definitions right now. Try asking about it in a more specific way or check educational resources."
+        definition = get_wikipedia_definition(term)
         
         clear_session_data()
         set_chatbot_state(ChatbotState.MAIN_MENU)
@@ -958,24 +1032,10 @@ def handle_definitions(user_message):
         })
 
 def handle_general_questions(user_message):
-    """Handle general teaching questions using Gemini AI"""
+    """Handle general teaching questions using educational resources"""
     if user_message.strip():
         question = user_message.strip()
-        
-        try:
-            from google import genai
-            import os
-            
-            client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
-            
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=f"You are a helpful AI teaching assistant for elementary school teachers. Provide practical, actionable advice for the following question: {question}"
-            )
-            
-            answer = response.text
-        except Exception as e:
-            answer = "I'd love to help with your teaching question! Unfortunately, I'm having trouble accessing my full knowledge base right now. Try rephrasing your question or ask about specific teaching strategies, classroom management, or lesson planning."
+        answer = get_teaching_guidance(question)
         
         clear_session_data()
         set_chatbot_state(ChatbotState.MAIN_MENU)
