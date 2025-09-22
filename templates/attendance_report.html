@@ -1,12 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Weekly Attendance Report - Tutor's Assistant{% endblock %}
+{% block title %}{{ report_type }} Attendance Report - Tutor's Assistant{% endblock %}
 
 {% block content %}
-<div class="weekly-report-page">
-    <h1>📊 Weekly Attendance Report</h1>
+<div class="attendance-report-page">
+    <h1>📊 {{ report_type }} Attendance Report</h1>
+    
+    <!-- Report Type Tabs -->
+    <div class="report-tabs">
+        <a href="{{ url_for('daily_report') }}" class="tab-link {% if report_type == 'Daily' %}active{% endif %}">📅 Daily</a>
+        <a href="{{ url_for('weekly_report') }}" class="tab-link {% if report_type == 'Weekly' %}active{% endif %}">📅 Weekly</a>
+        <a href="{{ url_for('monthly_report') }}" class="tab-link {% if report_type == 'Monthly' %}active{% endif %}">📅 Monthly</a>
+        <a href="{{ url_for('yearly_report') }}" class="tab-link {% if report_type == 'Yearly' %}active{% endif %}">📅 Yearly</a>
+    </div>
     
     <div class="report-controls">
+        {% if report_type == 'Daily' %}
+        <form method="GET" action="{{ url_for('daily_report') }}" class="date-range-form">
+            <div class="form-group">
+                <label for="date">Select Date:</label>
+                <input type="date" id="date" name="date" value="{{ selected_date }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+        
+        {% elif report_type == 'Weekly' %}
         <form method="GET" action="{{ url_for('weekly_report') }}" class="date-range-form">
             <div class="form-group">
                 <label for="start_date">Start Date:</label>
@@ -16,19 +34,81 @@
                 <label for="end_date">End Date:</label>
                 <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
             </div>
+            <div class="form-group">
+                <label for="custom_total_days">Custom Total Days:</label>
+                <input type="number" id="custom_total_days" name="custom_total_days" value="{{ custom_total_days or '' }}" min="1" placeholder="Optional">
+                <small>Override total days for percentage calculation</small>
+            </div>
             <button type="submit" class="btn btn-primary">Generate Report</button>
         </form>
         
+        {% elif report_type == 'Monthly' %}
+        <form method="GET" action="{{ url_for('monthly_report') }}" class="date-range-form">
+            <div class="form-group">
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" value="{{ year }}" min="2020" max="2030" required>
+            </div>
+            <div class="form-group">
+                <label for="month">Month:</label>
+                <select id="month" name="month" required>
+                    <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                    <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                    <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                    <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                    <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                    <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                    <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                    <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                    <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                    <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                    <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                    <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="custom_total_days">Custom Total Days:</label>
+                <input type="number" id="custom_total_days" name="custom_total_days" value="{{ custom_total_days or '' }}" min="1" placeholder="Optional">
+                <small>Override total days for percentage calculation</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+        
+        {% elif report_type == 'Yearly' %}
+        <form method="GET" action="{{ url_for('yearly_report') }}" class="date-range-form">
+            <div class="form-group">
+                <label for="year">Year:</label>
+                <input type="number" id="year" name="year" value="{{ year }}" min="2020" max="2030" required>
+            </div>
+            <div class="form-group">
+                <label for="custom_total_days">Custom Total Days:</label>
+                <input type="number" id="custom_total_days" name="custom_total_days" value="{{ custom_total_days or '' }}" min="1" placeholder="Optional">
+                <small>Override total days for percentage calculation</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+        {% endif %}
+        
         <div class="share-controls">
+            {% if custom_total_days %}
+            <a href="{{ url_for('generate_whatsapp_share', start_date=start_date, end_date=end_date, custom_total_days=custom_total_days) }}" 
+               class="btn btn-success whatsapp-share-btn" target="_blank">
+                📱 Share via WhatsApp
+            </a>
+            {% else %}
             <a href="{{ url_for('generate_whatsapp_share', start_date=start_date, end_date=end_date) }}" 
                class="btn btn-success whatsapp-share-btn" target="_blank">
                 📱 Share via WhatsApp
             </a>
+            {% endif %}
         </div>
     </div>
     
     <div class="report-summary">
+        {% if report_type == 'Daily' %}
+        <h2>📅 Report Date: {{ report.start_date }}</h2>
+        {% else %}
         <h2>📅 Report Period: {{ report.start_date }} to {{ report.end_date }}</h2>
+        {% endif %}
         
         <div class="summary-cards">
             <div class="summary-card">
@@ -43,7 +123,7 @@
                 <div class="card-icon">📅</div>
                 <div class="card-content">
                     <h3>{{ report.total_days }}</h3>
-                    <p>Days with Records</p>
+                    <p>{% if report.denominator_mode == 'custom' %}Custom Total Days{% else %}{% if report_type == 'Daily' %}School Day{% else %}Days with Records{% endif %}{% endif %}</p>
                 </div>
             </div>
             
@@ -68,20 +148,42 @@
     <div class="student-attendance-details">
         <h3>👥 Individual Student Attendance</h3>
         
+        {% if report.total_days == 0 %}
+        <div class="no-record-notice">
+            <div class="notice-icon">📝</div>
+            <div class="notice-content">
+                <h4>No Attendance Record</h4>
+                <p>{% if report_type == 'Daily' %}No attendance was recorded for this date.{% else %}No attendance records were found for this period.{% endif %}</p>
+                <p>Please mark attendance first, then generate the report.</p>
+            </div>
+        </div>
+        {% else %}
         <div class="attendance-table">
             <div class="table-header">
                 <div class="header-cell">Student Name</div>
-                <div class="header-cell">Present Days</div>
+                <div class="header-cell">{% if report_type == 'Daily' %}Status{% else %}Present Days{% endif %}</div>
+                {% if report_type != 'Daily' %}
                 <div class="header-cell">Absent Days</div>
+                {% endif %}
                 <div class="header-cell">Attendance %</div>
-                <div class="header-cell">Status</div>
+                <div class="header-cell">Overall Status</div>
             </div>
             
             {% for student, stats in report.student_stats.items() %}
                 <div class="table-row">
                     <div class="table-cell student-name" data-label="Student">{{ student }}</div>
+                    {% if report_type == 'Daily' %}
+                    <div class="table-cell present-days" data-label="Status">
+                        {% if stats.present > 0 %}
+                            <span class="status-present">✅ Present</span>
+                        {% else %}
+                            <span class="status-absent">❌ Absent</span>
+                        {% endif %}
+                    </div>
+                    {% else %}
                     <div class="table-cell present-days" data-label="Present">{{ stats.present }}</div>
                     <div class="table-cell absent-days" data-label="Absent">{{ stats.absent }}</div>
+                    {% endif %}
                     <div class="table-cell percentage" data-label="Attendance">{{ stats.percentage }}%</div>
                     <div class="table-cell status" data-label="Status">
                         {% if stats.percentage >= 80 %}
@@ -95,6 +197,7 @@
                 </div>
             {% endfor %}
         </div>
+        {% endif %}
     </div>
     
     <div class="report-actions">
@@ -104,12 +207,41 @@
 </div>
 
 <style>
-.weekly-report-page {
+.attendance-report-page {
     background: var(--white);
     padding: 2rem;
     border-radius: 15px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     margin-bottom: 2rem;
+}
+
+.report-tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--gray-light);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tab-link {
+    padding: 12px 24px;
+    text-decoration: none;
+    color: var(--gray-medium);
+    border-bottom: 3px solid transparent;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.tab-link:hover {
+    color: var(--blue-primary);
+    background: var(--gray-light);
+}
+
+.tab-link.active {
+    color: var(--blue-primary);
+    border-bottom-color: var(--blue-primary);
+    background: var(--gray-light);
 }
 
 .report-controls {
@@ -239,6 +371,16 @@
     font-weight: bold;
 }
 
+.status-present {
+    color: var(--success);
+    font-weight: bold;
+}
+
+.status-absent {
+    color: var(--danger);
+    font-weight: bold;
+}
+
 .report-actions {
     margin-top: 2rem;
     text-align: center;
@@ -277,11 +419,11 @@
 }
 
 @media print {
-    .report-controls, .report-actions {
+    .report-controls, .report-actions, .report-tabs {
         display: none;
     }
     
-    .weekly-report-page {
+    .attendance-report-page {
         box-shadow: none;
         padding: 1rem;
     }

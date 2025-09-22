@@ -156,7 +156,8 @@ def weekly_report():
 @app.route('/monthly_report')
 def monthly_report():
     # Get month range from query params or default to current month
-    from datetime import datetime, calendar
+    from datetime import datetime
+    import calendar
     
     today = datetime.now().date()
     year = int(request.args.get('year', today.year))
@@ -221,6 +222,40 @@ def yearly_report():
                          report_type='Yearly',
                          year=year,
                          custom_total_days=custom_total_days)
+
+@app.route('/daily_report')
+def daily_report():
+    # Get date from query params or default to today
+    from datetime import datetime
+    
+    today = datetime.now().date()
+    selected_date = request.args.get('date', today.isoformat())
+    
+    try:
+        # Validate date format
+        datetime.fromisoformat(selected_date).date()
+    except ValueError:
+        flash('Invalid date format', 'danger')
+        return redirect(url_for('daily_report'))
+    
+    # For daily reports, start and end date are the same
+    start_date = selected_date
+    end_date = selected_date
+    
+    # Calculate attendance report for the single day
+    report_data = calculate_attendance_summary(start_date, end_date, 'recorded_only')
+    
+    # Handle calculation errors
+    if 'error' in report_data:
+        flash(report_data['error'], 'danger')
+        return redirect(url_for('daily_report'))
+    
+    return render_template('attendance_report.html', 
+                         report=report_data, 
+                         start_date=start_date, 
+                         end_date=end_date,
+                         report_type='Daily',
+                         selected_date=selected_date)
 
 def calculate_attendance_summary(start_date, end_date, denominator_mode='recorded_only', custom_total_days=None):
     """Calculate attendance statistics for any period with flexible denominator"""
@@ -336,42 +371,89 @@ def generate_whatsapp_share():
     
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
+    custom_total_days = request.args.get('custom_total_days', type=int)
     
     if not start_date or not end_date:
         flash('Invalid date range for report generation', 'danger')
         return redirect(url_for('weekly_report'))
     
+    # Determine report type
+    if start_date == end_date:
+        report_type = 'Daily'
+        redirect_url = 'daily_report'
+    else:
+        from datetime import datetime
+        try:
+            start = datetime.fromisoformat(start_date).date()
+            end = datetime.fromisoformat(end_date).date()
+            days_diff = (end - start).days + 1
+            
+            if days_diff <= 7:
+                report_type = 'Weekly'
+                redirect_url = 'weekly_report'
+            elif days_diff <= 31:
+                report_type = 'Monthly'
+                redirect_url = 'monthly_report'
+            else:
+                report_type = 'Yearly'
+                redirect_url = 'yearly_report'
+        except:
+            report_type = 'Weekly'
+            redirect_url = 'weekly_report'
+    
     # Generate report data
-    report_data = calculate_weekly_attendance(start_date, end_date)
+    if custom_total_days:
+        report_data = calculate_attendance_summary(start_date, end_date, 'custom', custom_total_days)
+    else:
+        report_data = calculate_attendance_summary(start_date, end_date, 'recorded_only')
     
     # Handle calculation errors
     if 'error' in report_data:
         flash(report_data['error'], 'danger')
-        return redirect(url_for('weekly_report'))
+        return redirect(url_for(redirect_url))
     
     # Format report for WhatsApp sharing
-    message = format_report_for_whatsapp(report_data)
+    message = format_report_for_whatsapp(report_data, report_type)
     
     # Create WhatsApp share link
     whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(message)}"
     
     return redirect(whatsapp_url)
 
-def format_report_for_whatsapp(report_data):
+def format_report_for_whatsapp(report_data, report_type='Weekly'):
     """Format attendance report as text for WhatsApp sharing"""
-    message = f"📊 *Weekly Attendance Report*\n"
-    message += f"📅 Period: {report_data['start_date']} to {report_data['end_date']}\n\n"
+    message = f"📊 *{report_type} Attendance Report*\n"
+    
+    if report_type == 'Daily':
+        message += f"📅 Date: {report_data['start_date']}\n\n"
+    else:
+        message += f"📅 Period: {report_data['start_date']} to {report_data['end_date']}\n\n"
     
     message += f"📈 *Overall Summary:*\n"
     message += f"• Total Students: {report_data['total_students']}\n"
-    message += f"• Days with Records: {report_data['total_days']}\n"
+    
+    if report_type == 'Daily':
+        message += f"• School Day: {report_data['total_days']}\n"
+    else:
+        days_label = "Custom Total Days" if report_data.get('denominator_mode') == 'custom' else "Days with Records"
+        message += f"• {days_label}: {report_data['total_days']}\n"
+    
     message += f"• Overall Attendance: {report_data['overall_percentage']}%\n"
     message += f"• Total Present: {report_data['total_present']}/{report_data['total_possible']}\n\n"
     
     message += f"👥 *Individual Attendance:*\n"
-    for student, stats in report_data['student_stats'].items():
-        status_emoji = "✅" if stats['percentage'] >= 80 else "⚠️" if stats['percentage'] >= 60 else "❌"
-        message += f"{status_emoji} {student}: {stats['percentage']}% ({stats['present']}/{stats['total_days']} days)\n"
+    
+    if report_data['total_days'] == 0:
+        message += "No attendance records found for this period.\n"
+    else:
+        for student, stats in report_data['student_stats'].items():
+            if report_type == 'Daily':
+                status_emoji = "✅" if stats['present'] > 0 else "❌"
+                status_text = "Present" if stats['present'] > 0 else "Absent"
+                message += f"{status_emoji} {student}: {status_text}\n"
+            else:
+                status_emoji = "✅" if stats['percentage'] >= 80 else "⚠️" if stats['percentage'] >= 60 else "❌"
+                message += f"{status_emoji} {student}: {stats['percentage']}% ({stats['present']}/{stats['total_days']} days)\n"
     
     message += f"\n📱 Generated by Tutor's Assistant"
     
