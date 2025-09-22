@@ -66,7 +66,15 @@
                 <div class="student-list">
                     {% for student in students %}
                         <div class="student-item">
-                            <span class="student-name">{{ student }}</span>
+                            <div class="student-name-container">
+                                <span class="student-name" data-student="{{ student }}">{{ student }}</span>
+                                <input type="text" class="student-name-edit" value="{{ student }}" style="display: none;" data-original="{{ student }}">
+                                <div class="name-edit-controls" style="display: none;">
+                                    <button type="button" class="btn btn-success btn-xs save-edit-btn">✓</button>
+                                    <button type="button" class="btn btn-secondary btn-xs cancel-edit-btn">✗</button>
+                                </div>
+                                <button type="button" class="btn btn-info btn-sm edit-student-btn" data-student="{{ student }}">✏️ Edit</button>
+                            </div>
                             <div class="attendance-controls">
                                 <label class="radio-label">
                                     <input type="radio" name="attendance_{{ student }}" value="present" 
