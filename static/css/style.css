@@ -113,15 +113,11 @@ body::before {
 }
 
 .nav-title {
-    background: linear-gradient(45deg, var(--baby-pink), var(--pretty-yellow), var(--calm-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--gray-900);
     font-size: 2rem;
     font-weight: 900;
     letter-spacing: -0.025em;
-    text-shadow: none;
-    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.8);
 }
 
 .nav-menu {
@@ -131,7 +127,7 @@ body::before {
 }
 
 .nav-link {
-    color: var(--paper-light);
+    color: var(--gray-900);
     text-decoration: none;
     padding: 0.5rem 1rem;
     border-radius: 8px;
@@ -154,7 +150,7 @@ body::before {
 
 .nav-link:hover {
     background: var(--pretty-yellow);
-    color: var(--gray-800);
+    color: var(--gray-900);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -249,10 +245,10 @@ body::before {
 }
 
 .welcome-section h1 {
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%); */
+    /* -webkit-background-clip: text; */
+    color: var(--gray-900);
+    /* background-clip: text; */
     font-size: 2.25rem;
     margin-bottom: 1rem;
     font-weight: 700;
@@ -314,10 +310,10 @@ body::before {
 .feature-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%); */
+    /* -webkit-background-clip: text; */
+    color: var(--gray-900);
+    /* background-clip: text; */
     display: inline-block;
     /* Simplified - removed pulse animation */
 }
@@ -328,10 +324,10 @@ body::before {
 }
 
 .feature-card h3 {
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%); */
+    /* -webkit-background-clip: text; */
+    color: var(--gray-900);
+    /* background-clip: text; */
     margin-bottom: 1rem;
     font-weight: 600;
     font-size: 1.25rem;
@@ -375,7 +371,7 @@ body::before {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
+    background: linear-gradient(135deg, var(--calm-blue-dark) 0%, #cc0066 100%);
     color: var(--white);
     box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
 }
@@ -446,10 +442,10 @@ body::before {
 
 /* Page Headers */
 h1 {
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%); */
+    /* -webkit-background-clip: text; */
+    color: var(--gray-900);
+    /* background-clip: text; */
     margin-bottom: 2rem;
     font-size: 2rem;
     text-align: center;
@@ -472,20 +468,20 @@ h1::after {
 }
 
 h2 {
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%); */
+    /* -webkit-background-clip: text; */
+    color: var(--gray-900);
+    /* background-clip: text; */
     margin-bottom: 1.5rem;
     font-weight: 600;
     font-size: 1.5rem;
 }
 
 h3 {
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%); */
+    /* -webkit-background-clip: text; */
+    color: var(--gray-900);
+    /* background-clip: text; */
     margin-bottom: 1rem;
     font-weight: 600;
     font-size: 1.25rem;
@@ -525,7 +521,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
     justify-content: center;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
+    /* background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%); */
     /* Simplified animations for professional setting */
 }
 
@@ -1079,9 +1075,9 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
 }
 
 .btn-info {
-    background: var(--info);
+    background: var(--calm-blue-dark);
     color: var(--white);
-    border-color: var(--info);
+    border-color: var(--calm-blue-dark);
 }
 
 .btn-info:hover {
@@ -1113,15 +1109,15 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
 }
 
 .radio-label input[type="radio"]:checked + .radio-custom.present {
-    background: var(--success);
+    background: var(--calm-blue-dark);
     color: var(--white);
-    border-color: var(--success);
+    border-color: var(--calm-blue-dark);
 }
 
 .radio-label input[type="radio"]:checked + .radio-custom.absent {
-    background: var(--danger);
+    background: #cc0066;
     color: var(--white);
-    border-color: var(--danger);
+    border-color: #cc0066;
 }
 
 /* Planner Page */
@@ -1173,7 +1169,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
 .calendar-header div {
     padding: 1rem;
     text-align: center;
-    color: var(--white);
+    color: var(--gray-900);
     font-weight: bold;
 }
 
