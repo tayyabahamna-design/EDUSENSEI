@@ -21,7 +21,7 @@
             <div class="bot-message">
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
-                    <p>🌟 Hello! I'm your cute AI Teaching Assistant! 🎀 Type "hi" to see how I can help you with lesson planning, fun activities, and more! 📚✨</p>
+                    <p>Hello! I'm your cute AI Teaching Assistant! Type "hi" to see how I can help you with lesson planning, fun activities, and more!</p>
                 </div>
             </div>
         </div>
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (response.options && response.options.length > 0) {
             html += '<div class="response-options">';
             response.options.forEach(option => {
-                html += `<button class="option-btn" onclick="sendMessage('${option}')">${option}</button>`;
+                html += `<button class="option-btn" onclick="sendMessage('${option.replace(/'/g, "\\'")}')">${option}</button>`;
             });
             html += '</div>';
         }
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add return to menu button if specified
         if (response.return_to_menu) {
             html += '<div class="response-actions">';
-            html += '<button class="action-btn" onclick="sendMessage(\\'menu\\')">Return to Main Menu</button>';
+            html += '<button class="action-btn" onclick="sendMessage(\'menu\')">Return to Main Menu</button>';
             html += '</div>';
         }
         
