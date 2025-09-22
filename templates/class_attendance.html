@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}{{ class_info.name }} Attendance - Tutor's Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header-section">
+        <h1>📋 {{ class_info.name }} Attendance</h1>
+        <a href="{{ url_for('classes') }}" class="btn btn-secondary">← Back to Classes</a>
+    </div>
+
+    <!-- Date Selection -->
+    <div class="date-section">
+        <form method="GET" class="date-form">
+            <label for="date">📅 Select Date:</label>
+            <input type="date" name="date" id="date" value="{{ selected_date }}" onchange="this.form.submit()">
+        </form>
+        <div class="date-info">
+            <h3>{{ selected_date_formatted }}</h3>
+            {% if is_today %}
+                <span class="date-badge today">Today</span>
+            {% elif is_past %}
+                <span class="date-badge past">Past Date</span>
+            {% else %}
+                <span class="date-badge future">Future Date</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Attendance Form -->
+    {% if students %}
+        <form method="POST" action="{{ url_for('mark_class_attendance') }}" class="attendance-form">
+            <input type="hidden" name="class_id" value="{{ class_info.id }}">
+            <input type="hidden" name="attendance_date" value="{{ selected_date }}">
+            
+            <div class="students-grid">
+                {% for student in students %}
+                    <div class="student-card">
+                        <div class="student-info">
+                            <div class="student-avatar">
+                                {% if student.gender == 'female' %}
+                                    👧
+                                {% else %}
+                                    👦
+                                {% endif %}
+                            </div>
+                            <div class="student-details">
+                                <h4>{{ student.name }}</h4>
+                                <p class="student-id">ID: {{ student.id }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="attendance-options">
+                            {% set current_status = selected_attendance.get(student.name, 'absent') %}
+                            
+                            <label class="attendance-option present {{ 'active' if current_status == 'present' else '' }}">
+                                <input type="radio" name="attendance_{{ student.name }}" value="present" 
+                                       {{ 'checked' if current_status == 'present' else '' }}>
+                                <span class="option-label">✅ Present</span>
+                            </label>
+                            
+                            <label class="attendance-option absent {{ 'active' if current_status == 'absent' else '' }}">
+                                <input type="radio" name="attendance_{{ student.name }}" value="absent" 
+                                       {{ 'checked' if current_status == 'absent' else '' }}>
+                                <span class="option-label">❌ Absent</span>
+                            </label>
+                            
+                            <label class="attendance-option late {{ 'active' if current_status == 'late' else '' }}">
+                                <input type="radio" name="attendance_{{ student.name }}" value="late" 
+                                       {{ 'checked' if current_status == 'late' else '' }}>
+                                <span class="option-label">⏰ Late</span>
+                            </label>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-large">
+                    💾 Save Attendance for {{ class_info.name }}
+                </button>
+            </div>
+        </form>
+    {% else %}
+        <div class="no-students">
+            <h3>👥 No Students Assigned</h3>
+            <p>This class doesn't have any students assigned yet.</p>
+            <a href="{{ url_for('classes') }}" class="btn btn-primary">
+                📚 Assign Students to {{ class_info.name }}
+            </a>
+        </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h3>⚡ Quick Actions</h3>
+        <div class="action-buttons">
+            <button onclick="markAllPresent()" class="btn btn-success">✅ Mark All Present</button>
+            <button onclick="markAllAbsent()" class="btn btn-danger">❌ Mark All Absent</button>
+            <button onclick="clearAll()" class="btn btn-secondary">🔄 Clear All</button>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    {% if students %}
+    <div class="attendance-summary">
+        <h3>📊 Today's Summary</h3>
+        <div class="summary-stats" id="summaryStats">
+            <div class="stat present-stat">
+                <span class="stat-icon">✅</span>
+                <span class="stat-label">Present:</span>
+                <span class="stat-value" id="presentCount">0</span>
+            </div>
+            <div class="stat absent-stat">
+                <span class="stat-icon">❌</span>
+                <span class="stat-label">Absent:</span>
+                <span class="stat-value" id="absentCount">0</span>
+            </div>
+            <div class="stat late-stat">
+                <span class="stat-icon">⏰</span>
+                <span class="stat-label">Late:</span>
+                <span class="stat-value" id="lateCount">0</span>
+            </div>
+            <div class="stat total-stat">
+                <span class="stat-icon">👥</span>
+                <span class="stat-label">Total:</span>
+                <span class="stat-value">{{ students|length }}</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.header-section h1 {
+    margin: 0;
+    color: #2d3748;
+    background: linear-gradient(135deg, #f56565, #ed64a6, #667eea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.date-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 2px solid #f8d7da;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.date-form {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.date-form label {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.date-form input {
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.date-info h3 {
+    margin: 0;
+    color: #2d3748;
+}
+
+.date-badge {
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.date-badge.today {
+    background: linear-gradient(135deg, #48bb78, #38b2ac);
+    color: white;
+}
+
+.date-badge.past {
+    background: linear-gradient(135deg, #718096, #4a5568);
+    color: white;
+}
+
+.date-badge.future {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.student-card {
+    background: linear-gradient(135deg, #fdf2f8, #fef7ff);
+    border: 2px solid #f3e8ff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.student-avatar {
+    font-size: 2em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 50%;
+}
+
+.student-details h4 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.1em;
+}
+
+.student-id {
+    margin: 0;
+    color: #718096;
+    font-size: 0.9em;
+}
+
+.attendance-options {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.attendance-option {
+    flex: 1;
+    min-width: 90px;
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.attendance-option input {
+    display: none;
+}
+
+.attendance-option.present.active {
+    background: linear-gradient(135deg, #48bb78, #38b2ac);
+    color: white;
+    border-color: #38b2ac;
+}
+
+.attendance-option.absent.active {
+    background: linear-gradient(135deg, #fc8181, #f56565);
+    color: white;
+    border-color: #f56565;
+}
+
+.attendance-option.late.active {
+    background: linear-gradient(135deg, #fbb6ce, #f687b3);
+    color: white;
+    border-color: #f687b3;
+}
+
+.attendance-option:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.form-actions {
+    text-align: center;
+    margin: 32px 0;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #f56565, #ed64a6);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #718096, #4a5568);
+    color: white;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #48bb78, #38b2ac);
+    color: white;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #fc8181, #f56565);
+    color: white;
+}
+
+.btn-large {
+    padding: 16px 32px;
+    font-size: 18px;
+}
+
+.no-students {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 2px solid #f8d7da;
+}
+
+.no-students h3 {
+    color: #2d3748;
+    margin-bottom: 16px;
+}
+
+.no-students p {
+    color: #718096;
+    margin-bottom: 24px;
+}
+
+.quick-actions {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 2px solid #f8d7da;
+}
+
+.quick-actions h3 {
+    margin: 0 0 16px 0;
+    color: #2d3748;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.attendance-summary {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 2px solid #f8d7da;
+}
+
+.attendance-summary h3 {
+    margin: 0 0 16px 0;
+    color: #2d3748;
+}
+
+.summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 16px;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.stat-icon {
+    font-size: 1.2em;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.stat-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2d3748;
+}
+</style>
+
+<script>
+function markAllPresent() {
+    const presentInputs = document.querySelectorAll('input[value="present"]');
+    presentInputs.forEach(input => {
+        input.checked = true;
+        updateAttendanceOption(input);
+    });
+    updateSummary();
+}
+
+function markAllAbsent() {
+    const absentInputs = document.querySelectorAll('input[value="absent"]');
+    absentInputs.forEach(input => {
+        input.checked = true;
+        updateAttendanceOption(input);
+    });
+    updateSummary();
+}
+
+function clearAll() {
+    const allInputs = document.querySelectorAll('input[type="radio"]');
+    allInputs.forEach(input => {
+        input.checked = false;
+        input.parentElement.classList.remove('active');
+    });
+    updateSummary();
+}
+
+function updateAttendanceOption(input) {
+    // Remove active class from all options in the same group
+    const studentName = input.name.replace('attendance_', '');
+    const options = document.querySelectorAll(`input[name="attendance_${studentName}"]`);
+    options.forEach(option => {
+        option.parentElement.classList.remove('active');
+    });
+    
+    // Add active class to selected option
+    if (input.checked) {
+        input.parentElement.classList.add('active');
+    }
+}
+
+function updateSummary() {
+    const presentCount = document.querySelectorAll('input[value="present"]:checked').length;
+    const absentCount = document.querySelectorAll('input[value="absent"]:checked').length;
+    const lateCount = document.querySelectorAll('input[value="late"]:checked').length;
+    
+    document.getElementById('presentCount').textContent = presentCount;
+    document.getElementById('absentCount').textContent = absentCount;
+    document.getElementById('lateCount').textContent = lateCount;
+}
+
+// Add event listeners to all radio buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const radioInputs = document.querySelectorAll('input[type="radio"]');
+    radioInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            updateAttendanceOption(this);
+            updateSummary();
+        });
+    });
+    
+    // Initialize active states and summary
+    radioInputs.forEach(input => {
+        if (input.checked) {
+            updateAttendanceOption(input);
+        }
+    });
+    updateSummary();
+});
+</script>
+{% endblock %}

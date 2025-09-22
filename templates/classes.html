@@ -1,0 +1,347 @@
+{% extends "base.html" %}
+
+{% block title %}Classes - Tutor's Assistant{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>🏫 Class Management</h1>
+    
+    <!-- Create New Class Section -->
+    <div class="section-card">
+        <h2>➕ Create New Class</h2>
+        <form method="POST" action="{{ url_for('create_class_route') }}" class="form-inline">
+            <div class="form-group">
+                <label for="grade">📚 Grade:</label>
+                <select name="grade" id="grade" required>
+                    <option value="">Select Grade</option>
+                    <option value="1">Grade 1</option>
+                    <option value="2">Grade 2</option>
+                    <option value="3">Grade 3</option>
+                    <option value="4">Grade 4</option>
+                    <option value="5">Grade 5</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="section">🔤 Section:</label>
+                <input type="text" name="section" id="section" maxlength="1" placeholder="A" required style="width: 60px;">
+            </div>
+            <button type="submit" class="btn btn-primary">✨ Create Class</button>
+        </form>
+    </div>
+
+    <!-- Existing Classes Section -->
+    <div class="section-card">
+        <h2>📚 Existing Classes</h2>
+        
+        {% if classes %}
+            <div class="classes-grid">
+                {% for class in classes %}
+                <div class="class-card">
+                    <div class="class-header">
+                        <h3>🏫 {{ class.name }}</h3>
+                        <div class="class-actions">
+                            <a href="{{ url_for('class_attendance', class_id=class.id) }}" class="btn btn-sm btn-primary">📋 Take Attendance</a>
+                            <form method="POST" action="{{ url_for('delete_class') }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ class.name }}? All students will be unassigned.')">
+                                <input type="hidden" name="class_id" value="{{ class.id }}">
+                                <button type="submit" class="btn btn-sm btn-danger">🗑️ Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="class-students">
+                        <p class="student-count">👥 Students: <span class="count">{{ class.student_count or 0 }}</span></p>
+                        
+                        {% if class.students %}
+                            <ul class="student-list">
+                                {% for student in class.students %}
+                                    <li>
+                                        {% if student.gender == 'female' %}👧{% else %}👦{% endif %}
+                                        {{ student.name }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p class="no-students">No students assigned yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-data">
+                <p>📝 No classes created yet. Create your first class above!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Unassigned Students Section -->
+    {% if unassigned_students %}
+        {% set unassigned_count = unassigned_students|selectattr('class_id', 'equalto', '')|list|length %}
+        {% if unassigned_count > 0 %}
+        <div class="section-card">
+            <h2>👥 Unassigned Students ({{ unassigned_count }})</h2>
+            
+            <div class="unassigned-students">
+                {% for student in unassigned_students %}
+                    {% if student.class_id == '' %}
+                    <div class="student-assignment-card">
+                        <div class="student-info">
+                            {% if student.gender == 'female' %}👧{% else %}👦{% endif %}
+                            <span class="student-name">{{ student.name }}</span>
+                        </div>
+                        
+                        {% if classes %}
+                        <form method="POST" action="{{ url_for('assign_student') }}" class="assign-form">
+                            <input type="hidden" name="student_id" value="{{ student.id }}">
+                            <select name="class_id" required>
+                                <option value="">Select Class</option>
+                                {% for class in classes %}
+                                <option value="{{ class.id }}">{{ class.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-success">📚 Assign</button>
+                        </form>
+                        {% else %}
+                        <span class="no-classes-text">Create a class first</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.section-card {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border: 2px solid #f8d7da;
+}
+
+.form-inline {
+    display: flex;
+    gap: 16px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.form-group input, .form-group select {
+    padding: 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+}
+
+.form-group input:focus, .form-group select:focus {
+    outline: none;
+    border-color: #f56565;
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.1);
+}
+
+.classes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 16px;
+}
+
+.class-card {
+    background: linear-gradient(135deg, #fdf2f8, #fef7ff);
+    border: 2px solid #f3e8ff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.class-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.class-header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.2em;
+}
+
+.class-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #f56565, #ed64a6);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #48bb78, #38b2ac);
+    color: white;
+}
+
+.btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #fc8181, #f56565);
+    color: white;
+}
+
+.btn-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 101, 101, 0.3);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.student-count {
+    margin: 0 0 12px 0;
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.count {
+    background: linear-gradient(135deg, #fbb6ce, #f687b3);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.student-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.student-list li {
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    margin-bottom: 4px;
+    color: #2d3748;
+    font-weight: 500;
+}
+
+.no-students {
+    color: #718096;
+    font-style: italic;
+    margin: 0;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #718096;
+}
+
+.unassigned-students {
+    display: grid;
+    gap: 12px;
+}
+
+.student-assignment-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.student-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.student-name {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.assign-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.assign-form select {
+    padding: 6px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.no-classes-text {
+    color: #718096;
+    font-style: italic;
+    font-size: 14px;
+}
+
+h1, h2 {
+    color: #2d3748;
+    margin-bottom: 16px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 2.5em;
+    background: linear-gradient(135deg, #f56565, #ed64a6, #667eea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 32px;
+}
+</style>
+{% endblock %}

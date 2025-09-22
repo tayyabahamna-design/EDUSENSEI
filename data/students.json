@@ -6,7 +6,8 @@
     "guardian_phone": "",
     "address": "",
     "profile_picture": "",
-    "gender": "female"
+    "gender": "female",
+    "class_id": "grade_1a"
   },
   {
     "id": "student_2",
@@ -15,7 +16,8 @@
     "guardian_phone": "",
     "address": "",
     "profile_picture": "",
-    "gender": "female"
+    "gender": "female",
+    "class_id": "grade_1a"
   },
   {
     "id": "student_3",
@@ -24,7 +26,8 @@
     "guardian_phone": "",
     "address": "",
     "profile_picture": "",
-    "gender": "female"
+    "gender": "female",
+    "class_id": "grade_2a"
   },
   {
     "id": "student_4",
@@ -33,7 +36,8 @@
     "guardian_phone": "",
     "address": "",
     "profile_picture": "",
-    "gender": "female"
+    "gender": "female",
+    "class_id": ""
   },
   {
     "id": "student_26cbf15b",
@@ -42,6 +46,7 @@
     "guardian_phone": "",
     "address": "",
     "profile_picture": "",
-    "gender": "male"
+    "gender": "male",
+    "class_id": ""
   }
 ]

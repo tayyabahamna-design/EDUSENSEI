@@ -3,6 +3,13 @@
     "Mehmoona": "present",
     "Aira": "absent",
     "Aliza": "present",
-    "Syeda Sughra Fatima": "absent"
+    "Syeda Sughra Fatima": "absent",
+    "grade_1a": {
+      "Syeda Sughra Fatima": "present",
+      "Mehmoona": "absent"
+    },
+    "grade_2a": {
+      "Aira": "present"
+    }
   }
 }

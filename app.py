@@ -17,6 +17,7 @@ STUDENTS_FILE = os.path.join(DATA_DIR, 'students.json')
 ATTENDANCE_FILE = os.path.join(DATA_DIR, 'attendance.json')
 SCHEDULE_FILE = os.path.join(DATA_DIR, 'schedule.json')
 GRADES_FILE = os.path.join(DATA_DIR, 'grades.json')
+CLASSES_FILE = os.path.join(DATA_DIR, 'classes.json')
 
 # Ensure data directory and files exist
 def init_data_files():
@@ -28,7 +29,8 @@ def init_data_files():
         STUDENTS_FILE: [],
         ATTENDANCE_FILE: {},
         SCHEDULE_FILE: {},
-        GRADES_FILE: {}
+        GRADES_FILE: {},
+        CLASSES_FILE: {}
     }
     
     for file_path, default_content in default_data.items():
@@ -42,7 +44,7 @@ def load_data(file_path):
         with open(file_path, 'r') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError):
-        return {} if 'attendance' in file_path or 'schedule' in file_path or 'grades' in file_path else []
+        return {} if 'attendance' in file_path or 'schedule' in file_path or 'grades' in file_path or 'classes' in file_path else []
 
 # Save data to JSON files
 def save_data(file_path, data):
@@ -50,7 +52,7 @@ def save_data(file_path, data):
         json.dump(data, f, indent=2)
 
 # Student profile helper functions
-def create_student_profile(name, guardian_name="", guardian_phone="", address="", profile_picture="", gender=""):
+def create_student_profile(name, guardian_name="", guardian_phone="", address="", profile_picture="", gender="", class_id=""):
     """Create a new student profile object"""
     return {
         "id": f"student_{uuid.uuid4().hex[:8]}",
@@ -59,7 +61,8 @@ def create_student_profile(name, guardian_name="", guardian_phone="", address=""
         "guardian_phone": guardian_phone.strip(),
         "address": address.strip(),
         "profile_picture": profile_picture,
-        "gender": gender.strip()
+        "gender": gender.strip(),
+        "class_id": class_id.strip()
     }
 
 def get_student_by_name(students, name):
@@ -95,9 +98,47 @@ def migrate_legacy_students(students):
             # Convert string to object
             migrated.append(create_student_profile(student))
         elif isinstance(student, dict):
-            # Already in new format
+            # Already in new format, ensure class_id exists
+            if 'class_id' not in student:
+                student['class_id'] = ""
             migrated.append(student)
     return migrated
+
+# Class management helper functions
+def create_class(grade, section):
+    """Create a new class object"""
+    class_id = f"grade_{grade}{section.lower()}"
+    return {
+        "id": class_id,
+        "name": f"Grade {grade}{section.upper()}",
+        "grade": int(grade),
+        "section": section.upper()
+    }
+
+def get_all_classes():
+    """Get all classes sorted by grade and section"""
+    classes_data = load_data(CLASSES_FILE)
+    classes = list(classes_data.values())
+    # Sort by grade first, then by section
+    classes.sort(key=lambda x: (x.get('grade', 0), x.get('section', '')))
+    return classes
+
+def get_class_by_id(class_id):
+    """Get a specific class by ID"""
+    classes_data = load_data(CLASSES_FILE)
+    return classes_data.get(class_id)
+
+def get_students_by_class(class_id):
+    """Get all students belonging to a specific class"""
+    students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    return [student for student in students if student.get('class_id') == class_id]
+
+def get_unassigned_students():
+    """Get all students not assigned to any class"""
+    students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    return [student for student in students if not student.get('class_id')]
 
 # Simulated AI functions
 def simulate_ai_grading():
@@ -435,6 +476,218 @@ def mark_attendance():
         flash(f'Future attendance set for {selected_date.strftime("%B %d, %Y")}', 'success')
     
     return redirect(url_for('attendance', date=attendance_date))
+
+# Class Management Routes
+@app.route('/classes')
+def classes():
+    """Display all classes and allow management"""
+    classes = get_all_classes()
+    unassigned_students = get_unassigned_students()
+    
+    # Add student count to each class
+    for class_info in classes:
+        class_students = get_students_by_class(class_info['id'])
+        class_info['student_count'] = len(class_students)
+        class_info['students'] = class_students
+    
+    return render_template('classes.html', classes=classes, unassigned_students=unassigned_students)
+
+@app.route('/create_class', methods=['POST'])
+def create_class_route():
+    """Create a new class"""
+    grade = request.form.get('grade')
+    section = request.form.get('section')
+    
+    if not grade or not section:
+        flash('Grade and section are required!', 'error')
+        return redirect(url_for('classes'))
+    
+    try:
+        grade = int(grade)
+        if grade < 1 or grade > 5:
+            flash('Grade must be between 1 and 5!', 'error')
+            return redirect(url_for('classes'))
+    except ValueError:
+        flash('Invalid grade number!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Check if class already exists
+    class_id = f"grade_{grade}{section.lower()}"
+    classes_data = load_data(CLASSES_FILE)
+    
+    if class_id in classes_data:
+        flash(f'Grade {grade}{section.upper()} already exists!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Create new class
+    new_class = create_class(grade, section)
+    classes_data[class_id] = new_class
+    save_data(CLASSES_FILE, classes_data)
+    
+    flash(f'Grade {grade}{section.upper()} created successfully!', 'success')
+    return redirect(url_for('classes'))
+
+@app.route('/delete_class', methods=['POST'])
+def delete_class():
+    """Delete a class and unassign all students"""
+    class_id = request.form.get('class_id')
+    
+    if not class_id:
+        flash('Invalid class!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Get class info for confirmation message
+    class_info = get_class_by_id(class_id)
+    if not class_info:
+        flash('Class not found!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Unassign all students from this class
+    students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    
+    for student in students:
+        if student.get('class_id') == class_id:
+            student['class_id'] = ""
+    
+    save_data(STUDENTS_FILE, students)
+    
+    # Delete the class
+    classes_data = load_data(CLASSES_FILE)
+    if class_id in classes_data:
+        del classes_data[class_id]
+        save_data(CLASSES_FILE, classes_data)
+    
+    flash(f'{class_info["name"]} deleted successfully! All students have been unassigned.', 'success')
+    return redirect(url_for('classes'))
+
+@app.route('/assign_student', methods=['POST'])
+def assign_student():
+    """Assign a student to a class"""
+    student_id = request.form.get('student_id')
+    class_id = request.form.get('class_id')
+    
+    if not student_id or not class_id:
+        flash('Invalid student or class!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Load students and update the specific student
+    students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    
+    student_found = False
+    for student in students:
+        if student.get('id') == student_id:
+            student['class_id'] = class_id
+            student_found = True
+            break
+    
+    if student_found:
+        save_data(STUDENTS_FILE, students)
+        class_info = get_class_by_id(class_id)
+        flash(f'Student assigned to {class_info["name"]} successfully!', 'success')
+    else:
+        flash('Student not found!', 'error')
+    
+    return redirect(url_for('classes'))
+
+@app.route('/class_attendance/<class_id>')
+def class_attendance(class_id):
+    """Display attendance for a specific class"""
+    # Get selected date from query parameter, default to today
+    selected_date_str = request.args.get('date', date.today().isoformat())
+    
+    # Validate and parse the date
+    try:
+        selected_date = datetime.fromisoformat(selected_date_str).date()
+    except (ValueError, TypeError):
+        selected_date = date.today()
+        selected_date_str = selected_date.isoformat()
+    
+    # Get class information
+    class_info = get_class_by_id(class_id)
+    if not class_info:
+        flash('Class not found!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Get students in this class
+    students = get_students_by_class(class_id)
+    
+    # Get attendance data for this class and date
+    attendance_data = load_data(ATTENDANCE_FILE)
+    class_attendance_data = attendance_data.get(selected_date_str, {}).get(class_id, {})
+    
+    # Determine if this is a past, present, or future date
+    today = date.today()
+    is_past = selected_date < today
+    is_today = selected_date == today
+    is_future = selected_date > today
+    
+    return render_template('class_attendance.html', 
+                         class_info=class_info,
+                         students=students, 
+                         selected_attendance=class_attendance_data, 
+                         selected_date=selected_date_str,
+                         selected_date_formatted=selected_date.strftime('%B %d, %Y'),
+                         is_past=is_past,
+                         is_today=is_today,
+                         is_future=is_future)
+
+@app.route('/mark_class_attendance', methods=['POST'])
+def mark_class_attendance():
+    """Mark attendance for a specific class"""
+    class_id = request.form.get('class_id')
+    attendance_date = request.form.get('attendance_date', date.today().isoformat())
+    
+    if not class_id:
+        flash('Invalid class!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Validate the date
+    try:
+        datetime.fromisoformat(attendance_date).date()
+    except (ValueError, TypeError):
+        flash('Invalid date format', 'error')
+        return redirect(url_for('class_attendance', class_id=class_id))
+    
+    # Get class info
+    class_info = get_class_by_id(class_id)
+    if not class_info:
+        flash('Class not found!', 'error')
+        return redirect(url_for('classes'))
+    
+    # Load attendance data
+    attendance_data = load_data(ATTENDANCE_FILE)
+    
+    # Initialize date and class structure if needed
+    if attendance_date not in attendance_data:
+        attendance_data[attendance_date] = {}
+    if class_id not in attendance_data[attendance_date]:
+        attendance_data[attendance_date][class_id] = {}
+    
+    # Get students in this class
+    students = get_students_by_class(class_id)
+    
+    # Mark attendance for each student
+    for student in students:
+        student_name = student.get('name', '')
+        status = request.form.get(f'attendance_{student_name}', 'absent')
+        attendance_data[attendance_date][class_id][student_name] = status
+    
+    save_data(ATTENDANCE_FILE, attendance_data)
+    
+    # Provide appropriate success message based on date
+    selected_date = datetime.fromisoformat(attendance_date).date()
+    today = date.today()
+    
+    if selected_date == today:
+        flash(f'Today\'s attendance for {class_info["name"]} marked successfully!', 'success')
+    elif selected_date < today:
+        flash(f'Attendance updated for {class_info["name"]} on {selected_date.strftime("%B %d, %Y")}', 'success')
+    else:
+        flash(f'Future attendance set for {class_info["name"]} on {selected_date.strftime("%B %d, %Y")}', 'success')
+    
+    return redirect(url_for('class_attendance', class_id=class_id, date=attendance_date))
 
 @app.route('/student_profile/<student_id>')
 def student_profile(student_id):
