@@ -33,6 +33,18 @@
     --warning: #f59e0b;
     --info: #3b82f6;
     
+    /* Legacy color mappings for compatibility */
+    --blue-primary: #6366f1;
+    --blue-dark: #334155;
+    --blue-light: #e0e7ff;
+    --pink-primary: #6366f1;
+    --pink-light: #e0e7ff;
+    --yellow-primary: #f59e0b;
+    --yellow-light: #fef3c7;
+    --gray-light: #f1f5f9;
+    --gray-medium: #64748b;
+    --gray-dark: #334155;
+    
     /* Modern shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
@@ -674,14 +686,14 @@ input[type="text"]:focus, input[type="tel"]:focus, select:focus, textarea:focus 
 }
 
 .btn-info {
-    background: var(--blue-primary);
+    background: var(--info);
     color: var(--white);
-    border: none;
+    border-color: var(--info);
 }
 
 .btn-info:hover {
-    background: var(--blue-dark);
-    transform: translateY(-1px);
+    background: #2563eb;
+    border-color: #2563eb;
 }
 
 .attendance-controls {

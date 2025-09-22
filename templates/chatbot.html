@@ -61,9 +61,11 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.innerHTML = `
                 <div class="message-avatar">${isUser ? 'You' : 'AI'}</div>
                 <div class="message-content">
-                    <p>${content}</p>
+                    <p></p>
                 </div>
             `;
+            // Set content safely to prevent XSS
+            messageDiv.querySelector('.message-content p').textContent = content;
         } else {
             messageDiv.innerHTML = `
                 <div class="message-avatar">AI</div>
