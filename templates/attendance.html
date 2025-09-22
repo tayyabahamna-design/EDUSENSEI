@@ -118,9 +118,10 @@
 </div>
 
 <script>
-// Safe event delegation for remove student buttons
+// Safe event delegation for student management buttons
 document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('click', function(event) {
+        // Handle remove student button
         if (event.target && event.target.classList.contains('remove-student-btn')) {
             const studentName = event.target.getAttribute('data-student');
             if (confirm('Are you sure you want to remove ' + studentName + ' from the roster?')) {
@@ -138,7 +139,102 @@ document.addEventListener('DOMContentLoaded', function() {
                 form.submit();
             }
         }
+        
+        // Handle edit student button
+        if (event.target && event.target.classList.contains('edit-student-btn')) {
+            const studentItem = event.target.closest('.student-item');
+            const studentName = event.target.getAttribute('data-student');
+            
+            // Hide the span and edit button, show the input and save/cancel buttons
+            const nameSpan = studentItem.querySelector('.student-name');
+            const nameInput = studentItem.querySelector('.student-name-edit');
+            const editControls = studentItem.querySelector('.name-edit-controls');
+            const editBtn = studentItem.querySelector('.edit-student-btn');
+            
+            nameSpan.style.display = 'none';
+            editBtn.style.display = 'none';
+            nameInput.style.display = 'inline-block';
+            editControls.style.display = 'inline-block';
+            nameInput.focus();
+            nameInput.select();
+        }
+        
+        // Handle save edit button
+        if (event.target && event.target.classList.contains('save-edit-btn')) {
+            const studentItem = event.target.closest('.student-item');
+            const nameInput = studentItem.querySelector('.student-name-edit');
+            const originalName = nameInput.getAttribute('data-original');
+            const newName = nameInput.value.trim();
+            
+            if (!newName) {
+                alert('Student name cannot be empty!');
+                return;
+            }
+            
+            if (newName === originalName) {
+                // No change, just cancel edit mode
+                cancelEditMode(studentItem);
+                return;
+            }
+            
+            // Submit the edit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '{{ url_for("edit_student") }}';
+            
+            const oldNameInput = document.createElement('input');
+            oldNameInput.type = 'hidden';
+            oldNameInput.name = 'old_name';
+            oldNameInput.value = originalName;
+            
+            const newNameInput = document.createElement('input');
+            newNameInput.type = 'hidden';
+            newNameInput.name = 'new_name';
+            newNameInput.value = newName;
+            
+            form.appendChild(oldNameInput);
+            form.appendChild(newNameInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+        
+        // Handle cancel edit button
+        if (event.target && event.target.classList.contains('cancel-edit-btn')) {
+            const studentItem = event.target.closest('.student-item');
+            cancelEditMode(studentItem);
+        }
+    });
+    
+    // Handle Enter key to save and Escape key to cancel in edit mode
+    document.addEventListener('keydown', function(event) {
+        if (event.target && event.target.classList.contains('student-name-edit')) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const saveBtn = event.target.closest('.student-item').querySelector('.save-edit-btn');
+                saveBtn.click();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                const cancelBtn = event.target.closest('.student-item').querySelector('.cancel-edit-btn');
+                cancelBtn.click();
+            }
+        }
     });
 });
+
+function cancelEditMode(studentItem) {
+    const nameSpan = studentItem.querySelector('.student-name');
+    const nameInput = studentItem.querySelector('.student-name-edit');
+    const editControls = studentItem.querySelector('.name-edit-controls');
+    const editBtn = studentItem.querySelector('.edit-student-btn');
+    
+    // Reset input to original value
+    nameInput.value = nameInput.getAttribute('data-original');
+    
+    // Show the span and edit button, hide the input and save/cancel buttons
+    nameSpan.style.display = 'inline';
+    editBtn.style.display = 'inline-block';
+    nameInput.style.display = 'none';
+    editControls.style.display = 'none';
+}
 </script>
 {% endblock %}
