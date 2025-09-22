@@ -302,6 +302,233 @@ input[type="text"]:focus, select:focus, textarea:focus {
     background: var(--white);
     border-radius: 10px;
     border-left: 4px solid var(--pink-primary);
+    gap: 1rem;
+}
+
+.student-profile-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+}
+
+.profile-picture-small {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--blue-light);
+}
+
+.profile-picture-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--gray-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--white);
+    border: 2px solid var(--blue-light);
+}
+
+.student-details {
+    flex: 1;
+}
+
+.student-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--gray-dark);
+}
+
+.guardian-info, .phone-info {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.profile-btn {
+    white-space: nowrap;
+}
+
+/* Student Profile Page */
+.profile-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--blue-light), var(--pink-light));
+    border-radius: 12px;
+}
+
+.profile-picture-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid var(--white);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-placeholder-large {
+    width: 100%;
+    height: 100%;
+    background: var(--gray-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--white);
+}
+
+.profile-basic-info h2 {
+    margin: 0 0 0.5rem 0;
+    color: var(--blue-dark);
+}
+
+.student-id {
+    color: var(--gray-dark);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.form-section {
+    background: var(--gray-light);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border-left: 4px solid var(--pink-primary);
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--blue-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group:last-child {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--blue-dark);
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group input[type="file"],
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid var(--blue-light);
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--pink-primary);
+    outline: none;
+}
+
+.form-help {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--gray-dark);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.profile-stats {
+    margin-top: 3rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 2px solid var(--blue-light);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--yellow-light);
+    border-radius: 50%;
+}
+
+.stat-info h4 {
+    margin: 0 0 0.25rem 0;
+    color: var(--blue-dark);
+    font-size: 1rem;
+}
+
+.stat-info p {
+    margin: 0;
+    color: var(--gray-dark);
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 .student-name-container {

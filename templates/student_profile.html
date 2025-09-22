@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - {{ student.name }}{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <h1>Student Profile</h1>
+    
+    <div class="profile-header">
+        <div class="profile-picture-large">
+            {% if student.profile_picture %}
+                <img src="{{ url_for('static', filename='profile_pictures/' + student.profile_picture) }}" 
+                     alt="{{ student.name }}" class="profile-image">
+            {% else %}
+                <div class="profile-placeholder-large">👤</div>
+            {% endif %}
+        </div>
+        <div class="profile-basic-info">
+            <h2>{{ student.name }}</h2>
+            <p class="student-id">ID: {{ student.id }}</p>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('update_student_profile', student_id=student.id) }}" 
+          enctype="multipart/form-data" class="profile-form">
+        
+        <div class="form-section">
+            <h3>📝 Basic Information</h3>
+            <div class="form-group">
+                <label for="name">Student Name *</label>
+                <input type="text" id="name" name="name" value="{{ student.name }}" required>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>👨‍👩‍👧‍👦 Guardian Information</h3>
+            <div class="form-group">
+                <label for="guardian_name">Guardian Name</label>
+                <input type="text" id="guardian_name" name="guardian_name" value="{{ student.guardian_name or '' }}">
+            </div>
+            
+            <div class="form-group">
+                <label for="guardian_phone">Guardian Phone Number</label>
+                <input type="tel" id="guardian_phone" name="guardian_phone" value="{{ student.guardian_phone or '' }}" 
+                       placeholder="e.g., +92 300 1234567">
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>📍 Address Information</h3>
+            <div class="form-group">
+                <label for="address">Home Address</label>
+                <textarea id="address" name="address" rows="3" placeholder="Enter complete address">{{ student.address or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3>📷 Profile Picture</h3>
+            <div class="form-group">
+                <label for="profile_picture">Upload Profile Picture</label>
+                <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
+                <small class="form-help">Choose a clear photo of the student. Recommended size: 300x300 pixels</small>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-large">💾 Save Profile</button>
+            <a href="{{ url_for('attendance') }}" class="btn btn-secondary">📋 Back to Attendance</a>
+        </div>
+    </form>
+
+    <div class="profile-stats">
+        <h3>📊 Quick Stats</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📅</div>
+                <div class="stat-info">
+                    <h4>Total Days</h4>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <h4>Present Days</h4>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">❌</div>
+                <div class="stat-info">
+                    <h4>Absent Days</h4>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info">
+                    <h4>Attendance Rate</h4>
+                    <p>Coming Soon</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

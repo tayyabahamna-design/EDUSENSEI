@@ -347,6 +347,53 @@ def mark_attendance():
     
     return redirect(url_for('attendance', date=attendance_date))
 
+@app.route('/student_profile/<student_id>')
+def student_profile(student_id):
+    """Display and manage student profile"""
+    students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    
+    student = get_student_by_id(students, student_id)
+    if not student:
+        flash('Student not found!', 'error')
+        return redirect(url_for('attendance'))
+    
+    return render_template('student_profile.html', student=student)
+
+@app.route('/update_student_profile/<student_id>', methods=['POST'])
+def update_student_profile(student_id):
+    """Update student profile information"""
+    students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    
+    student = get_student_by_id(students, student_id)
+    if not student:
+        flash('Student not found!', 'error')
+        return redirect(url_for('attendance'))
+    
+    # Update student profile fields
+    student['name'] = request.form.get('name', '').strip()
+    student['guardian_name'] = request.form.get('guardian_name', '').strip()
+    student['guardian_phone'] = request.form.get('guardian_phone', '').strip()
+    student['address'] = request.form.get('address', '').strip()
+    
+    # Handle profile picture upload
+    if 'profile_picture' in request.files:
+        file = request.files['profile_picture']
+        if file and file.filename:
+            filename = secure_filename(f"{student_id}_{file.filename}")
+            file_path = os.path.join('data', 'profile_pictures', filename)
+            
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            file.save(file_path)
+            student['profile_picture'] = filename
+    
+    save_data(STUDENTS_FILE, students)
+    flash(f'Profile updated for {student["name"]}!', 'success')
+    
+    return redirect(url_for('student_profile', student_id=student_id))
+
 # Planner feature removed as requested
 
 # Grading feature removed as requested
