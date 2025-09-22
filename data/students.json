@@ -5,7 +5,8 @@
     "guardian_name": "",
     "guardian_phone": "",
     "address": "",
-    "profile_picture": ""
+    "profile_picture": "",
+    "gender": "female"
   },
   {
     "id": "student_2",
@@ -13,7 +14,8 @@
     "guardian_name": "",
     "guardian_phone": "",
     "address": "",
-    "profile_picture": ""
+    "profile_picture": "",
+    "gender": "female"
   },
   {
     "id": "student_3",
@@ -21,7 +23,8 @@
     "guardian_name": "",
     "guardian_phone": "",
     "address": "",
-    "profile_picture": ""
+    "profile_picture": "",
+    "gender": "female"
   },
   {
     "id": "student_4",
@@ -29,7 +32,8 @@
     "guardian_name": "",
     "guardian_phone": "",
     "address": "",
-    "profile_picture": ""
+    "profile_picture": "",
+    "gender": "female"
   },
   {
     "id": "student_26cbf15b",
@@ -37,6 +41,7 @@
     "guardian_name": "",
     "guardian_phone": "",
     "address": "",
-    "profile_picture": ""
+    "profile_picture": "",
+    "gender": "male"
   }
 ]
