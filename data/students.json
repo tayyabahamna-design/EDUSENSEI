@@ -30,5 +30,13 @@
     "guardian_phone": "",
     "address": "",
     "profile_picture": ""
+  },
+  {
+    "id": "student_26cbf15b",
+    "name": "Test Student",
+    "guardian_name": "",
+    "guardian_phone": "",
+    "address": "",
+    "profile_picture": ""
   }
 ]
