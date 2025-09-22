@@ -1,32 +1,30 @@
-/* Tutor's Assistant - Eye Candy Modern Design */
+/* Tutor's Assistant - Primary School Teacher Design */
 :root {
-    --primary: #667eea;
-    --secondary: #764ba2;
-    --accent: #f093fb;
+    /* Main Classroom Colors */
+    --primary: #2d5a27;        /* Forest Green - chalkboard */
+    --secondary: #8b4513;      /* Saddle Brown - wood desk */
+    --accent: #ff7f50;         /* Coral - friendly highlight */
     
-    --indigo-primary: #667eea;
-    --indigo-light: #a8d5ff;
-    --indigo-dark: #4338ca;
+    /* Educational Color Palette */
+    --chalkboard-green: #2d5a27;
+    --chalkboard-light: #4a7c59;
+    --chalkboard-dark: #1e3d1a;
     
-    --slate-primary: #64748b;
-    --slate-light: #e2e8f0;
-    --slate-dark: #334155;
+    --paper-cream: #fefbf3;
+    --paper-light: #ffffff;
+    --paper-dark: #f5f2e8;
     
-    --purple-primary: #8b5cf6;
-    --purple-light: #ddd6fe;
-    --purple-dark: #7c3aed;
+    --pencil-yellow: #ffd700;
+    --pencil-light: #fff44f;
+    --pencil-dark: #e6c200;
     
-    --cyan-primary: #06b6d4;
-    --cyan-light: #a7f3d0;
-    --cyan-dark: #0891b2;
+    --apple-red: #dc143c;
+    --apple-light: #ff6b6b;
+    --apple-dark: #b71c1c;
     
-    --rose-primary: #f43f5e;
-    --rose-light: #fecaca;
-    --rose-dark: #e11d48;
-    
-    --emerald-primary: #10b981;
-    --emerald-light: #a7f3d0;
-    --emerald-dark: #059669;
+    --sky-blue: #87ceeb;
+    --sky-light: #b6e5ff;
+    --sky-dark: #4682b4;
     
     --white: #ffffff;
     --gray-50: #f8fafc;
@@ -40,22 +38,22 @@
     --gray-800: #1e293b;
     --gray-900: #0f172a;
     
-    --success: #10b981;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-    --info: #3b82f6;
+    --success: var(--chalkboard-green);
+    --danger: var(--apple-red);
+    --warning: var(--pencil-yellow);
+    --info: var(--sky-blue);
     
     /* Legacy color mappings for compatibility */
-    --blue-primary: #6366f1;
-    --blue-dark: #334155;
-    --blue-light: #e0e7ff;
-    --pink-primary: #6366f1;
-    --pink-light: #e0e7ff;
-    --yellow-primary: #f59e0b;
-    --yellow-light: #fef3c7;
-    --gray-light: #f1f5f9;
-    --gray-medium: #64748b;
-    --gray-dark: #334155;
+    --blue-primary: var(--sky-blue);
+    --blue-dark: var(--chalkboard-dark);
+    --blue-light: var(--sky-light);
+    --pink-primary: var(--apple-red);
+    --pink-light: var(--apple-light);
+    --yellow-primary: var(--pencil-yellow);
+    --yellow-light: var(--pencil-light);
+    --gray-light: var(--paper-light);
+    --gray-medium: var(--gray-500);
+    --gray-dark: var(--chalkboard-dark);
     
     /* Modern shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -71,8 +69,8 @@
 }
 
 body {
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: 'Comic Neue', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, var(--paper-cream) 0%, var(--sky-light) 100%);
     min-height: 100vh;
     line-height: 1.6;
     color: var(--gray-900);
