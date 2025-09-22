@@ -7,9 +7,17 @@ import calendar
 from werkzeug.utils import secure_filename
 import requests
 import re
+from openai import OpenAI
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'tutor-assistant-secret-key')
+
+# Initialize OpenAI client
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    openai_client = None
 
 # Data file paths
 DATA_DIR = 'data'
@@ -159,6 +167,7 @@ class ChatbotState:
     ACTIVITIES = 'activities'
     DEFINITIONS = 'definitions'
     GENERAL_QUESTIONS = 'general_questions'
+    FREE_CHAT = 'free_chat'
     
     # Menu options
     GRADES = ['1', '2', '3', '4', '5']
@@ -233,8 +242,42 @@ def get_wikipedia_definition(term):
     # Fallback if Wikipedia fails
     return f"I'd be happy to help define '{term}' for you! For detailed definitions, I recommend checking educational resources like dictionaries, encyclopedia, or asking a librarian for age-appropriate explanations."
 
-def get_teaching_guidance(question):
-    """Provide teaching guidance based on common educational practices"""
+def get_ai_response(user_message, conversation_type="general"):
+    """Get AI-powered response using OpenAI GPT-5"""
+    if not openai_client:
+        return get_teaching_guidance_fallback(user_message)
+    
+    try:
+        # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
+        # do not change this unless explicitly requested by the user
+        
+        if conversation_type == "teaching":
+            system_prompt = """You are a helpful AI teaching assistant for primary school teachers (grades 1-5). 
+            You provide practical, actionable advice about classroom management, lesson planning, student engagement, 
+            assessment, and parent communication. Keep responses friendly, supportive, and focused on elementary education. 
+            Use bullet points and clear formatting when helpful."""
+        else:
+            system_prompt = """You are a friendly, helpful AI assistant for primary school teachers. 
+            You can discuss teaching topics, answer general questions, and have natural conversations. 
+            Be warm, supportive, and helpful while maintaining a professional but friendly tone."""
+        
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",  # Use working model instead of gpt-5
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        print(f"OpenAI API error: {e}")
+        return get_teaching_guidance_fallback(user_message)
+
+def get_teaching_guidance_fallback(question):
+    """Fallback teaching guidance when OpenAI is not available"""
     question_lower = question.lower()
     
     # Common teaching topics and responses
@@ -314,8 +357,12 @@ Assessment should help learning, not just measure it!"""
 • Differentiate instruction for different learning styles
 • Communicate regularly with parents
 • Take care of yourself - you can't pour from an empty cup!
-        
+
 For specific guidance on this topic, I recommend consulting with your school's instructional coach, mentor teacher, or educational resources like Edutopia.org or your district's curriculum materials."""
+
+def get_teaching_guidance(question):
+    """Provide AI-powered teaching guidance"""
+    return get_ai_response(question, "teaching")
 
 def generate_simple_lesson_plan(subject, grade, topic):
     """Fallback lesson plan generation"""
@@ -1111,7 +1158,7 @@ def chat():
         set_chatbot_state(ChatbotState.MAIN_MENU)
         return jsonify({
             'message': 'Hello! I\'m your AI Teaching Assistant. How can I help you today?',
-            'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions'],
+            'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions', 'Free Chat'],
             'show_menu': True
         })
     
@@ -1130,6 +1177,8 @@ def chat():
         return handle_definitions(user_message)
     elif current_state == ChatbotState.GENERAL_QUESTIONS:
         return handle_general_questions(user_message)
+    elif current_state == ChatbotState.FREE_CHAT:
+        return handle_free_chat(user_message)
     else:
         # Fallback to main menu
         set_chatbot_state(ChatbotState.MAIN_MENU)
@@ -1139,7 +1188,7 @@ def get_main_menu_response():
     """Get the main menu response"""
     return {
         'message': 'Welcome to your AI Teaching Assistant! Choose what you\'d like help with:',
-        'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions'],
+        'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions', 'Free Chat'],
         'show_menu': True
     }
 
@@ -1175,6 +1224,13 @@ def handle_main_menu(user_message):
         return jsonify({
             'message': 'I\'m here to help with any teaching-related questions you have! What would you like to know? Just type your question below.',
             'navigation': 'General Questions'
+        })
+    
+    elif 'free chat' in message_lower or 'chat' in message_lower or 'conversation' in message_lower:
+        set_chatbot_state(ChatbotState.FREE_CHAT)
+        return jsonify({
+            'message': 'Great! I\'m now in free chat mode. You can ask me anything or have a natural conversation. How can I help you today?',
+            'navigation': 'Free Chat'
         })
     
     else:
@@ -1301,6 +1357,25 @@ def handle_general_questions(user_message):
     else:
         return jsonify({
             'message': 'Please ask me a question about teaching, classroom management, or education in the chat below.'
+        })
+
+def handle_free_chat(user_message):
+    """Handle free conversation using AI"""
+    if user_message.strip():
+        # Use AI for natural conversation
+        response = get_ai_response(user_message, "general")
+        
+        # Stay in free chat mode for continued conversation (don't reset state)
+        return jsonify({
+            'message': response,
+            'type': 'free_chat',
+            'navigation': 'Free Chat',
+            'continue_chat': True
+        })
+    else:
+        return jsonify({
+            'message': 'I\'m here for a natural conversation! Ask me anything you\'d like to discuss.',
+            'navigation': 'Free Chat'
         })
 
 if __name__ == '__main__':
