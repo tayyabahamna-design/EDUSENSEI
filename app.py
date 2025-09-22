@@ -118,20 +118,7 @@ def mark_attendance():
 
 # Grading feature removed as requested
 
-@app.route('/quiz_generator')
-def quiz_generator():
-    return render_template('quiz_generator.html')
-
-@app.route('/generate_quiz', methods=['POST'])
-def generate_quiz():
-    topic = request.form.get('topic')
-    grade = request.form.get('grade')
-    quiz_type = request.form.get('quiz_type')
-    
-    # Simulate quiz generation
-    quiz_content = f"Generated {quiz_type} for Grade {grade} on topic: {topic}"
-    flash(f'Quiz generated successfully: {quiz_content}', 'success')
-    return redirect(url_for('quiz_generator'))
+# Quiz generator feature removed as requested
 
 # Chatbot Routes
 @app.route('/chatbot')
