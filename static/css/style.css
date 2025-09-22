@@ -304,10 +304,61 @@ input[type="text"]:focus, select:focus, textarea:focus {
     border-left: 4px solid var(--pink-primary);
 }
 
+.student-name-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
 .student-name {
     font-weight: 500;
     color: var(--blue-dark);
     flex: 1;
+}
+
+.student-name-edit {
+    flex: 1;
+    padding: 0.5rem;
+    border: 2px solid var(--pink-primary);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--blue-dark);
+    background: var(--yellow-light);
+}
+
+.student-name-edit:focus {
+    outline: none;
+    border-color: var(--blue-primary);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.name-edit-controls {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.btn-xs {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+    border-radius: 4px;
+    min-width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-info {
+    background: var(--blue-primary);
+    color: var(--white);
+    border: none;
+}
+
+.btn-info:hover {
+    background: var(--blue-dark);
+    transform: translateY(-1px);
 }
 
 .attendance-controls {
