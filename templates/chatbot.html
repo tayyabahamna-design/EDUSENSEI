@@ -40,75 +40,105 @@
 </div>
 
 <script>
-const chatMessages = document.getElementById('chatMessages');
-const chatInput = document.getElementById('chatInput');
-const sendButton = document.getElementById('sendButton');
+// Wait for the page to load completely
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendButton = document.getElementById('sendButton');
 
-function addMessage(content, isUser = false) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = isUser ? 'user-message' : 'bot-message';
-    
-    messageDiv.innerHTML = `
-        <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
-        <div class="message-content">
-            ${typeof content === 'string' ? `<p>${content}</p>` : formatBotResponse(content)}
-        </div>
-    `;
-    
-    chatMessages.appendChild(messageDiv);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-function formatBotResponse(response) {
-    let html = `<p>${response.message}</p>`;
-    
-    if (response.options) {
-        html += '<div class="response-options">';
-        response.options.forEach(option => {
-            html += `<button class="option-btn" onclick="sendMessage('${option.toLowerCase()}')">${option}</button>`;
-        });
-        html += '</div>';
+    function addMessage(content, isUser = false) {
+        if (!chatMessages) return;
+        
+        const messageDiv = document.createElement('div');
+        messageDiv.className = isUser ? 'user-message' : 'bot-message';
+        
+        if (typeof content === 'string') {
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-content">
+                    <p>${content}</p>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    ${formatBotResponse(content)}
+                </div>
+            `;
+        }
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    
-    if (response.questions) {
-        html += '<div class="response-questions">';
-        response.questions.forEach(question => {
-            html += `<p class="question-item">• ${question}</p>`;
-        });
-        html += '</div>';
-    }
-    
-    return html;
-}
 
-async function sendMessage(message = null) {
-    const messageText = message || chatInput.value.trim();
-    if (!messageText) return;
-    
-    addMessage(messageText, true);
-    if (!message) chatInput.value = '';
-    
-    try {
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: messageText })
+    function formatBotResponse(response) {
+        let html = `<p>${response.message || 'No response'}</p>`;
+        
+        if (response.options && response.options.length > 0) {
+            html += '<div class="response-options">';
+            response.options.forEach(option => {
+                html += `<button class="option-btn" onclick="sendMessage('${option.toLowerCase()}')">${option}</button>`;
+            });
+            html += '</div>';
+        }
+        
+        if (response.questions && response.questions.length > 0) {
+            html += '<div class="response-questions">';
+            response.questions.forEach(question => {
+                html += `<p class="question-item">• ${question}</p>`;
+            });
+            html += '</div>';
+        }
+        
+        return html;
+    }
+
+    // Make sendMessage globally available
+    window.sendMessage = async function(message = null) {
+        const messageText = message || (chatInput ? chatInput.value.trim() : '');
+        if (!messageText) return;
+        
+        addMessage(messageText, true);
+        if (!message && chatInput) chatInput.value = '';
+        
+        try {
+            const response = await fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: messageText })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            
+            const data = await response.json();
+            addMessage(data);
+        } catch (error) {
+            console.error('Chat error:', error);
+            addMessage('Sorry, I encountered an error. Please try again.');
+        }
+    };
+
+    // Set up event listeners
+    if (sendButton) {
+        sendButton.addEventListener('click', function() {
+            window.sendMessage();
+        });
+    }
+
+    if (chatInput) {
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                window.sendMessage();
+            }
         });
         
-        const data = await response.json();
-        addMessage(data);
-    } catch (error) {
-        addMessage('Sorry, I encountered an error. Please try again.');
-    }
-}
-
-sendButton.addEventListener('click', () => sendMessage());
-
-chatInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
+        // Focus on input when page loads
+        chatInput.focus();
     }
 });
 </script>
