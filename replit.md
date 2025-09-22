@@ -2,9 +2,9 @@
 
 ## Overview
 
-Tutor's Assistant is a comprehensive web application designed to help teachers manage their classrooms efficiently. The application provides tools for attendance tracking, lesson planning, AI-powered grading, quiz generation, and an intelligent chatbot assistant. Built with a clean, colorful interface using pink, yellow, and blue themes, it aims to make teaching tasks more manageable and engaging.
+Tutor's Assistant is a focused web application designed to help teachers manage classroom attendance efficiently. The application provides tools for daily attendance tracking, weekly reporting with WhatsApp sharing, and an AI chatbot assistant for lesson planning. Built with a clean, colorful interface using pink, yellow, and blue themes, it aims to make attendance management simple and effective.
 
-The application serves as a prototype that simulates AI-powered features while providing practical functionality for day-to-day teaching activities including roster management, calendar-based planning, student assessment, and lesson preparation assistance.
+The application serves as a practical tool for day-to-day teaching activities, specifically focusing on attendance management with accurate statistics calculation and convenient sharing capabilities for parent communication.
 
 ## User Preferences
 
@@ -28,21 +28,17 @@ Preferred communication style: Simple, everyday language.
 
 ### Data Storage
 - **Storage Method**: File-based JSON storage system
-- **Data Organization**: Separate JSON files for different data types (students, attendance, schedule, grades)
+- **Data Organization**: Separate JSON files for different data types (students, attendance)
 - **File Structure**: 
-  - `students.json` - Array of student names
-  - `attendance.json` - Nested object structure by date and student
-  - `schedule.json` - Calendar events with filtering capabilities
-  - `grades.json` - Student grades organized by date
+  - `students.json` - Array of specific student names for the classroom roster
+  - `attendance.json` - Nested object structure by date and student for daily attendance tracking
 - **Data Initialization**: Automatic creation of data directory and files with default values
 - **Persistence**: Synchronous file I/O for immediate data consistency
 
 ### Core Features Architecture
-- **Attendance System**: Manual roster management with daily attendance tracking
-- **Calendar Planner**: Month/year navigation with grade and subject filtering
-- **Grading System**: Simulated AI grading with placeholder photo upload functionality
-- **Quiz Generator**: Form-based assessment creation with templated responses
-- **AI Chatbot**: Pattern-matching conversational interface with predefined responses
+- **Attendance System**: Manual roster management with daily attendance tracking for specific students (Syeda Sughra Fatima, Mehmoona, Aira, Aliza)
+- **Weekly Reporting**: Generate attendance reports with date range selection, accurate statistics calculation, and WhatsApp sharing functionality
+- **AI Chatbot**: Pattern-matching conversational interface with predefined responses for lesson planning assistance
 
 ### Authentication and Authorization
 - **Current State**: No authentication system implemented
