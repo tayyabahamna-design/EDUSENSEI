@@ -156,10 +156,12 @@ def clear_session_data():
         session.pop(key, None)
 
 def generate_lesson_plan_with_ai(subject, grade, topic):
-    """Generate detailed lesson plan using OpenAI API"""
+    """Generate detailed lesson plan using Gemini AI API"""
     try:
-        from openai import OpenAI
-        client = OpenAI()
+        from google import genai
+        import os
+        
+        client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
         
         prompt = f"""
 Create a detailed lesson plan for Grade {grade} {subject} on the topic "{topic}".
@@ -175,17 +177,15 @@ Please include:
 Make it practical and age-appropriate for Grade {grade} students.
 """
         
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=1000,
-            temperature=0.7
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
         )
         
-        return response.choices[0].message.content
+        return response.text
         
     except Exception as e:
-        # Fallback to simple response if OpenAI fails
+        # Fallback to simple response if Gemini fails
         return generate_simple_lesson_plan(subject, grade, topic)
 
 def generate_simple_lesson_plan(subject, grade, topic):
@@ -825,18 +825,14 @@ def handle_main_menu(user_message):
     elif 'definitions' in message_lower:
         set_chatbot_state(ChatbotState.DEFINITIONS)
         return jsonify({
-            'message': 'What term or concept would you like me to define?',
-            'input_placeholder': 'Enter a word or concept...',
-            'show_input': True,
+            'message': 'What term or concept would you like me to define? Just type it in the chat below.',
             'navigation': 'Definitions'
         })
     
     elif 'general questions' in message_lower:
         set_chatbot_state(ChatbotState.GENERAL_QUESTIONS)
         return jsonify({
-            'message': 'I\'m here to help with any teaching-related questions you have! What would you like to know?',
-            'input_placeholder': 'Ask me anything about teaching...',
-            'show_input': True,
+            'message': 'I\'m here to help with any teaching-related questions you have! What would you like to know? Just type your question below.',
             'navigation': 'General Questions'
         })
     
@@ -871,9 +867,7 @@ def handle_subject_selection(user_message):
         
         grade = get_session_data('grade')
         return jsonify({
-            'message': f'Excellent! {user_message} for Grade {grade}. What specific topic would you like the lesson plan to cover?',
-            'input_placeholder': f'Enter a {user_message} topic...',
-            'show_input': True,
+            'message': f'Excellent! {user_message} for Grade {grade}. What specific topic would you like the lesson plan to cover? Just type the topic below.',
             'suggestions': ChatbotState.SUBJECTS[user_message],
             'navigation': 'Topic Input',
             'breadcrumb': f'Grade {grade} → {user_message}'
@@ -906,8 +900,7 @@ def handle_topic_input(user_message):
         })
     else:
         return jsonify({
-            'message': 'Please enter a topic for your lesson plan.',
-            'show_input': True
+            'message': 'Please enter a topic for your lesson plan in the chat below.'
         })
 
 def handle_activities(user_message):
@@ -936,21 +929,18 @@ def handle_definitions(user_message):
         term = user_message.strip()
         
         try:
-            from openai import OpenAI
-            client = OpenAI()
+            from google import genai
+            import os
             
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{
-                    "role": "user", 
-                    "content": f"Provide a clear, educational definition of '{term}' suitable for elementary school teachers. Include examples if helpful."
-                }],
-                max_tokens=300,
-                temperature=0.7
+            client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
+            
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=f"Provide a clear, educational definition of '{term}' suitable for elementary school teachers. Include examples if helpful. Keep it concise and easy to understand."
             )
             
-            definition = response.choices[0].message.content
-        except Exception:
+            definition = response.text
+        except Exception as e:
             definition = f"I'd be happy to help define '{term}' for you, but I'm having trouble accessing detailed definitions right now. Try asking about it in a more specific way or check educational resources."
         
         clear_session_data()
@@ -965,33 +955,26 @@ def handle_definitions(user_message):
     else:
         return jsonify({
             'message': 'Please enter a term or concept you\'d like me to define.',
-            'show_input': True
         })
 
 def handle_general_questions(user_message):
-    """Handle general teaching questions"""
+    """Handle general teaching questions using Gemini AI"""
     if user_message.strip():
         question = user_message.strip()
         
         try:
-            from openai import OpenAI
-            client = OpenAI()
+            from google import genai
+            import os
             
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{
-                    "role": "system",
-                    "content": "You are a helpful AI teaching assistant for elementary school teachers. Provide practical, actionable advice."
-                }, {
-                    "role": "user", 
-                    "content": question
-                }],
-                max_tokens=500,
-                temperature=0.7
+            client = genai.Client(api_key=os.environ.get('GEMINI_API_KEY'))
+            
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=f"You are a helpful AI teaching assistant for elementary school teachers. Provide practical, actionable advice for the following question: {question}"
             )
             
-            answer = response.choices[0].message.content
-        except Exception:
+            answer = response.text
+        except Exception as e:
             answer = "I'd love to help with your teaching question! Unfortunately, I'm having trouble accessing my full knowledge base right now. Try rephrasing your question or ask about specific teaching strategies, classroom management, or lesson planning."
         
         clear_session_data()
@@ -1004,8 +987,7 @@ def handle_general_questions(user_message):
         })
     else:
         return jsonify({
-            'message': 'Please ask me a question about teaching, classroom management, or education.',
-            'show_input': True
+            'message': 'Please ask me a question about teaching, classroom management, or education in the chat below.'
         })
 
 if __name__ == '__main__':

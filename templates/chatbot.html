@@ -99,14 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '</div>';
         }
         
-        // Add input field if requested
-        if (response.show_input) {
-            const placeholder = response.input_placeholder || 'Type your response...';
-            html += `<div class="response-input">`;
-            html += `<input type="text" class="inline-input" placeholder="${placeholder}" onkeypress="handleInlineInput(event)">`;
-            html += `<button class="input-btn" onclick="sendInlineInput()">Send</button>`;
-            html += `</div>`;
-        }
+        // Removed inline input field - use main chatbox instead
         
         // Handle navigation and breadcrumbs
         updateNavigation(response);
@@ -162,18 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    function handleInlineInput(event) {
-        if (event.key === 'Enter') {
-            sendInlineInput();
-        }
-    }
-    
-    function sendInlineInput() {
-        const inlineInput = document.querySelector('.inline-input');
-        if (inlineInput && inlineInput.value.trim()) {
-            sendMessage(inlineInput.value.trim());
-        }
-    }
+    // Inline input functions removed - using main chatbox instead
 
     // Make sendMessage globally available
     window.sendMessage = async function(message = null) {

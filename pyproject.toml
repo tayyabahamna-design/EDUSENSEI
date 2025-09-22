@@ -5,6 +5,6 @@ description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
     "flask>=3.1.2",
-    "openai>=1.108.1",
+    "google-genai>=1.38.0",
     "werkzeug>=3.1.3",
 ]
