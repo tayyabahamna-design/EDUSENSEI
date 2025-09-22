@@ -193,6 +193,38 @@ def add_student():
             flash(f'Student {student_name} added successfully!', 'success')
     return redirect(url_for('attendance'))
 
+@app.route('/edit_student', methods=['POST'])
+def edit_student():
+    old_name = request.form.get('old_name')
+    new_name = request.form.get('new_name')
+    
+    if old_name and new_name and old_name != new_name:
+        students = load_data(STUDENTS_FILE)
+        if old_name in students and new_name not in students:
+            # Update students list
+            student_index = students.index(old_name)
+            students[student_index] = new_name
+            save_data(STUDENTS_FILE, students)
+            
+            # Update all attendance records
+            attendance_data = load_data(ATTENDANCE_FILE)
+            for date_key in attendance_data:
+                if old_name in attendance_data[date_key]:
+                    attendance_data[date_key][new_name] = attendance_data[date_key].pop(old_name)
+            save_data(ATTENDANCE_FILE, attendance_data)
+            
+            flash(f'Student name updated from "{old_name}" to "{new_name}"', 'success')
+        elif new_name in students:
+            flash(f'Student name "{new_name}" already exists!', 'error')
+        else:
+            flash('Student not found!', 'error')
+    elif old_name == new_name:
+        flash('No changes made to student name.', 'info')
+    else:
+        flash('Please provide both old and new student names.', 'error')
+    
+    return redirect(url_for('attendance'))
+
 @app.route('/remove_student', methods=['POST'])
 def remove_student():
     student_name = request.form.get('student_name')
