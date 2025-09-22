@@ -120,6 +120,160 @@ def mark_attendance():
 
 # Quiz generator feature removed as requested
 
+# Weekly Report Routes
+@app.route('/weekly_report')
+def weekly_report():
+    # Get week range from query params or default to current week
+    from datetime import timedelta, datetime
+    
+    today = datetime.now().date()
+    start_of_week = today - timedelta(days=today.weekday())  # Monday
+    end_of_week = start_of_week + timedelta(days=6)  # Sunday
+    
+    # Allow custom date range
+    start_date = request.args.get('start_date', start_of_week.isoformat())
+    end_date = request.args.get('end_date', end_of_week.isoformat())
+    
+    # Calculate attendance report
+    report_data = calculate_weekly_attendance(start_date, end_date)
+    
+    # Handle calculation errors
+    if 'error' in report_data:
+        flash(report_data['error'], 'danger')
+        return redirect(url_for('weekly_report'))
+    
+    return render_template('weekly_report.html', 
+                         report=report_data, 
+                         start_date=start_date, 
+                         end_date=end_date)
+
+def calculate_weekly_attendance(start_date, end_date):
+    """Calculate weekly attendance statistics"""
+    from datetime import datetime, timedelta
+    
+    students = load_data(STUDENTS_FILE)
+    attendance_data = load_data(ATTENDANCE_FILE)
+    
+    try:
+        start = datetime.fromisoformat(start_date).date()
+        end = datetime.fromisoformat(end_date).date()
+        
+        # Validate date range
+        if start > end:
+            raise ValueError("Start date must be before or equal to end date")
+            
+    except ValueError as e:
+        return {
+            'error': f"Invalid date range: {str(e)}",
+            'start_date': start_date,
+            'end_date': end_date,
+            'total_days': 0,
+            'total_students': 0,
+            'student_stats': {},
+            'overall_percentage': 0,
+            'total_present': 0,
+            'total_possible': 0
+        }
+    
+    # Get all dates in the range that have attendance records
+    date_range = []
+    current_date = start
+    while current_date <= end:
+        date_str = current_date.isoformat()
+        if date_str in attendance_data:  # Only include days with actual attendance records
+            date_range.append(date_str)
+        current_date += timedelta(days=1)
+    
+    # Calculate statistics for each student
+    student_stats = {}
+    total_days = len(date_range)  # Only count days with records
+    
+    for student in students:
+        present_count = 0
+        absent_count = 0
+        
+        for date_str in date_range:
+            status = attendance_data[date_str].get(student, 'absent')
+            if status == 'present':
+                present_count += 1
+            else:
+                absent_count += 1
+        
+        attendance_percentage = (present_count / total_days * 100) if total_days > 0 else 0
+        
+        student_stats[student] = {
+            'present': present_count,
+            'absent': absent_count,
+            'total_days': total_days,
+            'percentage': round(attendance_percentage, 1)
+        }
+    
+    # Calculate overall statistics
+    total_students = len(students)
+    total_possible_attendance = total_students * total_days
+    total_present = sum(stats['present'] for stats in student_stats.values())
+    overall_percentage = (total_present / total_possible_attendance * 100) if total_possible_attendance > 0 else 0
+    
+    return {
+        'start_date': start_date,
+        'end_date': end_date,
+        'total_days': total_days,
+        'total_students': total_students,
+        'student_stats': student_stats,
+        'overall_percentage': round(overall_percentage, 1),
+        'total_present': total_present,
+        'total_possible': total_possible_attendance,
+        'recorded_dates': date_range
+    }
+
+@app.route('/generate_whatsapp_share')
+def generate_whatsapp_share():
+    """Generate WhatsApp share link with attendance report"""
+    import urllib.parse
+    
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    
+    if not start_date or not end_date:
+        flash('Invalid date range for report generation', 'danger')
+        return redirect(url_for('weekly_report'))
+    
+    # Generate report data
+    report_data = calculate_weekly_attendance(start_date, end_date)
+    
+    # Handle calculation errors
+    if 'error' in report_data:
+        flash(report_data['error'], 'danger')
+        return redirect(url_for('weekly_report'))
+    
+    # Format report for WhatsApp sharing
+    message = format_report_for_whatsapp(report_data)
+    
+    # Create WhatsApp share link
+    whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(message)}"
+    
+    return redirect(whatsapp_url)
+
+def format_report_for_whatsapp(report_data):
+    """Format attendance report as text for WhatsApp sharing"""
+    message = f"📊 *Weekly Attendance Report*\n"
+    message += f"📅 Period: {report_data['start_date']} to {report_data['end_date']}\n\n"
+    
+    message += f"📈 *Overall Summary:*\n"
+    message += f"• Total Students: {report_data['total_students']}\n"
+    message += f"• Days with Records: {report_data['total_days']}\n"
+    message += f"• Overall Attendance: {report_data['overall_percentage']}%\n"
+    message += f"• Total Present: {report_data['total_present']}/{report_data['total_possible']}\n\n"
+    
+    message += f"👥 *Individual Attendance:*\n"
+    for student, stats in report_data['student_stats'].items():
+        status_emoji = "✅" if stats['percentage'] >= 80 else "⚠️" if stats['percentage'] >= 60 else "❌"
+        message += f"{status_emoji} {student}: {stats['percentage']}% ({stats['present']}/{stats['total_days']} days)\n"
+    
+    message += f"\n📱 Generated by Tutor's Assistant"
+    
+    return message
+
 # Chatbot Routes
 @app.route('/chatbot')
 def chatbot():
