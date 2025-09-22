@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block title %}Weekly Attendance Report - Tutor's Assistant{% endblock %}
+
+{% block content %}
+<div class="weekly-report-page">
+    <h1>📊 Weekly Attendance Report</h1>
+    
+    <div class="report-controls">
+        <form method="GET" action="{{ url_for('weekly_report') }}" class="date-range-form">
+            <div class="form-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" id="start_date" name="start_date" value="{{ start_date }}" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">End Date:</label>
+                <input type="date" id="end_date" name="end_date" value="{{ end_date }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+        </form>
+        
+        <div class="share-controls">
+            <a href="{{ url_for('generate_whatsapp_share', start_date=start_date, end_date=end_date) }}" 
+               class="btn btn-success whatsapp-share-btn" target="_blank">
+                📱 Share via WhatsApp
+            </a>
+        </div>
+    </div>
+    
+    <div class="report-summary">
+        <h2>📅 Report Period: {{ report.start_date }} to {{ report.end_date }}</h2>
+        
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-icon">👥</div>
+                <div class="card-content">
+                    <h3>{{ report.total_students }}</h3>
+                    <p>Total Students</p>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-icon">📅</div>
+                <div class="card-content">
+                    <h3>{{ report.total_days }}</h3>
+                    <p>Days with Records</p>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-icon">📈</div>
+                <div class="card-content">
+                    <h3>{{ report.overall_percentage }}%</h3>
+                    <p>Overall Attendance</p>
+                </div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="card-icon">✅</div>
+                <div class="card-content">
+                    <h3>{{ report.total_present }}/{{ report.total_possible }}</h3>
+                    <p>Total Present</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="student-attendance-details">
+        <h3>👥 Individual Student Attendance</h3>
+        
+        <div class="attendance-table">
+            <div class="table-header">
+                <div class="header-cell">Student Name</div>
+                <div class="header-cell">Present Days</div>
+                <div class="header-cell">Absent Days</div>
+                <div class="header-cell">Attendance %</div>
+                <div class="header-cell">Status</div>
+            </div>
+            
+            {% for student, stats in report.student_stats.items() %}
+                <div class="table-row">
+                    <div class="table-cell student-name" data-label="Student">{{ student }}</div>
+                    <div class="table-cell present-days" data-label="Present">{{ stats.present }}</div>
+                    <div class="table-cell absent-days" data-label="Absent">{{ stats.absent }}</div>
+                    <div class="table-cell percentage" data-label="Attendance">{{ stats.percentage }}%</div>
+                    <div class="table-cell status" data-label="Status">
+                        {% if stats.percentage >= 80 %}
+                            <span class="status-excellent">✅ Excellent</span>
+                        {% elif stats.percentage >= 60 %}
+                            <span class="status-good">⚠️ Good</span>
+                        {% else %}
+                            <span class="status-poor">❌ Needs Improvement</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="report-actions">
+        <a href="{{ url_for('attendance') }}" class="btn btn-secondary">← Back to Attendance</a>
+        <button onclick="window.print()" class="btn btn-secondary">🖨️ Print Report</button>
+    </div>
+</div>
+
+<style>
+.weekly-report-page {
+    background: var(--white);
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.report-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--gray-light);
+    border-radius: 10px;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.date-range-form {
+    display: flex;
+    gap: 1rem;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.date-range-form .form-group {
+    margin-bottom: 0;
+}
+
+.whatsapp-share-btn {
+    background: #25D366;
+    color: white;
+    border: none;
+    text-decoration: none;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.whatsapp-share-btn:hover {
+    background: #1DA851;
+}
+
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.summary-card {
+    background: linear-gradient(45deg, var(--pink-light), var(--blue-light));
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    color: var(--blue-dark);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.card-content h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: var(--blue-dark);
+}
+
+.card-content p {
+    font-size: 0.9rem;
+    color: var(--gray-medium);
+}
+
+.student-attendance-details {
+    margin: 2rem 0;
+}
+
+.attendance-table {
+    background: var(--white);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+    background: var(--blue-primary);
+    color: var(--white);
+    font-weight: bold;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
+    border-bottom: 1px solid var(--gray-light);
+}
+
+.table-row:nth-child(even) {
+    background: var(--gray-light);
+}
+
+.header-cell, .table-cell {
+    padding: 1rem;
+    text-align: center;
+}
+
+.header-cell {
+    font-weight: bold;
+}
+
+.student-name {
+    text-align: left !important;
+    font-weight: 500;
+}
+
+.status-excellent {
+    color: var(--success);
+    font-weight: bold;
+}
+
+.status-good {
+    color: var(--warning);
+    font-weight: bold;
+}
+
+.status-poor {
+    color: var(--danger);
+    font-weight: bold;
+}
+
+.report-actions {
+    margin-top: 2rem;
+    text-align: center;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .report-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .date-range-form {
+        justify-content: center;
+    }
+    
+    .table-header, .table-row {
+        grid-template-columns: 1fr;
+        text-align: left;
+    }
+    
+    .header-cell, .table-cell {
+        padding: 0.5rem;
+        border-bottom: 1px solid var(--gray-light);
+    }
+    
+    .header-cell:before, .table-cell:before {
+        content: attr(data-label) ": ";
+        font-weight: bold;
+        display: inline-block;
+        width: 120px;
+    }
+}
+
+@media print {
+    .report-controls, .report-actions {
+        display: none;
+    }
+    
+    .weekly-report-page {
+        box-shadow: none;
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}

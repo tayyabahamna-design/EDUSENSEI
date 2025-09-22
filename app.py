@@ -133,22 +133,97 @@ def weekly_report():
     # Allow custom date range
     start_date = request.args.get('start_date', start_of_week.isoformat())
     end_date = request.args.get('end_date', end_of_week.isoformat())
+    custom_total_days = request.args.get('custom_total_days', type=int)
     
     # Calculate attendance report
-    report_data = calculate_weekly_attendance(start_date, end_date)
+    if custom_total_days:
+        report_data = calculate_attendance_summary(start_date, end_date, 'custom', custom_total_days)
+    else:
+        report_data = calculate_attendance_summary(start_date, end_date, 'recorded_only')
     
     # Handle calculation errors
     if 'error' in report_data:
         flash(report_data['error'], 'danger')
         return redirect(url_for('weekly_report'))
     
-    return render_template('weekly_report.html', 
+    return render_template('attendance_report.html', 
                          report=report_data, 
                          start_date=start_date, 
-                         end_date=end_date)
+                         end_date=end_date,
+                         report_type='Weekly',
+                         custom_total_days=custom_total_days)
 
-def calculate_weekly_attendance(start_date, end_date):
-    """Calculate weekly attendance statistics"""
+@app.route('/monthly_report')
+def monthly_report():
+    # Get month range from query params or default to current month
+    from datetime import datetime, calendar
+    
+    today = datetime.now().date()
+    year = int(request.args.get('year', today.year))
+    month = int(request.args.get('month', today.month))
+    
+    # Calculate month start and end dates
+    start_date = datetime(year, month, 1).date().isoformat()
+    last_day = calendar.monthrange(year, month)[1]
+    end_date = datetime(year, month, last_day).date().isoformat()
+    
+    custom_total_days = request.args.get('custom_total_days', type=int)
+    
+    # Calculate attendance report
+    if custom_total_days:
+        report_data = calculate_attendance_summary(start_date, end_date, 'custom', custom_total_days)
+    else:
+        report_data = calculate_attendance_summary(start_date, end_date, 'recorded_only')
+    
+    # Handle calculation errors
+    if 'error' in report_data:
+        flash(report_data['error'], 'danger')
+        return redirect(url_for('monthly_report'))
+    
+    return render_template('attendance_report.html', 
+                         report=report_data, 
+                         start_date=start_date, 
+                         end_date=end_date,
+                         report_type='Monthly',
+                         year=year,
+                         month=month,
+                         custom_total_days=custom_total_days)
+
+@app.route('/yearly_report')
+def yearly_report():
+    # Get year range from query params or default to current year
+    from datetime import datetime
+    
+    today = datetime.now().date()
+    year = int(request.args.get('year', today.year))
+    
+    # Calculate year start and end dates
+    start_date = datetime(year, 1, 1).date().isoformat()
+    end_date = datetime(year, 12, 31).date().isoformat()
+    
+    custom_total_days = request.args.get('custom_total_days', type=int)
+    
+    # Calculate attendance report
+    if custom_total_days:
+        report_data = calculate_attendance_summary(start_date, end_date, 'custom', custom_total_days)
+    else:
+        report_data = calculate_attendance_summary(start_date, end_date, 'recorded_only')
+    
+    # Handle calculation errors
+    if 'error' in report_data:
+        flash(report_data['error'], 'danger')
+        return redirect(url_for('yearly_report'))
+    
+    return render_template('attendance_report.html', 
+                         report=report_data, 
+                         start_date=start_date, 
+                         end_date=end_date,
+                         report_type='Yearly',
+                         year=year,
+                         custom_total_days=custom_total_days)
+
+def calculate_attendance_summary(start_date, end_date, denominator_mode='recorded_only', custom_total_days=None):
+    """Calculate attendance statistics for any period with flexible denominator"""
     from datetime import datetime, timedelta
     
     students = load_data(STUDENTS_FILE)
@@ -176,29 +251,52 @@ def calculate_weekly_attendance(start_date, end_date):
         }
     
     # Get all dates in the range that have attendance records
-    date_range = []
+    recorded_dates = []
     current_date = start
     while current_date <= end:
         date_str = current_date.isoformat()
         if date_str in attendance_data:  # Only include days with actual attendance records
-            date_range.append(date_str)
+            recorded_dates.append(date_str)
         current_date += timedelta(days=1)
     
     # Calculate statistics for each student
     student_stats = {}
-    total_days = len(date_range)  # Only count days with records
+    
+    # Determine total days for calculation
+    if denominator_mode == 'custom' and custom_total_days is not None:
+        # Validate custom total days
+        max_present = 0
+        for student in students:
+            present_count = sum(1 for date_str in recorded_dates 
+                              if attendance_data[date_str].get(student, 'absent') == 'present')
+            max_present = max(max_present, present_count)
+        
+        if custom_total_days < max_present:
+            return {
+                'error': f"Custom total days ({custom_total_days}) cannot be less than maximum present days ({max_present})",
+                'start_date': start_date,
+                'end_date': end_date,
+                'total_days': 0,
+                'total_students': 0,
+                'student_stats': {},
+                'overall_percentage': 0,
+                'total_present': 0,
+                'total_possible': 0
+            }
+        
+        total_days = custom_total_days
+    else:
+        total_days = len(recorded_dates)  # Use recorded days only
     
     for student in students:
         present_count = 0
-        absent_count = 0
         
-        for date_str in date_range:
+        for date_str in recorded_dates:
             status = attendance_data[date_str].get(student, 'absent')
             if status == 'present':
                 present_count += 1
-            else:
-                absent_count += 1
         
+        absent_count = total_days - present_count
         attendance_percentage = (present_count / total_days * 100) if total_days > 0 else 0
         
         student_stats[student] = {
@@ -223,8 +321,13 @@ def calculate_weekly_attendance(start_date, end_date):
         'overall_percentage': round(overall_percentage, 1),
         'total_present': total_present,
         'total_possible': total_possible_attendance,
-        'recorded_dates': date_range
+        'recorded_dates': recorded_dates,
+        'denominator_mode': denominator_mode
     }
+
+def calculate_weekly_attendance(start_date, end_date):
+    """Calculate weekly attendance statistics (backward compatibility)"""
+    return calculate_attendance_summary(start_date, end_date, 'recorded_only')
 
 @app.route('/generate_whatsapp_share')
 def generate_whatsapp_share():
