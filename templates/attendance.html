@@ -5,8 +5,39 @@
 {% block content %}
 <div class="attendance-page">
     <h1>Attendance & Roster Management</h1>
-    <div class="date-info">
-        <h2>Date: {{ today }}</h2>
+    
+    <div class="date-selection">
+        <h2>Select Date to Edit</h2>
+        <form method="GET" action="{{ url_for('attendance') }}" class="date-picker-form">
+            <div class="date-input-group">
+                <label for="date">Choose Date:</label>
+                <input type="date" id="date" name="date" value="{{ selected_date }}" class="date-input">
+                <button type="submit" class="btn btn-primary">Load Date</button>
+            </div>
+        </form>
+    </div>
+    
+    <div class="current-date-info">
+        <h3>
+            {% if is_today %}
+                📅 Today's Attendance - {{ selected_date_formatted }}
+            {% elif is_past %}
+                📝 Editing Past Attendance - {{ selected_date_formatted }}
+            {% else %}
+                ⏰ Setting Future Attendance - {{ selected_date_formatted }}
+            {% endif %}
+        </h3>
+        {% if is_past %}
+            <div class="edit-notice">
+                <div class="notice-icon">✏️</div>
+                <span>You are editing attendance for a past date. Changes will be saved to the historical record.</span>
+            </div>
+        {% elif is_future %}
+            <div class="edit-notice future-notice">
+                <div class="notice-icon">⏰</div>
+                <span>You are setting attendance for a future date. This can be useful for pre-planning.</span>
+            </div>
+        {% endif %}
     </div>
     
     <div class="roster-management">
@@ -20,9 +51,18 @@
     </div>
     
     <div class="attendance-section">
-        <h3>Mark Attendance</h3>
+        <h3>
+            {% if is_today %}
+                Mark Today's Attendance
+            {% elif is_past %}
+                Edit Attendance Record
+            {% else %}
+                Set Future Attendance
+            {% endif %}
+        </h3>
         {% if students %}
             <form method="POST" action="{{ url_for('mark_attendance') }}">
+                <input type="hidden" name="attendance_date" value="{{ selected_date }}">
                 <div class="student-list">
                     {% for student in students %}
                         <div class="student-item">
@@ -30,20 +70,28 @@
                             <div class="attendance-controls">
                                 <label class="radio-label">
                                     <input type="radio" name="attendance_{{ student }}" value="present" 
-                                           {% if today_attendance.get(student) == 'present' %}checked{% endif %}>
+                                           {% if selected_attendance.get(student) == 'present' %}checked{% endif %}>
                                     <span class="radio-custom present">Present</span>
                                 </label>
                                 <label class="radio-label">
                                     <input type="radio" name="attendance_{{ student }}" value="absent"
-                                           {% if today_attendance.get(student) == 'absent' %}checked{% endif %}>
+                                           {% if selected_attendance.get(student) == 'absent' %}checked{% endif %}>
                                     <span class="radio-custom absent">Absent</span>
                                 </label>
                             </div>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="removeStudent('{{ student }}')">Remove</button>
+                            <button type="button" class="btn btn-danger btn-sm remove-student-btn" data-student="{{ student }}">Remove</button>
                         </div>
                     {% endfor %}
                 </div>
-                <button type="submit" class="btn btn-primary btn-large">Save Attendance</button>
+                <button type="submit" class="btn btn-primary btn-large">
+                    {% if is_today %}
+                        Save Today's Attendance
+                    {% elif is_past %}
+                        Update Past Attendance
+                    {% else %}
+                        Set Future Attendance
+                    {% endif %}
+                </button>
             </form>
         {% else %}
             <p class="no-students">No students in roster. Add students using the form above.</p>
@@ -62,21 +110,27 @@
 </div>
 
 <script>
-function removeStudent(studentName) {
-    if (confirm('Are you sure you want to remove ' + studentName + ' from the roster?')) {
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ url_for("remove_student") }}';
-        
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'student_name';
-        input.value = studentName;
-        
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-    }
-}
+// Safe event delegation for remove student buttons
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(event) {
+        if (event.target && event.target.classList.contains('remove-student-btn')) {
+            const studentName = event.target.getAttribute('data-student');
+            if (confirm('Are you sure you want to remove ' + studentName + ' from the roster?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '{{ url_for("remove_student") }}';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'student_name';
+                input.value = studentName;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    });
+});
 </script>
 {% endblock %}

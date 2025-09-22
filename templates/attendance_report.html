@@ -154,7 +154,15 @@
             <div class="notice-content">
                 <h4>No Attendance Record</h4>
                 <p>{% if report_type == 'Daily' %}No attendance was recorded for this date.{% else %}No attendance records were found for this period.{% endif %}</p>
-                <p>Please mark attendance first, then generate the report.</p>
+                {% if report_type == 'Daily' %}
+                    <p>
+                        <a href="{{ url_for('attendance', date=start_date) }}" class="btn btn-primary btn-sm">
+                            ✏️ Mark Attendance for {{ selected_date_formatted if selected_date_formatted else start_date }}
+                        </a>
+                    </p>
+                {% else %}
+                    <p>Please mark attendance first, then generate the report.</p>
+                {% endif %}
             </div>
         </div>
         {% else %}
@@ -202,6 +210,9 @@
     
     <div class="report-actions">
         <a href="{{ url_for('attendance') }}" class="btn btn-secondary">← Back to Attendance</a>
+        {% if report_type == 'Daily' %}
+            <a href="{{ url_for('attendance', date=start_date) }}" class="btn btn-primary">✏️ Edit This Date's Attendance</a>
+        {% endif %}
         <button onclick="window.print()" class="btn btn-secondary">🖨️ Print Report</button>
     </div>
 </div>

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 import json
 import os
 from datetime import datetime, date
@@ -51,8 +51,93 @@ def simulate_ai_grading():
     import random
     return random.randint(75, 100)
 
-def generate_lesson_plan_response(subject, grade, topic):
-    """Simulate AI lesson plan generation"""
+# Chatbot State Management
+class ChatbotState:
+    """Finite State Machine for chatbot navigation"""
+    
+    # State constants
+    MAIN_MENU = 'main_menu'
+    GRADE_SELECTION = 'grade_selection' 
+    SUBJECT_SELECTION = 'subject_selection'
+    TOPIC_INPUT = 'topic_input'
+    LESSON_PLANNING = 'lesson_planning'
+    ACTIVITIES = 'activities'
+    DEFINITIONS = 'definitions'
+    GENERAL_QUESTIONS = 'general_questions'
+    
+    # Menu options
+    GRADES = ['1', '2', '3', '4', '5']
+    SUBJECTS = {
+        'English': ['Reading', 'Writing', 'Grammar', 'Vocabulary', 'Literature'],
+        'Maths': ['Numbers', 'Addition', 'Subtraction', 'Multiplication', 'Division', 'Fractions', 'Geometry'],
+        'Science': ['Plants', 'Animals', 'Weather', 'Earth', 'Space', 'Matter', 'Energy'],
+        'Urdu': ['حروف تہجی', 'کلمات', 'جملے', 'کہانیاں', 'نظمیں']
+    }
+    
+    ACTIVITIES_TYPES = {
+        'Classroom Games': ['Word games', 'Math puzzles', 'Science experiments', 'Group activities'],
+        'Group Work': ['Team projects', 'Discussion circles', 'Peer learning', 'Collaborative tasks'],
+        'Individual Tasks': ['Worksheets', 'Reading assignments', 'Practice problems', 'Creative writing'],
+        'Creative Projects': ['Art integration', 'Drama activities', 'Music lessons', 'Storytelling']
+    }
+
+def get_chatbot_state():
+    """Get current chatbot state from session"""
+    return session.get('chatbot_state', ChatbotState.MAIN_MENU)
+
+def set_chatbot_state(state):
+    """Set chatbot state in session"""
+    session['chatbot_state'] = state
+
+def get_session_data(key, default=None):
+    """Get data from chatbot session"""
+    return session.get(f'chatbot_{key}', default)
+
+def set_session_data(key, value):
+    """Set data in chatbot session"""
+    session[f'chatbot_{key}'] = value
+
+def clear_session_data():
+    """Clear all chatbot session data"""
+    keys_to_remove = [key for key in session.keys() if key.startswith('chatbot_')]
+    for key in keys_to_remove:
+        session.pop(key, None)
+
+def generate_lesson_plan_with_ai(subject, grade, topic):
+    """Generate detailed lesson plan using OpenAI API"""
+    try:
+        from openai import OpenAI
+        client = OpenAI()
+        
+        prompt = f"""
+Create a detailed lesson plan for Grade {grade} {subject} on the topic "{topic}".
+
+Please include:
+1. Learning objectives (2-3 clear goals)
+2. Materials needed
+3. Lesson structure (Introduction, Main Activity, Conclusion)
+4. Activities and exercises
+5. Assessment methods
+6. Time allocation for each section
+
+Make it practical and age-appropriate for Grade {grade} students.
+"""
+        
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1000,
+            temperature=0.7
+        )
+        
+        return response.choices[0].message.content
+        
+    except Exception as e:
+        # Fallback to simple response if OpenAI fails
+        return generate_simple_lesson_plan(subject, grade, topic)
+
+def generate_simple_lesson_plan(subject, grade, topic):
+    """Fallback lesson plan generation"""
     responses = {
         'English': f"Here's a lesson plan for Grade {grade} English on {topic}: Start with vocabulary introduction, followed by reading comprehension activities, and end with creative writing exercises.",
         'Maths': f"For Grade {grade} Mathematics on {topic}: Begin with concept introduction using visual aids, practice with guided examples, then independent problem-solving.",
@@ -68,12 +153,34 @@ def index():
 # Attendance & Roster Management Routes
 @app.route('/attendance')
 def attendance():
-    students = load_data(STUDENTS_FILE)
-    today = date.today().isoformat()
-    attendance_data = load_data(ATTENDANCE_FILE)
-    today_attendance = attendance_data.get(today, {})
+    # Get selected date from query parameter, default to today
+    selected_date_str = request.args.get('date', date.today().isoformat())
     
-    return render_template('attendance.html', students=students, today_attendance=today_attendance, today=today)
+    # Validate and parse the date
+    try:
+        selected_date = datetime.fromisoformat(selected_date_str).date()
+    except (ValueError, TypeError):
+        selected_date = date.today()
+        selected_date_str = selected_date.isoformat()
+    
+    students = load_data(STUDENTS_FILE)
+    attendance_data = load_data(ATTENDANCE_FILE)
+    selected_attendance = attendance_data.get(selected_date_str, {})
+    
+    # Determine if this is a past, present, or future date
+    today = date.today()
+    is_past = selected_date < today
+    is_today = selected_date == today
+    is_future = selected_date > today
+    
+    return render_template('attendance.html', 
+                         students=students, 
+                         selected_attendance=selected_attendance, 
+                         selected_date=selected_date_str,
+                         selected_date_formatted=selected_date.strftime('%B %d, %Y'),
+                         is_past=is_past,
+                         is_today=is_today,
+                         is_future=is_future)
 
 @app.route('/add_student', methods=['POST'])
 def add_student():
@@ -99,20 +206,40 @@ def remove_student():
 
 @app.route('/mark_attendance', methods=['POST'])
 def mark_attendance():
-    today = date.today().isoformat()
+    # Get the date from the form submission
+    attendance_date = request.form.get('attendance_date', date.today().isoformat())
+    
+    # Validate the date
+    try:
+        datetime.fromisoformat(attendance_date).date()
+    except (ValueError, TypeError):
+        flash('Invalid date format', 'error')
+        return redirect(url_for('attendance'))
+    
     attendance_data = load_data(ATTENDANCE_FILE)
     
-    if today not in attendance_data:
-        attendance_data[today] = {}
+    if attendance_date not in attendance_data:
+        attendance_data[attendance_date] = {}
     
     students = load_data(STUDENTS_FILE)
     for student in students:
         status = request.form.get(f'attendance_{student}', 'absent')
-        attendance_data[today][student] = status
+        attendance_data[attendance_date][student] = status
     
     save_data(ATTENDANCE_FILE, attendance_data)
-    flash('Attendance marked successfully!', 'success')
-    return redirect(url_for('attendance'))
+    
+    # Provide appropriate success message based on date
+    selected_date = datetime.fromisoformat(attendance_date).date()
+    today = date.today()
+    
+    if selected_date == today:
+        flash('Today\'s attendance marked successfully!', 'success')
+    elif selected_date < today:
+        flash(f'Attendance updated for {selected_date.strftime("%B %d, %Y")}', 'success')
+    else:
+        flash(f'Future attendance set for {selected_date.strftime("%B %d, %Y")}', 'success')
+    
+    return redirect(url_for('attendance', date=attendance_date))
 
 # Planner feature removed as requested
 
@@ -462,68 +589,269 @@ def format_report_for_whatsapp(report_data, report_type='Weekly'):
 # Chatbot Routes
 @app.route('/chatbot')
 def chatbot():
+    # Reset chatbot state on page load
+    clear_session_data()
+    set_chatbot_state(ChatbotState.MAIN_MENU)
     return render_template('chatbot.html')
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    """Handle chatbot messages with session-based state management"""
     # Guard against malformed requests
     if not request.json or 'message' not in request.json:
         return jsonify({'message': 'Invalid request format'})
     
-    user_message = request.json.get('message', '').lower().strip()
+    user_message = request.json.get('message', '').strip()
+    current_state = get_chatbot_state()
     
-    # Show main menu for greeting or menu requests
-    if user_message in ['hi', 'hello', 'menu', 'help', 'start']:
-        response = {
+    # Handle special commands
+    if user_message.lower() in ['menu', 'main menu', 'back', 'home', 'start']:
+        clear_session_data()
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        return jsonify(get_main_menu_response())
+    
+    if user_message.lower() in ['hi', 'hello', 'help']:
+        clear_session_data()
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        return jsonify({
             'message': 'Hello! I\'m your AI Teaching Assistant. How can I help you today?',
-            'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions']
-        }
-    elif 'lesson plan' in user_message:
-        response = {
-            'message': 'I\'d be happy to help with lesson planning! Please provide:',
-            'questions': ['What subject?', 'What grade level (1-5)?', 'What specific topic?']
-        }
-    elif 'activities' in user_message:
-        response = {
-            'message': 'What type of activities would you like suggestions for?',
-            'options': ['Classroom Games', 'Group Work', 'Individual Tasks', 'Creative Projects']
-        }
-    elif 'definitions' in user_message:
-        response = {
-            'message': 'What term or concept would you like me to define?',
-            'placeholder': 'Enter a word or concept...'
-        }
-    else:
-        # Try to extract lesson plan information
-        if all(keyword in user_message for keyword in ['subject:', 'grade:', 'topic:']):
-            parts = user_message.split()
-            subject = grade = topic = ''
-            
-            for i, part in enumerate(parts):
-                if part == 'subject:' and i + 1 < len(parts):
-                    subject = parts[i + 1]
-                elif part == 'grade:' and i + 1 < len(parts):
-                    grade = parts[i + 1]
-                elif part == 'topic:' and i + 1 < len(parts):
-                    topic = ' '.join(parts[i + 1:])
-                    break
-            
-            if subject and grade and topic:
-                lesson_plan = generate_lesson_plan_response(subject.title(), grade, topic)
-                response = {
-                    'message': lesson_plan,
-                    'type': 'lesson_plan'
-                }
-            else:
-                response = {
-                    'message': 'Please provide all required information in this format: "subject: [subject] grade: [grade] topic: [topic]"'
-                }
-        else:
-            response = {
-                'message': 'I understand you want help! Try saying "hi" to see the main menu or ask me about: lesson planning, activities, or definitions.'
-            }
+            'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions'],
+            'show_menu': True
+        })
     
-    return jsonify(response)
+    # State machine logic
+    if current_state == ChatbotState.MAIN_MENU:
+        return handle_main_menu(user_message)
+    elif current_state == ChatbotState.GRADE_SELECTION:
+        return handle_grade_selection(user_message)
+    elif current_state == ChatbotState.SUBJECT_SELECTION:
+        return handle_subject_selection(user_message)
+    elif current_state == ChatbotState.TOPIC_INPUT:
+        return handle_topic_input(user_message)
+    elif current_state == ChatbotState.ACTIVITIES:
+        return handle_activities(user_message)
+    elif current_state == ChatbotState.DEFINITIONS:
+        return handle_definitions(user_message)
+    elif current_state == ChatbotState.GENERAL_QUESTIONS:
+        return handle_general_questions(user_message)
+    else:
+        # Fallback to main menu
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        return jsonify(get_main_menu_response())
+
+def get_main_menu_response():
+    """Get the main menu response"""
+    return {
+        'message': 'Welcome to your AI Teaching Assistant! Choose what you\'d like help with:',
+        'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions'],
+        'show_menu': True
+    }
+
+def handle_main_menu(user_message):
+    """Handle main menu selections"""
+    message_lower = user_message.lower()
+    
+    if 'lesson plan' in message_lower or message_lower == 'help with lesson plan':
+        set_chatbot_state(ChatbotState.GRADE_SELECTION)
+        return jsonify({
+            'message': 'Great! Let\'s create a lesson plan. First, which grade are you teaching?',
+            'options': ChatbotState.GRADES,
+            'navigation': 'Grade Selection'
+        })
+    
+    elif 'activities' in message_lower:
+        set_chatbot_state(ChatbotState.ACTIVITIES)
+        return jsonify({
+            'message': 'What type of activities would you like suggestions for?',
+            'options': list(ChatbotState.ACTIVITIES_TYPES.keys()),
+            'navigation': 'Activity Types'
+        })
+    
+    elif 'definitions' in message_lower:
+        set_chatbot_state(ChatbotState.DEFINITIONS)
+        return jsonify({
+            'message': 'What term or concept would you like me to define?',
+            'input_placeholder': 'Enter a word or concept...',
+            'show_input': True,
+            'navigation': 'Definitions'
+        })
+    
+    elif 'general questions' in message_lower:
+        set_chatbot_state(ChatbotState.GENERAL_QUESTIONS)
+        return jsonify({
+            'message': 'I\'m here to help with any teaching-related questions you have! What would you like to know?',
+            'input_placeholder': 'Ask me anything about teaching...',
+            'show_input': True,
+            'navigation': 'General Questions'
+        })
+    
+    else:
+        return jsonify({
+            'message': 'Please choose one of the options from the menu above, or type "menu" to see all options again.',
+            'show_menu': True
+        })
+
+def handle_grade_selection(user_message):
+    """Handle grade selection for lesson planning"""
+    if user_message in ChatbotState.GRADES:
+        set_session_data('grade', user_message)
+        set_chatbot_state(ChatbotState.SUBJECT_SELECTION)
+        return jsonify({
+            'message': f'Perfect! Grade {user_message} selected. Now, which subject?',
+            'options': list(ChatbotState.SUBJECTS.keys()),
+            'navigation': 'Subject Selection',
+            'breadcrumb': f'Grade {user_message}'
+        })
+    else:
+        return jsonify({
+            'message': 'Please select a valid grade (1-5) from the options above.',
+            'options': ChatbotState.GRADES
+        })
+
+def handle_subject_selection(user_message):
+    """Handle subject selection for lesson planning"""
+    if user_message in ChatbotState.SUBJECTS:
+        set_session_data('subject', user_message)
+        set_chatbot_state(ChatbotState.TOPIC_INPUT)
+        
+        grade = get_session_data('grade')
+        return jsonify({
+            'message': f'Excellent! {user_message} for Grade {grade}. What specific topic would you like the lesson plan to cover?',
+            'input_placeholder': f'Enter a {user_message} topic...',
+            'show_input': True,
+            'suggestions': ChatbotState.SUBJECTS[user_message],
+            'navigation': 'Topic Input',
+            'breadcrumb': f'Grade {grade} → {user_message}'
+        })
+    else:
+        return jsonify({
+            'message': 'Please select one of the available subjects from the options above.',
+            'options': list(ChatbotState.SUBJECTS.keys())
+        })
+
+def handle_topic_input(user_message):
+    """Handle topic input and generate lesson plan"""
+    if user_message.strip():
+        grade = get_session_data('grade')
+        subject = get_session_data('subject')
+        topic = user_message.strip()
+        
+        # Generate lesson plan using AI
+        lesson_plan = generate_lesson_plan_with_ai(subject, grade, topic)
+        
+        # Clear session and return to main menu
+        clear_session_data()
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        
+        return jsonify({
+            'message': lesson_plan,
+            'type': 'lesson_plan',
+            'title': f'Lesson Plan: Grade {grade} {subject} - {topic}',
+            'return_to_menu': True
+        })
+    else:
+        return jsonify({
+            'message': 'Please enter a topic for your lesson plan.',
+            'show_input': True
+        })
+
+def handle_activities(user_message):
+    """Handle activity type selection"""
+    if user_message in ChatbotState.ACTIVITIES_TYPES:
+        activities = ChatbotState.ACTIVITIES_TYPES[user_message]
+        
+        clear_session_data()
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        
+        return jsonify({
+            'message': f'Here are some {user_message} ideas:\n\n' + '\n'.join(f'• {activity}' for activity in activities),
+            'type': 'activities',
+            'title': f'{user_message} Suggestions',
+            'return_to_menu': True
+        })
+    else:
+        return jsonify({
+            'message': 'Please select one of the activity types from the options above.',
+            'options': list(ChatbotState.ACTIVITIES_TYPES.keys())
+        })
+
+def handle_definitions(user_message):
+    """Handle definition requests"""
+    if user_message.strip():
+        term = user_message.strip()
+        
+        try:
+            from openai import OpenAI
+            client = OpenAI()
+            
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{
+                    "role": "user", 
+                    "content": f"Provide a clear, educational definition of '{term}' suitable for elementary school teachers. Include examples if helpful."
+                }],
+                max_tokens=300,
+                temperature=0.7
+            )
+            
+            definition = response.choices[0].message.content
+        except Exception:
+            definition = f"I'd be happy to help define '{term}' for you, but I'm having trouble accessing detailed definitions right now. Try asking about it in a more specific way or check educational resources."
+        
+        clear_session_data()
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        
+        return jsonify({
+            'message': definition,
+            'type': 'definition',
+            'title': f'Definition: {term}',
+            'return_to_menu': True
+        })
+    else:
+        return jsonify({
+            'message': 'Please enter a term or concept you\'d like me to define.',
+            'show_input': True
+        })
+
+def handle_general_questions(user_message):
+    """Handle general teaching questions"""
+    if user_message.strip():
+        question = user_message.strip()
+        
+        try:
+            from openai import OpenAI
+            client = OpenAI()
+            
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{
+                    "role": "system",
+                    "content": "You are a helpful AI teaching assistant for elementary school teachers. Provide practical, actionable advice."
+                }, {
+                    "role": "user", 
+                    "content": question
+                }],
+                max_tokens=500,
+                temperature=0.7
+            )
+            
+            answer = response.choices[0].message.content
+        except Exception:
+            answer = "I'd love to help with your teaching question! Unfortunately, I'm having trouble accessing my full knowledge base right now. Try rephrasing your question or ask about specific teaching strategies, classroom management, or lesson planning."
+        
+        clear_session_data()
+        set_chatbot_state(ChatbotState.MAIN_MENU)
+        
+        return jsonify({
+            'message': answer,
+            'type': 'general_answer',
+            'return_to_menu': True
+        })
+    else:
+        return jsonify({
+            'message': 'Please ask me a question about teaching, classroom management, or education.',
+            'show_input': True
+        })
 
 if __name__ == '__main__':
     init_data_files()

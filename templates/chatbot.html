@@ -7,6 +7,16 @@
     <h1>AI Teaching Assistant</h1>
     
     <div class="chat-container">
+        <div class="chat-header" id="chatHeader">
+            <div class="chat-breadcrumb" id="chatBreadcrumb" style="display: none;">
+                <span class="breadcrumb-text"></span>
+                <button class="btn-back" onclick="sendMessage('menu')">← Back to Menu</button>
+            </div>
+            <div class="chat-navigation" id="chatNavigation" style="display: none;">
+                <span class="navigation-text"></span>
+            </div>
+        </div>
+        
         <div class="chat-messages" id="chatMessages">
             <div class="bot-message">
                 <div class="message-avatar">🤖</div>
@@ -16,9 +26,19 @@
             </div>
         </div>
         
+        <div class="chat-suggestions" id="chatSuggestions" style="display: none;">
+            <div class="suggestions-label">Suggestions:</div>
+            <div class="suggestions-list" id="suggestionsList"></div>
+        </div>
+        
         <div class="chat-input-container">
-            <input type="text" id="chatInput" placeholder="Type your message here..." autocomplete="off">
+            <input type="text" id="chatInput" placeholder="Type your message here..." autocomplete="off" style="display: block;">
             <button id="sendButton" class="btn btn-primary">Send</button>
+        </div>
+        
+        <div class="quick-actions" id="quickActions">
+            <button class="quick-btn" onclick="sendMessage('menu')">🏠 Main Menu</button>
+            <button class="quick-btn" onclick="sendMessage('help')">❓ Help</button>
         </div>
     </div>
     
@@ -58,25 +78,99 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatBotResponse(response) {
-        let html = `<p>${response.message || 'No response'}</p>`;
+        let html = '';
         
+        // Add title if present
+        if (response.title) {
+            html += `<h4 class="response-title">${response.title}</h4>`;
+        }
+        
+        // Add main message
+        html += `<p>${response.message || 'No response'}</p>`;
+        
+        // Add options buttons
         if (response.options && response.options.length > 0) {
             html += '<div class="response-options">';
             response.options.forEach(option => {
-                html += `<button class="option-btn" onclick="sendMessage('${option.toLowerCase()}')">${option}</button>`;
+                html += `<button class="option-btn" onclick="sendMessage('${option}')">${option}</button>`;
             });
             html += '</div>';
         }
         
-        if (response.questions && response.questions.length > 0) {
-            html += '<div class="response-questions">';
-            response.questions.forEach(question => {
-                html += `<p class="question-item">• ${question}</p>`;
-            });
+        // Add input field if requested
+        if (response.show_input) {
+            const placeholder = response.input_placeholder || 'Type your response...';
+            html += `<div class="response-input">`;
+            html += `<input type="text" class="inline-input" placeholder="${placeholder}" onkeypress="handleInlineInput(event)">`;
+            html += `<button class="input-btn" onclick="sendInlineInput()">Send</button>`;
+            html += `</div>`;
+        }
+        
+        // Handle navigation and breadcrumbs
+        updateNavigation(response);
+        
+        // Handle suggestions
+        updateSuggestions(response.suggestions);
+        
+        // Add return to menu button if specified
+        if (response.return_to_menu) {
+            html += '<div class="response-actions">';
+            html += '<button class="action-btn" onclick="sendMessage(\\'menu\\')">🏠 Return to Main Menu</button>';
             html += '</div>';
         }
         
         return html;
+    }
+    
+    function updateNavigation(response) {
+        const breadcrumb = document.getElementById('chatBreadcrumb');
+        const navigation = document.getElementById('chatNavigation');
+        
+        if (response.breadcrumb) {
+            breadcrumb.querySelector('.breadcrumb-text').textContent = response.breadcrumb;
+            breadcrumb.style.display = 'flex';
+        } else {
+            breadcrumb.style.display = 'none';
+        }
+        
+        if (response.navigation) {
+            navigation.querySelector('.navigation-text').textContent = response.navigation;
+            navigation.style.display = 'block';
+        } else {
+            navigation.style.display = 'none';
+        }
+    }
+    
+    function updateSuggestions(suggestions) {
+        const suggestionsContainer = document.getElementById('chatSuggestions');
+        const suggestionsList = document.getElementById('suggestionsList');
+        
+        if (suggestions && suggestions.length > 0) {
+            suggestionsList.innerHTML = '';
+            suggestions.forEach(suggestion => {
+                const suggestionBtn = document.createElement('button');
+                suggestionBtn.className = 'suggestion-btn';
+                suggestionBtn.textContent = suggestion;
+                suggestionBtn.onclick = () => sendMessage(suggestion);
+                suggestionsList.appendChild(suggestionBtn);
+            });
+            suggestionsContainer.style.display = 'block';
+        } else {
+            suggestionsContainer.style.display = 'none';
+        }
+    }
+    
+    function handleInlineInput(event) {
+        if (event.key === 'Enter') {
+            sendInlineInput();
+        }
+    }
+    
+    function sendInlineInput() {
+        const inlineInput = document.querySelector('.inline-input');
+        if (inlineInput && inlineInput.value.trim()) {
+            sendMessage(inlineInput.value.trim());
+        }
     }
 
     // Make sendMessage globally available

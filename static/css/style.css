@@ -853,3 +853,415 @@ input[type="text"]:focus, select:focus, textarea:focus {
 .notice-content p:last-child {
     margin-bottom: 0;
 }
+
+.notice-content .btn {
+    margin-top: 0.75rem;
+}
+
+/* Enhanced Chatbot Styles */
+.chat-header {
+    border-bottom: 1px solid var(--gray-light);
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+
+.chat-breadcrumb {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: var(--blue-light);
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+}
+
+.breadcrumb-text {
+    font-size: 0.9rem;
+    color: var(--blue-dark);
+    font-weight: 500;
+}
+
+.btn-back {
+    background: var(--blue-primary);
+    color: white;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+}
+
+.btn-back:hover {
+    background: var(--blue-dark);
+}
+
+.chat-navigation {
+    text-align: center;
+    padding: 0.5rem;
+    background: var(--yellow-light);
+    border-radius: 6px;
+    color: var(--yellow-dark);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.chat-suggestions {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--pink-light);
+    border-radius: 10px;
+    border-left: 4px solid var(--pink-primary);
+}
+
+.suggestions-label {
+    font-weight: 500;
+    color: var(--pink-dark);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.suggestion-btn {
+    background: white;
+    border: 1px solid var(--pink-primary);
+    color: var(--pink-dark);
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.suggestion-btn:hover {
+    background: var(--pink-primary);
+    color: white;
+}
+
+.quick-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--gray-light);
+}
+
+.quick-btn {
+    background: var(--gray-light);
+    border: 1px solid var(--gray-medium);
+    color: var(--gray-dark);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.quick-btn:hover {
+    background: var(--blue-primary);
+    color: white;
+    border-color: var(--blue-primary);
+}
+
+/* Enhanced Response Styles */
+.response-title {
+    color: var(--blue-dark);
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 2px solid var(--blue-light);
+}
+
+.response-input {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    background: var(--gray-lightest);
+    border-radius: 8px;
+}
+
+.inline-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--gray-medium);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.input-btn {
+    background: var(--blue-primary);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.input-btn:hover {
+    background: var(--blue-dark);
+}
+
+.response-actions {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.action-btn {
+    background: var(--pink-primary);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+    background: var(--pink-dark);
+}
+
+/* Improved Option Buttons */
+.response-options {
+    margin-top: 1rem;
+}
+
+.option-btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: white;
+    border: 2px solid var(--blue-primary);
+    color: var(--blue-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.option-btn:hover {
+    background: var(--blue-primary);
+    color: white;
+}
+
+.option-btn:last-child {
+    margin-bottom: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .chat-breadcrumb {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .quick-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .suggestions-list {
+        justify-content: center;
+    }
+    
+    .response-input {
+        flex-direction: column;
+    }
+    
+    .input-btn {
+        align-self: center;
+        min-width: 100px;
+    }
+}
+
+/* Date Selection Styles */
+.date-selection {
+    background: var(--blue-light);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border-left: 5px solid var(--blue-primary);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.date-selection h2 {
+    color: var(--blue-dark);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+}
+
+.date-picker-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.date-input-group {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.date-input-group label {
+    font-weight: 500;
+    color: var(--blue-dark);
+    font-size: 1rem;
+    min-width: 100px;
+}
+
+.date-input {
+    padding: 0.75rem;
+    border: 2px solid var(--gray-medium);
+    border-radius: 6px;
+    font-size: 1rem;
+    min-width: 160px;
+    transition: border-color 0.2s;
+}
+
+.date-input:focus {
+    outline: none;
+    border-color: var(--blue-primary);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.current-date-info {
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--gray-lightest);
+}
+
+.current-date-info h3 {
+    color: var(--gray-dark);
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-notice {
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: var(--yellow-light);
+    border-radius: 8px;
+    border-left: 4px solid var(--yellow-primary);
+    margin-top: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.edit-notice.future-notice {
+    background: var(--pink-light);
+    border-left-color: var(--pink-primary);
+}
+
+.notice-icon {
+    font-size: 1.3rem;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.edit-notice span {
+    color: var(--gray-dark);
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Enhanced attendance controls for better mobile experience */
+.student-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--gray-light);
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.attendance-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.remove-student-btn {
+    white-space: nowrap;
+}
+
+/* Mobile responsive for date picker */
+@media (max-width: 768px) {
+    .date-picker-form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .date-input-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .date-input-group label {
+        min-width: auto;
+        font-size: 0.95rem;
+    }
+    
+    .date-input {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .student-item {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+        text-align: center;
+    }
+    
+    .student-name {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .attendance-controls {
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .remove-student-btn {
+        justify-self: center;
+        max-width: 120px;
+    }
+    
+    .edit-notice {
+        flex-direction: column;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .notice-icon {
+        margin-bottom: 0.5rem;
+        margin-right: 0;
+    }
+    
+    .current-date-info h3 {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.25rem;
+    }
+}
