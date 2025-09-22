@@ -1,30 +1,30 @@
 /* Tutor's Assistant - Primary School Teacher Design */
 :root {
-    /* Main Classroom Colors */
-    --primary: #2d5a27;        /* Forest Green - chalkboard */
-    --secondary: #8b4513;      /* Saddle Brown - wood desk */
-    --accent: #ff7f50;         /* Coral - friendly highlight */
+    /* Sweet Baby Colors */
+    --primary: #ffb3d9;        /* Baby Pink */
+    --secondary: #fff44f;      /* Pretty Yellow */
+    --accent: #87ceeb;         /* Calm Blue */
     
-    /* Educational Color Palette */
-    --chalkboard-green: #2d5a27;
-    --chalkboard-light: #4a7c59;
-    --chalkboard-dark: #1e3d1a;
+    /* Cute Color Palette */
+    --baby-pink: #ffb3d9;
+    --baby-pink-light: #ffd9ec;
+    --baby-pink-dark: #ff99cc;
+    
+    --pretty-yellow: #fff44f;
+    --pretty-yellow-light: #ffff99;
+    --pretty-yellow-dark: #ffe135;
+    
+    --calm-blue: #87ceeb;
+    --calm-blue-light: #b6e5ff;
+    --calm-blue-dark: #4682b4;
+    
+    --sweet-purple: #dda0dd;
+    --sweet-purple-light: #e6b3e6;
+    --sweet-purple-dark: #da70d6;
     
     --paper-cream: #fefbf3;
     --paper-light: #ffffff;
     --paper-dark: #f5f2e8;
-    
-    --pencil-yellow: #ffd700;
-    --pencil-light: #fff44f;
-    --pencil-dark: #e6c200;
-    
-    --apple-red: #dc143c;
-    --apple-light: #ff6b6b;
-    --apple-dark: #b71c1c;
-    
-    --sky-blue: #87ceeb;
-    --sky-light: #b6e5ff;
-    --sky-dark: #4682b4;
     
     --white: #ffffff;
     --gray-50: #f8fafc;
@@ -38,22 +38,22 @@
     --gray-800: #1e293b;
     --gray-900: #0f172a;
     
-    --success: var(--chalkboard-green);
-    --danger: var(--apple-red);
-    --warning: var(--pencil-yellow);
-    --info: var(--sky-blue);
+    --success: var(--pretty-yellow);
+    --danger: var(--baby-pink-dark);
+    --warning: var(--pretty-yellow);
+    --info: var(--calm-blue);
     
     /* Legacy color mappings for compatibility */
-    --blue-primary: var(--sky-blue);
-    --blue-dark: var(--chalkboard-dark);
-    --blue-light: var(--sky-light);
-    --pink-primary: var(--apple-red);
-    --pink-light: var(--apple-light);
-    --yellow-primary: var(--pencil-yellow);
-    --yellow-light: var(--pencil-light);
+    --blue-primary: var(--calm-blue);
+    --blue-dark: var(--calm-blue-dark);
+    --blue-light: var(--calm-blue-light);
+    --pink-primary: var(--baby-pink);
+    --pink-light: var(--baby-pink-light);
+    --yellow-primary: var(--pretty-yellow);
+    --yellow-light: var(--pretty-yellow-light);
     --gray-light: var(--paper-light);
     --gray-medium: var(--gray-500);
-    --gray-dark: var(--chalkboard-dark);
+    --gray-dark: var(--gray-700);
     
     /* Modern shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -70,7 +70,7 @@
 
 body {
     font-family: system-ui, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: linear-gradient(135deg, var(--paper-cream) 0%, var(--sky-light) 100%);
+    background: linear-gradient(135deg, var(--baby-pink-light) 0%, var(--calm-blue-light) 50%, var(--pretty-yellow-light) 100%);
     min-height: 100vh;
     line-height: 1.6;
     color: var(--gray-900);
@@ -96,8 +96,8 @@ body::before {
 
 /* Navigation */
 .navbar {
-    background: var(--chalkboard-green);
-    border-bottom: 3px solid var(--pencil-yellow);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
+    border-bottom: 3px solid var(--pretty-yellow);
     padding: 1rem 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-top: 1px solid var(--paper-light);
@@ -149,8 +149,8 @@ body::before {
 }
 
 .nav-link:hover {
-    background: var(--pencil-yellow);
-    color: var(--chalkboard-dark);
+    background: var(--pretty-yellow);
+    color: var(--gray-800);
     transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
@@ -442,14 +442,16 @@ body::before {
 
 /* Page Headers */
 h1 {
-    color: var(--chalkboard-green);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 2rem;
     font-size: 2rem;
     text-align: center;
     font-weight: 700;
     letter-spacing: -0.025em;
     position: relative;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 h1::after {
@@ -460,17 +462,19 @@ h1::after {
     transform: translateX(-50%);
     width: 60px;
     height: 4px;
-    background: var(--pencil-yellow);
+    background: linear-gradient(90deg, var(--baby-pink), var(--pretty-yellow), var(--calm-blue));
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 h2 {
-    color: var(--chalkboard-green);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 1.5rem;
     font-weight: 600;
     font-size: 1.5rem;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 h3 {
@@ -554,7 +558,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 
 /* Boy Avatar */
 .boy-avatar {
-    background: linear-gradient(135deg, var(--sky-blue) 0%, var(--sky-dark) 100%);
+    background: linear-gradient(135deg, var(--calm-blue) 0%, var(--calm-blue-dark) 100%);
 }
 
 .boy-avatar::before {
@@ -565,7 +569,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .boy-avatar-small {
-    background: linear-gradient(135deg, var(--sky-blue) 0%, var(--sky-dark) 100%);
+    background: linear-gradient(135deg, var(--calm-blue) 0%, var(--calm-blue-dark) 100%);
 }
 
 .boy-avatar-small::before {
@@ -577,7 +581,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 
 /* Girl Avatar */
 .girl-avatar {
-    background: linear-gradient(135deg, var(--apple-light) 0%, var(--apple-red) 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--baby-pink-dark) 100%);
 }
 
 .girl-avatar::before {
@@ -588,7 +592,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .girl-avatar-small {
-    background: linear-gradient(135deg, var(--apple-light) 0%, var(--apple-red) 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--baby-pink-dark) 100%);
 }
 
 .girl-avatar-small::before {
@@ -600,7 +604,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 
 /* Neutral Avatar */
 .neutral-avatar {
-    background: linear-gradient(135deg, var(--pencil-yellow) 0%, var(--pencil-dark) 100%);
+    background: linear-gradient(135deg, var(--pretty-yellow) 0%, var(--pretty-yellow-dark) 100%);
 }
 
 .neutral-avatar::before {
@@ -611,7 +615,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .neutral-avatar-small {
-    background: linear-gradient(135deg, var(--pencil-yellow) 0%, var(--pencil-dark) 100%);
+    background: linear-gradient(135deg, var(--pretty-yellow) 0%, var(--pretty-yellow-dark) 100%);
 }
 
 .neutral-avatar-small::before {
@@ -683,7 +687,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 3px solid var(--chalkboard-green);
+    border: 3px solid var(--baby-pink);
     position: relative;
     overflow: hidden;
 }
@@ -695,7 +699,9 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     left: 0;
     right: 0;
     height: 4px;
-    background: var(--pencil-yellow);
+    background: linear-gradient(90deg, var(--baby-pink), var(--pretty-yellow), var(--calm-blue), var(--baby-pink));
+    background-size: 200% 100%;
+    animation: gradient-slide 3s ease infinite;
 }
 
 @keyframes gradient-slide {
