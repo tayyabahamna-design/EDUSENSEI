@@ -1,8 +1,10 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, session
 import json
 import os
+import uuid
 from datetime import datetime, date
 import calendar
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'tutor-assistant-secret-key')
@@ -44,6 +46,55 @@ def load_data(file_path):
 def save_data(file_path, data):
     with open(file_path, 'w') as f:
         json.dump(data, f, indent=2)
+
+# Student profile helper functions
+def create_student_profile(name, guardian_name="", guardian_phone="", address="", profile_picture=""):
+    """Create a new student profile object"""
+    return {
+        "id": f"student_{uuid.uuid4().hex[:8]}",
+        "name": name.strip(),
+        "guardian_name": guardian_name.strip(),
+        "guardian_phone": guardian_phone.strip(),
+        "address": address.strip(),
+        "profile_picture": profile_picture
+    }
+
+def get_student_by_name(students, name):
+    """Find a student by name from the students list"""
+    for student in students:
+        if isinstance(student, dict) and student.get('name') == name:
+            return student
+    return None
+
+def get_student_by_id(students, student_id):
+    """Find a student by ID from the students list"""
+    for student in students:
+        if isinstance(student, dict) and student.get('id') == student_id:
+            return student
+    return None
+
+def get_student_names(students):
+    """Extract list of student names from student objects"""
+    names = []
+    for student in students:
+        if isinstance(student, dict):
+            names.append(student.get('name', ''))
+        else:
+            # Handle legacy string format
+            names.append(str(student))
+    return names
+
+def migrate_legacy_students(students):
+    """Convert legacy string-based student list to object format"""
+    migrated = []
+    for i, student in enumerate(students):
+        if isinstance(student, str):
+            # Convert string to object
+            migrated.append(create_student_profile(student))
+        elif isinstance(student, dict):
+            # Already in new format
+            migrated.append(student)
+    return migrated
 
 # Simulated AI functions
 def simulate_ai_grading():

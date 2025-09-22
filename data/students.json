@@ -1,6 +1,34 @@
 [
-  "Syeda Sughra Fatima",
-  "Mehmoona",
-  "Aira",
-  "Aliza"
+  {
+    "id": "student_1",
+    "name": "Syeda Sughra Fatima",
+    "guardian_name": "",
+    "guardian_phone": "",
+    "address": "",
+    "profile_picture": ""
+  },
+  {
+    "id": "student_2", 
+    "name": "Mehmoona",
+    "guardian_name": "",
+    "guardian_phone": "",
+    "address": "",
+    "profile_picture": ""
+  },
+  {
+    "id": "student_3",
+    "name": "Aira", 
+    "guardian_name": "",
+    "guardian_phone": "",
+    "address": "",
+    "profile_picture": ""
+  },
+  {
+    "id": "student_4",
+    "name": "Aliza",
+    "guardian_name": "",
+    "guardian_phone": "",
+    "address": "", 
+    "profile_picture": ""
+  }
 ]
