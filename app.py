@@ -1,0 +1,290 @@
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+import json
+import os
+from datetime import datetime, date
+import calendar
+
+app = Flask(__name__)
+app.secret_key = os.environ.get('SESSION_SECRET', 'tutor-assistant-secret-key')
+
+# Data file paths
+DATA_DIR = 'data'
+STUDENTS_FILE = os.path.join(DATA_DIR, 'students.json')
+ATTENDANCE_FILE = os.path.join(DATA_DIR, 'attendance.json')
+SCHEDULE_FILE = os.path.join(DATA_DIR, 'schedule.json')
+GRADES_FILE = os.path.join(DATA_DIR, 'grades.json')
+
+# Ensure data directory and files exist
+def init_data_files():
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+    
+    # Initialize empty data files if they don't exist
+    default_data = {
+        STUDENTS_FILE: [],
+        ATTENDANCE_FILE: {},
+        SCHEDULE_FILE: {},
+        GRADES_FILE: {}
+    }
+    
+    for file_path, default_content in default_data.items():
+        if not os.path.exists(file_path):
+            with open(file_path, 'w') as f:
+                json.dump(default_content, f)
+
+# Load data from JSON files
+def load_data(file_path):
+    try:
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {} if 'attendance' in file_path or 'schedule' in file_path or 'grades' in file_path else []
+
+# Save data to JSON files
+def save_data(file_path, data):
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+# Simulated AI functions
+def simulate_ai_grading():
+    """Simulate AI-powered grading system"""
+    import random
+    return random.randint(75, 100)
+
+def generate_lesson_plan_response(subject, grade, topic):
+    """Simulate AI lesson plan generation"""
+    responses = {
+        'English': f"Here's a lesson plan for Grade {grade} English on {topic}: Start with vocabulary introduction, followed by reading comprehension activities, and end with creative writing exercises.",
+        'Maths': f"For Grade {grade} Mathematics on {topic}: Begin with concept introduction using visual aids, practice with guided examples, then independent problem-solving.",
+        'Science': f"Grade {grade} Science lesson on {topic}: Start with observation and questioning, conduct simple experiments, and conclude with scientific explanations.",
+        'Urdu': f"برائے جماعت {grade} اردو کا سبق {topic} پر: الفاظ کی تعلیم سے شروع کریں، پھر قرات اور آخر میں تحریری مشق۔"
+    }
+    return responses.get(subject, f"Here's a basic lesson plan for Grade {grade} {subject} on {topic}: Introduction, main activities, and assessment.")
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+# Attendance & Roster Management Routes
+@app.route('/attendance')
+def attendance():
+    students = load_data(STUDENTS_FILE)
+    today = date.today().isoformat()
+    attendance_data = load_data(ATTENDANCE_FILE)
+    today_attendance = attendance_data.get(today, {})
+    
+    return render_template('attendance.html', students=students, today_attendance=today_attendance, today=today)
+
+@app.route('/add_student', methods=['POST'])
+def add_student():
+    student_name = request.form.get('student_name')
+    if student_name:
+        students = load_data(STUDENTS_FILE)
+        if student_name not in students:
+            students.append(student_name)
+            save_data(STUDENTS_FILE, students)
+            flash(f'Student {student_name} added successfully!', 'success')
+    return redirect(url_for('attendance'))
+
+@app.route('/remove_student', methods=['POST'])
+def remove_student():
+    student_name = request.form.get('student_name')
+    if student_name:
+        students = load_data(STUDENTS_FILE)
+        if student_name in students:
+            students.remove(student_name)
+            save_data(STUDENTS_FILE, students)
+            flash(f'Student {student_name} removed successfully!', 'success')
+    return redirect(url_for('attendance'))
+
+@app.route('/mark_attendance', methods=['POST'])
+def mark_attendance():
+    today = date.today().isoformat()
+    attendance_data = load_data(ATTENDANCE_FILE)
+    
+    if today not in attendance_data:
+        attendance_data[today] = {}
+    
+    students = load_data(STUDENTS_FILE)
+    for student in students:
+        status = request.form.get(f'attendance_{student}', 'absent')
+        attendance_data[today][student] = status
+    
+    save_data(ATTENDANCE_FILE, attendance_data)
+    flash('Attendance marked successfully!', 'success')
+    return redirect(url_for('attendance'))
+
+# Teacher Planner Routes
+@app.route('/planner')
+def planner():
+    year = int(request.args.get('year', datetime.now().year))
+    month = int(request.args.get('month', datetime.now().month))
+    grade_filter = request.args.get('grade', 'all')
+    subject_filter = request.args.get('subject', 'all')
+    
+    schedule_data = load_data(SCHEDULE_FILE)
+    
+    # Filter schedule data
+    filtered_schedule = {}
+    for date_str, classes in schedule_data.items():
+        filtered_classes = []
+        for class_info in classes:
+            if grade_filter == 'all' or class_info.get('grade') == grade_filter:
+                if subject_filter == 'all' or class_info.get('subject') == subject_filter:
+                    filtered_classes.append(class_info)
+        if filtered_classes:
+            filtered_schedule[date_str] = filtered_classes
+    
+    # Generate calendar
+    cal = calendar.monthcalendar(year, month)
+    month_name = calendar.month_name[month]
+    
+    subjects = ['English', 'Maths', 'Science', 'Urdu']
+    grades = ['1', '2', '3', '4', '5']
+    
+    return render_template('planner.html', 
+                         calendar_data=cal, 
+                         year=year, 
+                         month=month, 
+                         month_name=month_name,
+                         schedule=filtered_schedule,
+                         subjects=subjects,
+                         grades=grades,
+                         current_grade=grade_filter,
+                         current_subject=subject_filter)
+
+@app.route('/add_class', methods=['POST'])
+def add_class():
+    date_str = request.form.get('date')
+    subject = request.form.get('subject')
+    grade = request.form.get('grade')
+    
+    if date_str and subject and grade:
+        schedule_data = load_data(SCHEDULE_FILE)
+        
+        if date_str not in schedule_data:
+            schedule_data[date_str] = []
+        
+        class_info = {
+            'subject': subject,
+            'grade': grade,
+            'time': datetime.now().strftime('%H:%M')
+        }
+        
+        schedule_data[date_str].append(class_info)
+        save_data(SCHEDULE_FILE, schedule_data)
+        flash(f'Class scheduled for {date_str}!', 'success')
+    
+    return redirect(url_for('planner'))
+
+# Grading Routes
+@app.route('/grading')
+def grading():
+    students = load_data(STUDENTS_FILE)
+    grades_data = load_data(GRADES_FILE)
+    today = date.today().isoformat()
+    today_grades = grades_data.get(today, {})
+    
+    return render_template('grading.html', students=students, today_grades=today_grades, today=today)
+
+@app.route('/grade_student', methods=['POST'])
+def grade_student():
+    student_name = request.form.get('student_name')
+    today = date.today().isoformat()
+    
+    # Simulate AI grading
+    score = simulate_ai_grading()
+    
+    grades_data = load_data(GRADES_FILE)
+    if today not in grades_data:
+        grades_data[today] = {}
+    
+    grades_data[today][student_name] = {
+        'score': score,
+        'timestamp': datetime.now().strftime('%H:%M'),
+        'method': 'AI Grading Simulation'
+    }
+    
+    save_data(GRADES_FILE, grades_data)
+    flash(f'Work graded for {student_name}: {score}/100', 'success')
+    return redirect(url_for('grading'))
+
+@app.route('/quiz_generator')
+def quiz_generator():
+    return render_template('quiz_generator.html')
+
+@app.route('/generate_quiz', methods=['POST'])
+def generate_quiz():
+    topic = request.form.get('topic')
+    grade = request.form.get('grade')
+    quiz_type = request.form.get('quiz_type')
+    
+    # Simulate quiz generation
+    quiz_content = f"Generated {quiz_type} for Grade {grade} on topic: {topic}"
+    flash(f'Quiz generated successfully: {quiz_content}', 'success')
+    return redirect(url_for('quiz_generator'))
+
+# Chatbot Routes
+@app.route('/chatbot')
+def chatbot():
+    return render_template('chatbot.html')
+
+@app.route('/chat', methods=['POST'])
+def chat():
+    user_message = request.json.get('message', '').lower().strip()
+    
+    if user_message == 'hi':
+        response = {
+            'message': 'Hello! I\'m your AI Teaching Assistant. How can I help you today?',
+            'options': ['Help with Lesson Plan', 'Activities', 'Definitions', 'General Questions']
+        }
+    elif 'lesson plan' in user_message:
+        response = {
+            'message': 'I\'d be happy to help with lesson planning! Please provide:',
+            'questions': ['What subject?', 'What grade level (1-5)?', 'What specific topic?']
+        }
+    elif 'activities' in user_message:
+        response = {
+            'message': 'What type of activities would you like suggestions for?',
+            'options': ['Classroom Games', 'Group Work', 'Individual Tasks', 'Creative Projects']
+        }
+    elif 'definitions' in user_message:
+        response = {
+            'message': 'What term or concept would you like me to define?',
+            'placeholder': 'Enter a word or concept...'
+        }
+    else:
+        # Try to extract lesson plan information
+        if all(keyword in user_message for keyword in ['subject:', 'grade:', 'topic:']):
+            parts = user_message.split()
+            subject = grade = topic = ''
+            
+            for i, part in enumerate(parts):
+                if part == 'subject:' and i + 1 < len(parts):
+                    subject = parts[i + 1]
+                elif part == 'grade:' and i + 1 < len(parts):
+                    grade = parts[i + 1]
+                elif part == 'topic:' and i + 1 < len(parts):
+                    topic = ' '.join(parts[i + 1:])
+                    break
+            
+            if subject and grade and topic:
+                lesson_plan = generate_lesson_plan_response(subject.title(), grade, topic)
+                response = {
+                    'message': lesson_plan,
+                    'type': 'lesson_plan'
+                }
+            else:
+                response = {
+                    'message': 'Please provide all required information in this format: "subject: [subject] grade: [grade] topic: [topic]"'
+                }
+        else:
+            response = {
+                'message': 'I understand you want help, but I need more specific information. Type "hi" to see the menu of options.'
+            }
+    
+    return jsonify(response)
+
+if __name__ == '__main__':
+    init_data_files()
+    app.run(host='0.0.0.0', port=5000, debug=True)
