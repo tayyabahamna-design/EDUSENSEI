@@ -215,7 +215,7 @@ body::before {
     border-radius: 16px;
     margin-bottom: 3rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 3px solid var(--pencil-yellow);
+    border: 3px solid var(--pretty-yellow);
     position: relative;
     overflow: hidden;
 }
@@ -245,7 +245,7 @@ body::before {
 }
 
 .welcome-section h1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -292,7 +292,7 @@ body::before {
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    background: linear-gradient(90deg, var(--baby-pink), var(--calm-blue), var(--pretty-yellow));
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -310,7 +310,7 @@ body::before {
 .feature-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 50%, var(--pretty-yellow) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -324,7 +324,7 @@ body::before {
 }
 
 .feature-card h3 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -371,7 +371,7 @@ body::before {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
     color: var(--white);
     box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
 }
@@ -478,7 +478,7 @@ h2 {
 }
 
 h3 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -521,7 +521,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
     justify-content: center;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
     /* Simplified animations for professional setting */
 }
 
@@ -771,7 +771,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-left: 4px solid transparent;
     background-image: linear-gradient(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.95)), 
-                      linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
     background-origin: border-box;
     background-clip: content-box, border-box;
     gap: 1rem;
@@ -1402,11 +1402,11 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
 }
 
 .bot-message .message-avatar {
-    background: var(--blue-light);
+    background: var(--calm-blue-light);
 }
 
 .user-message .message-avatar {
-    background: var(--pink-light);
+    background: var(--baby-pink-light);
 }
 
 .message-content {

@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="chatbot-page">
-    <h1>AI Teaching Assistant</h1>
+    <h1>🤖💖 AI Teaching Assistant 🌈✨</h1>
     
     <div class="chat-container">
         <div class="chat-header" id="chatHeader">
@@ -19,9 +19,9 @@
         
         <div class="chat-messages" id="chatMessages">
             <div class="bot-message">
-                <div class="message-avatar">AI</div>
+                <div class="message-avatar">🤖</div>
                 <div class="message-content">
-                    <p>Hello! I'm your AI Teaching Assistant. Type "hi" to see how I can help you with lesson planning, activities, and more!</p>
+                    <p>🌟 Hello! I'm your cute AI Teaching Assistant! 🎀 Type "hi" to see how I can help you with lesson planning, fun activities, and more! 📚✨</p>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (typeof content === 'string') {
             messageDiv.innerHTML = `
-                <div class="message-avatar">${isUser ? 'You' : 'AI'}</div>
+                <div class="message-avatar">${isUser ? '😊' : '🤖'}</div>
                 <div class="message-content">
                     <p></p>
                 </div>
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.querySelector('.message-content p').textContent = content;
         } else {
             messageDiv.innerHTML = `
-                <div class="message-avatar">AI</div>
+                <div class="message-avatar">🤖</div>
                 <div class="message-content">
                     ${formatBotResponse(content)}
                 </div>

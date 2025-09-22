@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="profile-page">
-    <h1>Student Profile</h1>
+    <h1>👤🎀 Student Profile ✨</h1>
     
     <div class="profile-header">
         <div class="profile-picture-large">
@@ -31,7 +31,7 @@
           enctype="multipart/form-data" class="profile-form">
         
         <div class="form-section">
-            <h3>Basic Information</h3>
+            <h3>📝 Basic Information</h3>
             <div class="form-group">
                 <label for="name">Student Name *</label>
                 <input type="text" id="name" name="name" value="{{ student.name }}" required>
@@ -47,7 +47,7 @@
         </div>
 
         <div class="form-section">
-            <h3>Guardian Information</h3>
+            <h3>👨‍👩‍👧‍👦 Guardian Information</h3>
             <div class="form-group">
                 <label for="guardian_name">Guardian Name</label>
                 <input type="text" id="guardian_name" name="guardian_name" value="{{ student.guardian_name or '' }}">
@@ -61,7 +61,7 @@
         </div>
 
         <div class="form-section">
-            <h3>Address Information</h3>
+            <h3>🏠 Address Information</h3>
             <div class="form-group">
                 <label for="address">Home Address</label>
                 <textarea id="address" name="address" rows="3" placeholder="Enter complete address">{{ student.address or '' }}</textarea>
@@ -69,7 +69,7 @@
         </div>
 
         <div class="form-section">
-            <h3>Profile Picture</h3>
+            <h3>📷 Profile Picture</h3>
             <div class="form-group">
                 <label for="profile_picture">Upload Profile Picture</label>
                 <input type="file" id="profile_picture" name="profile_picture" accept="image/*">
@@ -78,8 +78,8 @@
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-large">Save Profile</button>
-            <a href="{{ url_for('attendance') }}" class="btn btn-secondary">Back to Attendance</a>
+            <button type="submit" class="btn btn-primary btn-large">💾 Save Profile</button>
+            <a href="{{ url_for('attendance') }}" class="btn btn-secondary">⬅️ Back to Attendance</a>
         </div>
     </form>
 
