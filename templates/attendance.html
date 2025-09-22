@@ -51,7 +51,12 @@
     </div>
     
     <div class="quick-actions">
-        <a href="{{ url_for('weekly_report') }}" class="btn btn-secondary">📊 View Weekly Report</a>
+        <h3>📊 Attendance Reports</h3>
+        <div class="report-buttons">
+            <a href="{{ url_for('weekly_report') }}" class="btn btn-secondary">📅 Weekly Report</a>
+            <a href="{{ url_for('monthly_report') }}" class="btn btn-secondary">📅 Monthly Report</a>
+            <a href="{{ url_for('yearly_report') }}" class="btn btn-secondary">📅 Yearly Report</a>
+        </div>
     </div>
 </div>
 

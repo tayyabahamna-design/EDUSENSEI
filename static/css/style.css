@@ -785,3 +785,40 @@ input[type="text"]:focus, select:focus, textarea:focus {
     background: var(--gray-light);
     border-radius: 10px;
 }
+
+/* Report Navigation Buttons */
+.quick-actions {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.quick-actions h3 {
+    margin-bottom: 1rem;
+    color: var(--blue-dark);
+}
+
+.report-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.report-buttons .btn {
+    min-width: 150px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .report-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .report-buttons .btn {
+        width: 100%;
+        max-width: 250px;
+    }
+}
