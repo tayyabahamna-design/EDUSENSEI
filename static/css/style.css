@@ -567,11 +567,9 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .boy-avatar::before {
-    content: '♂';
+    content: '👦';
     font-size: 4rem;
     animation: bounce 2.5s ease-in-out infinite;
-    color: white;
-    font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
@@ -580,11 +578,9 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .boy-avatar-small::before {
-    content: '♂';
+    content: '👦';
     font-size: 1.5rem;
     animation: bounce 2s ease-in-out infinite;
-    color: white;
-    font-weight: bold;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
@@ -594,11 +590,9 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .girl-avatar::before {
-    content: '♀';
+    content: '👧';
     font-size: 4rem;
     animation: bounce 2.2s ease-in-out infinite;
-    color: white;
-    font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
@@ -607,11 +601,9 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .girl-avatar-small::before {
-    content: '♀';
+    content: '👧';
     font-size: 1.5rem;
     animation: bounce 1.8s ease-in-out infinite;
-    color: white;
-    font-weight: bold;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
@@ -621,11 +613,9 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .neutral-avatar::before {
-    content: '●';
+    content: '👤';
     font-size: 4rem;
     animation: heartBeat 2s ease-in-out infinite;
-    color: white;
-    font-weight: bold;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
@@ -634,11 +624,9 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .neutral-avatar-small::before {
-    content: '●';
+    content: '👤';
     font-size: 1.5rem;
     animation: heartBeat 1.8s ease-in-out infinite;
-    color: white;
-    font-weight: bold;
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
