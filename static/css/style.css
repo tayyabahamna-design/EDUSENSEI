@@ -95,12 +95,11 @@ body::before {
 
 /* Navigation */
 .navbar {
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    background: var(--chalkboard-green);
+    border-bottom: 3px solid var(--pencil-yellow);
     padding: 1rem 0;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-top: 1px solid var(--paper-light);
 }
 
 .nav-container {
@@ -113,13 +112,11 @@ body::before {
 }
 
 .nav-title {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--paper-light);
     font-size: 1.5rem;
     font-weight: 700;
     letter-spacing: -0.025em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .nav-menu {
@@ -129,15 +126,14 @@ body::before {
 }
 
 .nav-link {
-    color: var(--gray-700);
+    color: var(--paper-light);
     text-decoration: none;
     padding: 0.5rem 1rem;
-    border-radius: 12px;
+    border-radius: 8px;
     transition: all 0.3s ease;
     font-weight: 500;
     font-size: 0.875rem;
     position: relative;
-    overflow: hidden;
 }
 
 .nav-link::before {
@@ -152,10 +148,10 @@ body::before {
 }
 
 .nav-link:hover {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    color: var(--primary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    background: var(--pencil-yellow);
+    color: var(--chalkboard-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .nav-link:hover::before {
@@ -213,13 +209,12 @@ body::before {
 }
 
 .welcome-section {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--paper-light);
     padding: 3rem;
-    border-radius: 24px;
+    border-radius: 16px;
     margin-bottom: 3rem;
-    box-shadow: 0 20px 40px rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 3px solid var(--pencil-yellow);
     position: relative;
     overflow: hidden;
 }
@@ -446,16 +441,14 @@ body::before {
 
 /* Page Headers */
 h1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--chalkboard-green);
     margin-bottom: 2rem;
     font-size: 2rem;
     text-align: center;
     font-weight: 700;
     letter-spacing: -0.025em;
     position: relative;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 h1::after {
@@ -466,18 +459,17 @@ h1::after {
     transform: translateX(-50%);
     width: 60px;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: var(--pencil-yellow);
     border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 h2 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--chalkboard-green);
     margin-bottom: 1.5rem;
     font-weight: 600;
     font-size: 1.5rem;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 h3 {
@@ -561,7 +553,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 
 /* Boy Avatar */
 .boy-avatar {
-    background: linear-gradient(135deg, #667eea 0%, #4338ca 100%);
+    background: linear-gradient(135deg, var(--sky-blue) 0%, var(--sky-dark) 100%);
 }
 
 .boy-avatar::before {
@@ -572,7 +564,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .boy-avatar-small {
-    background: linear-gradient(135deg, #667eea 0%, #4338ca 100%);
+    background: linear-gradient(135deg, var(--sky-blue) 0%, var(--sky-dark) 100%);
 }
 
 .boy-avatar-small::before {
@@ -584,7 +576,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 
 /* Girl Avatar */
 .girl-avatar {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, var(--apple-light) 0%, var(--apple-red) 100%);
 }
 
 .girl-avatar::before {
@@ -595,7 +587,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .girl-avatar-small {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: linear-gradient(135deg, var(--apple-light) 0%, var(--apple-red) 100%);
 }
 
 .girl-avatar-small::before {
@@ -607,7 +599,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 
 /* Neutral Avatar */
 .neutral-avatar {
-    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    background: linear-gradient(135deg, var(--pencil-yellow) 0%, var(--pencil-dark) 100%);
 }
 
 .neutral-avatar::before {
@@ -618,7 +610,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 }
 
 .neutral-avatar-small {
-    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    background: linear-gradient(135deg, var(--pencil-yellow) 0%, var(--pencil-dark) 100%);
 }
 
 .neutral-avatar-small::before {
@@ -686,12 +678,11 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
 
 /* Attendance Page */
 .attendance-page {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--paper-light);
     padding: 2rem;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px rgba(31, 38, 135, 0.37);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border: 3px solid var(--chalkboard-green);
     position: relative;
     overflow: hidden;
 }
@@ -703,9 +694,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
-    background-size: 200% 100%;
-    animation: gradient-slide 3s ease infinite;
+    background: var(--pencil-yellow);
 }
 
 @keyframes gradient-slide {
