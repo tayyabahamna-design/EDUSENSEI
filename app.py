@@ -215,6 +215,10 @@ def attendance():
         selected_date_str = selected_date.isoformat()
     
     students = load_data(STUDENTS_FILE)
+    # Ensure migration from legacy format if needed
+    students = migrate_legacy_students(students)
+    save_data(STUDENTS_FILE, students)
+    
     attendance_data = load_data(ATTENDANCE_FILE)
     selected_attendance = attendance_data.get(selected_date_str, {})
     
@@ -238,10 +242,17 @@ def add_student():
     student_name = request.form.get('student_name')
     if student_name:
         students = load_data(STUDENTS_FILE)
-        if student_name not in students:
-            students.append(student_name)
+        students = migrate_legacy_students(students)
+        
+        # Check if student already exists
+        existing_student = get_student_by_name(students, student_name)
+        if not existing_student:
+            new_student = create_student_profile(student_name)
+            students.append(new_student)
             save_data(STUDENTS_FILE, students)
             flash(f'Student {student_name} added successfully!', 'success')
+        else:
+            flash(f'Student {student_name} already exists!', 'error')
     return redirect(url_for('attendance'))
 
 @app.route('/edit_student', methods=['POST'])
@@ -251,10 +262,14 @@ def edit_student():
     
     if old_name and new_name and old_name != new_name:
         students = load_data(STUDENTS_FILE)
-        if old_name in students and new_name not in students:
-            # Update students list
-            student_index = students.index(old_name)
-            students[student_index] = new_name
+        students = migrate_legacy_students(students)
+        
+        old_student = get_student_by_name(students, old_name)
+        existing_new_student = get_student_by_name(students, new_name)
+        
+        if old_student and not existing_new_student:
+            # Update student name
+            old_student['name'] = new_name.strip()
             save_data(STUDENTS_FILE, students)
             
             # Update all attendance records
@@ -265,7 +280,7 @@ def edit_student():
             save_data(ATTENDANCE_FILE, attendance_data)
             
             flash(f'Student name updated from "{old_name}" to "{new_name}"', 'success')
-        elif new_name in students:
+        elif existing_new_student:
             flash(f'Student name "{new_name}" already exists!', 'error')
         else:
             flash('Student not found!', 'error')
@@ -281,10 +296,15 @@ def remove_student():
     student_name = request.form.get('student_name')
     if student_name:
         students = load_data(STUDENTS_FILE)
-        if student_name in students:
-            students.remove(student_name)
+        students = migrate_legacy_students(students)
+        
+        student_to_remove = get_student_by_name(students, student_name)
+        if student_to_remove:
+            students.remove(student_to_remove)
             save_data(STUDENTS_FILE, students)
             flash(f'Student {student_name} removed successfully!', 'success')
+        else:
+            flash(f'Student {student_name} not found!', 'error')
     return redirect(url_for('attendance'))
 
 @app.route('/mark_attendance', methods=['POST'])
@@ -305,9 +325,12 @@ def mark_attendance():
         attendance_data[attendance_date] = {}
     
     students = load_data(STUDENTS_FILE)
+    students = migrate_legacy_students(students)
+    
     for student in students:
-        status = request.form.get(f'attendance_{student}', 'absent')
-        attendance_data[attendance_date][student] = status
+        student_name = student.get('name', '') if isinstance(student, dict) else str(student)
+        status = request.form.get(f'attendance_{student_name}', 'absent')
+        attendance_data[attendance_date][student_name] = status
     
     save_data(ATTENDANCE_FILE, attendance_data)
     
