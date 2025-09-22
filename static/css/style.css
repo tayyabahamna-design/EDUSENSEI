@@ -69,12 +69,13 @@
 }
 
 body {
-    font-family: 'Comic Neue', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: system-ui, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     background: linear-gradient(135deg, var(--paper-cream) 0%, var(--sky-light) 100%);
     min-height: 100vh;
     line-height: 1.6;
     color: var(--gray-900);
     font-weight: 400;
+    font-size: 1rem;
     position: relative;
 }
 
@@ -234,7 +235,7 @@ body::before {
         rgba(118, 75, 162, 0.1),
         transparent
     );
-    animation: shimmer 3s ease-in-out infinite;
+    /* Removed distracting shimmer animation */
     pointer-events: none;
 }
 
@@ -314,7 +315,7 @@ body::before {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     display: inline-block;
-    animation: pulse 2s ease-in-out infinite;
+    /* Simplified - removed pulse animation */
 }
 
 @keyframes pulse {
@@ -517,7 +518,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
     position: relative;
     overflow: hidden;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    animation: avatarPulse 3s ease-in-out infinite, cuteBob 4s ease-in-out infinite;
+    /* Simplified animations for professional setting */
 }
 
 .animated-avatar-small {
@@ -529,7 +530,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
     justify-content: center;
     position: relative;
     overflow: hidden;
-    animation: heartBeat 2.5s ease-in-out infinite, cuteBob 3.5s ease-in-out infinite;
+    /* Simplified animations for professional setting */
 }
 
 @keyframes avatarPulse {
@@ -559,7 +560,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 .boy-avatar::before {
     content: '👦';
     font-size: 4rem;
-    animation: bounce 2.5s ease-in-out infinite;
+    /* Removed bounce animation for professional setting */
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
@@ -570,7 +571,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 .boy-avatar-small::before {
     content: '👦';
     font-size: 1.5rem;
-    animation: bounce 2s ease-in-out infinite;
+    /* Removed bounce animation for professional setting */
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
@@ -582,7 +583,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 .girl-avatar::before {
     content: '👧';
     font-size: 4rem;
-    animation: bounce 2.2s ease-in-out infinite;
+    /* Removed bounce animation for professional setting */
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
@@ -593,7 +594,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 .girl-avatar-small::before {
     content: '👧';
     font-size: 1.5rem;
-    animation: bounce 1.8s ease-in-out infinite;
+    /* Removed bounce animation for professional setting */
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
@@ -605,7 +606,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 .neutral-avatar::before {
     content: '👤';
     font-size: 4rem;
-    animation: heartBeat 2s ease-in-out infinite;
+    /* Removed heartbeat animation for professional setting */
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
@@ -616,7 +617,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 .neutral-avatar-small::before {
     content: '👤';
     font-size: 1.5rem;
-    animation: heartBeat 1.8s ease-in-out infinite;
+    /* Removed heartbeat animation for professional setting */
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
