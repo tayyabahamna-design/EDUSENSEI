@@ -19,7 +19,7 @@
         
         <div class="chat-messages" id="chatMessages">
             <div class="bot-message">
-                <div class="message-avatar">🤖</div>
+                <div class="message-avatar">AI</div>
                 <div class="message-content">
                     <p>Hello! I'm your AI Teaching Assistant. Type "hi" to see how I can help you with lesson planning, activities, and more!</p>
                 </div>
@@ -37,8 +37,8 @@
         </div>
         
         <div class="quick-actions" id="quickActions">
-            <button class="quick-btn" onclick="sendMessage('menu')">🏠 Main Menu</button>
-            <button class="quick-btn" onclick="sendMessage('help')">❓ Help</button>
+            <button class="quick-btn" onclick="sendMessage('menu')">Main Menu</button>
+            <button class="quick-btn" onclick="sendMessage('help')">Help</button>
         </div>
     </div>
     
@@ -59,14 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (typeof content === 'string') {
             messageDiv.innerHTML = `
-                <div class="message-avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="message-avatar">${isUser ? 'You' : 'AI'}</div>
                 <div class="message-content">
                     <p>${content}</p>
                 </div>
             `;
         } else {
             messageDiv.innerHTML = `
-                <div class="message-avatar">🤖</div>
+                <div class="message-avatar">AI</div>
                 <div class="message-content">
                     ${formatBotResponse(content)}
                 </div>
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add return to menu button if specified
         if (response.return_to_menu) {
             html += '<div class="response-actions">';
-            html += '<button class="action-btn" onclick="sendMessage(\\'menu\\')">🏠 Return to Main Menu</button>';
+            html += '<button class="action-btn" onclick="sendMessage(\\'menu\\')">Return to Main Menu</button>';
             html += '</div>';
         }
         
