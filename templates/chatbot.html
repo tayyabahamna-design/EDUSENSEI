@@ -91,64 +91,7 @@
         
         <div class="quick-actions" id="quickActions">
             <button class="quick-btn" onclick="sendMessage('menu')">Main Menu</button>
-            <button class="quick-btn" onclick="showBookUploadModal()">📤 Upload Book</button>
             <button class="quick-btn" onclick="sendMessage('help')">Help</button>
-        </div>
-        
-        <!-- Book Upload Modal -->
-        <div id="bookUploadModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <span class="close" onclick="hideBookUploadModal()">&times;</span>
-                <h2>📚 Upload Textbook</h2>
-                <form id="bookUploadForm" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="bookTitle">📖 Book Title *</label>
-                        <input type="text" id="bookTitle" name="title" required placeholder="e.g., English for Grade 3">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bookGrade">🎯 Grade *</label>
-                        <select id="bookGrade" name="grade" required>
-                            <option value="">Select Grade</option>
-                            <option value="1">Grade 1</option>
-                            <option value="2">Grade 2</option>
-                            <option value="3">Grade 3</option>
-                            <option value="4">Grade 4</option>
-                            <option value="5">Grade 5</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bookSubject">📚 Subject *</label>
-                        <select id="bookSubject" name="subject" required>
-                            <option value="">Select Subject</option>
-                            <option value="english">English</option>
-                            <option value="urdu">Urdu</option>
-                            <option value="mathematics">Mathematics</option>
-                            <option value="science">Science</option>
-                            <option value="islamiyat">Islamiyat</option>
-                            <option value="social studies">Social Studies</option>
-                            <option value="general knowledge">General Knowledge</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bookDescription">📝 Description (Optional)</label>
-                        <textarea id="bookDescription" name="description" placeholder="Brief description of the textbook..."></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bookFile">📄 Textbook File *</label>
-                        <input type="file" id="bookFile" name="book_file" accept=".pdf,.txt,.docx" required>
-                        <small>Supported formats: PDF, TXT, DOCX (max 12MB)</small>
-                    </div>
-                    
-                    <div class="form-buttons">
-                        <button type="submit" class="btn btn-primary">📤 Upload Book</button>
-                        <button type="button" class="btn btn-secondary" onclick="hideBookUploadModal()">Cancel</button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
     
@@ -332,69 +275,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let capturedPhotoBlob = null;
     
     // Make sendMessage globally available with multimodal support
-    // Book upload modal functions
-    window.showBookUploadModal = function() {
-        document.getElementById('bookUploadModal').style.display = 'block';
-    };
-    
-    window.hideBookUploadModal = function() {
-        document.getElementById('bookUploadModal').style.display = 'none';
-        document.getElementById('bookUploadForm').reset();
-    };
-    
-    // Handle book upload form submission
-    document.addEventListener('DOMContentLoaded', function() {
-        const uploadForm = document.getElementById('bookUploadForm');
-        if (uploadForm) {
-            uploadForm.addEventListener('submit', handleBookUpload);
-        }
-    });
-    
-    async function handleBookUpload(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
-        
-        try {
-            // Show loading message
-            const submitBtn = this.querySelector('button[type="submit"]');
-            submitBtn.textContent = '⏳ Uploading...';
-            submitBtn.disabled = true;
-            
-            const response = await fetch('/upload_book', {
-                method: 'POST',
-                body: formData
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                addMessage(`✅ **Book uploaded successfully!** 📚\n\n**"${result.title}"** has been added to your library and is now available for content generation.`, false);
-                hideBookUploadModal();
-                // Send a message to refresh the chat and show the main menu
-                setTimeout(() => sendMessage('menu'), 1000);
-            } else {
-                addMessage(`❌ **Upload failed:** ${result.error}`, false);
-            }
-            
-        } catch (error) {
-            console.error('Book upload error:', error);
-            addMessage('❌ **Upload failed:** Network error occurred. Please try again.', false);
-        } finally {
-            // Reset button
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            submitBtn.textContent = '📤 Upload Book';
-            submitBtn.disabled = false;
-        }
-    }
-    
-    // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
-        const modal = document.getElementById('bookUploadModal');
-        if (event.target === modal) {
-            hideBookUploadModal();
-        }
-    });
 
     window.sendMessage = async function(message = null) {
         const messageText = message || (chatInput ? chatInput.value.trim() : '');
