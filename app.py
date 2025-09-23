@@ -362,6 +362,58 @@ def transcribe_audio(audio_file_path):
             print(f"Audio transcription fallback error: {e2}")
         return "Voice message received. (Transcription failed)"
 
+# Predefined books from the curriculum (no uploads needed)
+def get_predefined_books():
+    """Returns the predefined books from the Pakistani curriculum"""
+    return {
+        'Grade 1': {
+            'English': {'Grade 1 English': 'CHAPTER 1 FINAL.pdf'},
+            'Mathematics': {'Grade 1 Maths': 'Grade1Math-ForFederal.pdf'},
+            'Urdu': {'Grade 1 Urdu': 'Grade 1 compiled-001.pdf'},
+            'General Knowledge': {
+                'Grade 1 General Knowledge Science': 'GK 1 Science Indesign, Edited.pdf',
+                'Grade 1 General Knowledge SST': 'GK 1 SST indesign_Edited.pdf'
+            },
+            'Islamiyat': {'Grade 1 Islamiat': 'IslGrade1 with nazra.pdf'}
+        },
+        'Grade 2': {
+            'English': {'Grade 2 English': 'Grade 2 Edited.pdf'},
+            'Mathematics': {'Grade 2 Math': 'Grade2Math.pdf'},
+            'Urdu': {'Grade 2 Urdu': 'Grade 2a.pdf'},
+            'General Knowledge': {
+                'Grade 2 General Knowledge Science': 'GK 2 Science indesign.pdf',
+                'Grade 2 General Knowledge SST': 'GK 2 SST indesign-001.pdf'
+            },
+            'Islamiyat': {'Grade 2 Islamiat': 'IslamiatG2 new.pdf'}
+        },
+        'Grade 3': {
+            'English': {'Grade 3 English': 'English G3 updated.pdf'},
+            'Mathematics': {'Grade 3 Math': 'Grade3MathChanges.pdf'},
+            'Urdu': {'Grade 3 Urdu': 'G3.pdf'},
+            'General Knowledge': {
+                'Grade 3 General Knowledge Science': 'GK 3 Science.pdf',
+                'Grade 3 General Knowledge SST': 'GK 3 SST indesign.pdf'
+            },
+            'Islamiyat': {'Grade 3 Islamiat': 'G3 new.pdf'}
+        },
+        'Grade 4': {
+            'English': {'Grade 4 English': 'Grade 4.pdf'},
+            'Mathematics': {'Grade 4 Math': 'Grade4Mathupdatedwithout logo.pdf'},
+            'Urdu': {'Grade 4 Urdu': 'GRADE 4.pdf'},
+            'General Science': {'Grade 4 General Science': 'Science 4 indesign updated.pdf'},
+            'Social Studies': {'Grade 4 Social Studies': 'sst 4 indesign updated.pdf'},
+            'Islamiyat': {'Grade 4 Islamiat': 'Grade 4.pdf'}
+        },
+        'Grade 5': {
+            'English': {'Grade 5 English': 'English G5 updated.pdf'},
+            'Mathematics': {'Grade 5 Math': 'Grade5 Math - full book.pdf'},
+            'Urdu': {'Grade 5 Urdu': 'Grade 5.pdf'},
+            'General Science': {'Grade 5 General Science': 'Science 5 indesign.pdf'},
+            'Social Studies': {'Grade 5 Social Studies': 'SST 5 indesign updated.pdf'},
+            'Islamiyat': {'Grade 5 Islamiat': 'IslGrade5Complete.pdf'}
+        }
+    }
+
 def generate_curriculum_data():
     """Generate structured curriculum data for grades 1-5"""
     return {
@@ -2227,14 +2279,58 @@ def chat():
                             'show_menu': True
                         })
                     else:
-                        return jsonify({
-                            'message': f'📑 **{feature_name} - {current_grade} - {subject}** - Choose a chapter:',
-                            'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
-                            'show_menu': True
-                        })
+                        # Get predefined books for this grade and subject
+                        predefined_books = get_predefined_books()
+                        available_books = predefined_books.get(current_grade, {}).get(subject, {})
+                        
+                        if available_books:
+                            return jsonify({
+                                'message': f'📚 **{feature_name} - {current_grade} - {subject}** - Choose a textbook:',
+                                'options': [f'📖 {book}' for book in available_books.keys()] + ['🔄 Change Subject', '← Back to Menu'],
+                                'show_menu': True
+                            })
+                        else:
+                            # Fallback if no books available for this subject
+                            return jsonify({
+                                'message': f'📚 **{current_grade} - {subject}** - No textbooks available yet for this subject.',
+                                'options': ['🔄 Change Subject', '← Back to Menu'],
+                                'show_menu': True
+                            })
         
-        # Handle Chapter selections  
+        # Handle Book selections
         if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}):
+            current_grade = session['curriculum_selection']['grade']
+            current_subject = session['curriculum_selection']['subject']
+            predefined_books = get_predefined_books()
+            available_books = predefined_books.get(current_grade, {}).get(current_subject, {})
+            
+            for book_title in available_books.keys():
+                book_text = book_title.lower()
+                book_emoji = f'📖 {book_title}'.lower()
+                
+                if user_message.lower() in [book_text, book_emoji.lower()]:
+                    curriculum_selection = session.get('curriculum_selection', {})
+                    curriculum_selection['book'] = book_title
+                    session['curriculum_selection'] = curriculum_selection
+                    session.modified = True
+                    
+                    # Now show chapters from the curriculum data
+                    chapters = list(curriculum_data[current_grade][current_subject].keys())
+                    feature_name = {
+                        'lesson_planning': 'Lesson Planning Help',
+                        'assessment': 'Assessment',
+                        'activities': 'Fun Classroom Activities',
+                        'teaching_tips': 'Teaching Tips & Advice'
+                    }.get(session['selected_feature'], 'Selected Feature')
+                    
+                    return jsonify({
+                        'message': f'📖 **{feature_name} - {book_title}** - Choose a chapter:',
+                        'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Book', '← Back to Menu'],
+                        'show_menu': True
+                    })
+
+        # Handle Chapter selections  
+        if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}) and 'book' in session.get('curriculum_selection', {}):
             current_grade = session['curriculum_selection']['grade']
             current_subject = session['curriculum_selection']['subject']
             chapters = list(curriculum_data[current_grade][current_subject].keys())
@@ -2357,15 +2453,53 @@ What would you like me to create for this topic?''',
             'show_menu': True
         })
     
-    if user_message.lower() in ['🔄 change chapter', 'change chapter'] and 'subject' in session.get('curriculum_selection', {}):
-        # Keep grade and subject, reset others
+    if user_message.lower() in ['🔄 change book', 'change book'] and 'subject' in session.get('curriculum_selection', {}):
+        # Keep grade and subject, reset book and others
         grade = session['curriculum_selection']['grade']
         subject = session['curriculum_selection']['subject']
         session['curriculum_selection'] = {'grade': grade, 'subject': subject}
+        
+        # Get predefined books for this grade and subject
+        predefined_books = get_predefined_books()
+        available_books = predefined_books.get(grade, {}).get(subject, {})
+        
+        feature_name = {
+            'lesson_planning': 'Lesson Planning Help',
+            'assessment': 'Assessment', 
+            'activities': 'Fun Classroom Activities',
+            'teaching_tips': 'Teaching Tips & Advice'
+        }.get(session['selected_feature'], 'Selected Feature')
+        
+        if available_books:
+            return jsonify({
+                'message': f'📚 **{feature_name} - {grade} - {subject}** - Choose a textbook:',
+                'options': [f'📖 {book}' for book in available_books.keys()] + ['🔄 Change Subject', '← Back to Menu'],
+                'show_menu': True
+            })
+        else:
+            return jsonify({
+                'message': f'📚 **{grade} - {subject}** - No textbooks available yet for this subject.',
+                'options': ['🔄 Change Subject', '← Back to Menu'],
+                'show_menu': True
+            })
+    
+    if user_message.lower() in ['🔄 change chapter', 'change chapter'] and 'book' in session.get('curriculum_selection', {}):
+        # Keep grade, subject, and book, reset chapter and others
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']  
+        book = session['curriculum_selection']['book']
+        session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'book': book}
         chapters = list(curriculum_data[grade][subject].keys())
+        feature_name = {
+            'lesson_planning': 'Lesson Planning Help',
+            'assessment': 'Assessment',
+            'activities': 'Fun Classroom Activities',
+            'teaching_tips': 'Teaching Tips & Advice'
+        }.get(session['selected_feature'], 'Selected Feature')
+        
         return jsonify({
-            'message': f'📑 **{grade} - {subject}** - Choose a chapter:',
-            'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
+            'message': f'📖 **{feature_name} - {book}** - Choose a chapter:',
+            'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Book', '← Back to Menu'],
             'show_menu': True
         })
     
