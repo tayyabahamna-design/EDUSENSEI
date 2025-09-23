@@ -1616,7 +1616,7 @@ def chat():
     if 'curriculum_selection' in session and 'topic' in session['curriculum_selection']:
         current_grade = session['curriculum_selection']['grade']
         current_subject = session['curriculum_selection']['subject']
-        current_chapter = session['curriculum_selection']['chapter']
+        current_chapter = session['curriculum_selection'].get('chapter', 'Chapter 1')
         current_topic = session['curriculum_selection']['topic']
         
         if user_message.lower() in ['quick q&a', '❓ quick q&a', 'qna']:
@@ -1799,7 +1799,8 @@ def chat():
                     # For Assessment feature, show assessment types directly after subject selection
                     if session.get('selected_feature') == 'assessment':
                         # Set generic values for quick assessment
-                        curriculum_selection['chapter'] = 'General Topics'
+                        chapters = list(curriculum_data[current_grade][subject].keys())
+                        curriculum_selection['chapter'] = chapters[0] if chapters else 'Chapter 1'
                         curriculum_selection['topic'] = f'All {subject} Topics'
                         session['curriculum_selection'] = curriculum_selection
                         session.modified = True
