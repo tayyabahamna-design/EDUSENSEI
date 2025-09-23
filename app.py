@@ -420,7 +420,7 @@ def get_predefined_books():
             'Islamiyat': {'Grade 3 Islamiat': 'G3 new.pdf'}
         },
         'Grade 4': {
-            'English': {'Grade 4 English': 'Grade 4.pdf'},
+            'English': {'English Adventure: Learn, Express and Succeed!': 'Grade 4_1758655549357.pdf'},
             'Mathematics': {'Grade 4 Math': 'Grade4Mathupdatedwithout logo.pdf'},
             'Urdu': {'Grade 4 Urdu': 'GRADE 4.pdf'},
             'General Science': {'Grade 4 General Science': 'Science 4 indesign updated.pdf'},
@@ -493,6 +493,11 @@ def generate_book_structure(grade, subject, book_title):
 
 def generate_english_chapters(grade):
     """Generate English chapter structure with categorized exercises"""
+    
+    # Special handler for Grade 4 with real textbook content
+    if grade == 4:
+        return generate_grade4_english_real_content()
+    
     base_chapters = {
         1: {
             "Chapter 1: First Day at School": generate_exercises(["Meeting New Friends", "Classroom Rules", "School Places", "My Teacher and Me"]),
@@ -532,6 +537,396 @@ def generate_english_chapters(grade):
     }
     
     return base_chapters.get(grade, base_chapters[1])
+
+def generate_grade4_english_real_content():
+    """Generate real Grade 4 English content from the actual Pakistani curriculum textbook"""
+    return {
+        "Chapter 1: Pinky's Dental Dilemma": {
+            "Reading": [
+                {"title": "Journey through the text - Pinky has a bad tooth", "type": "reading_comprehension"},
+                {"title": "Memory Lane - New words to know", "type": "vocabulary_reading"},
+                {"title": "Character emotions and feelings analysis", "type": "literary_analysis"}
+            ],
+            "Writing": [
+                {"title": "Activity: Sentence Creator", "type": "creative_writing"},
+                {"title": "Express with Emotions - Draw and explain feelings", "type": "descriptive_writing"},
+                {"title": "Write about a time you felt scared", "type": "personal_narrative"}
+            ],
+            "Grammar": [
+                {"title": "Activity 1: Naming Words Adventure (Nouns)", "type": "noun_identification"},
+                {"title": "Activity 2: Action Words Detective (Verbs)", "type": "verb_identification"},
+                {"title": "Activity 3: Describe It (Adjectives)", "type": "adjective_practice"},
+                {"title": "Activity 4: Regular vs. Irregular Nouns", "type": "noun_plurals"}
+            ],
+            "Vocabulary": [
+                {"title": "New words: loaf, raisins, chewy, counter, spill", "type": "word_meanings"},
+                {"title": "Activity 3: Arrange Adventures - Dictionary skills", "type": "dictionary_practice"},
+                {"title": "Alphabetical ordering exercise", "type": "alphabetical_order"}
+            ],
+            "Comprehension": [
+                {"title": "Activity 1: Discovery Quiz", "type": "reading_comprehension"},
+                {"title": "Character analysis - How does Pinky feel?", "type": "character_analysis"},
+                {"title": "Story sequence and plot understanding", "type": "story_analysis"}
+            ],
+            "Oral Communication": [
+                {"title": "Activity 2: Sharing Strategies - Role-play with Pinky", "type": "role_play"},
+                {"title": "Share and Sparkle - Express emotions discussion", "type": "group_discussion"},
+                {"title": "Overcoming fears conversation practice", "type": "speaking_practice"}
+            ]
+        },
+        "Chapter 2: Food and Friends!": {
+            "Reading": [
+                {"title": "Main story reading and comprehension", "type": "reading_comprehension"},
+                {"title": "Food-related vocabulary in context", "type": "contextual_reading"},
+                {"title": "Friendship themes analysis", "type": "thematic_reading"}
+            ],
+            "Writing": [
+                {"title": "Write about your favorite food and friends", "type": "descriptive_writing"},
+                {"title": "Create a menu with descriptions", "type": "functional_writing"},
+                {"title": "Friendship story writing", "type": "narrative_writing"}
+            ],
+            "Grammar": [
+                {"title": "Food-related nouns and their plurals", "type": "noun_practice"},
+                {"title": "Cooking action words (verbs)", "type": "verb_practice"},
+                {"title": "Describing food (adjectives)", "type": "adjective_practice"}
+            ],
+            "Vocabulary": [
+                {"title": "Food and cooking vocabulary", "type": "thematic_vocabulary"},
+                {"title": "Friendship-related words", "type": "social_vocabulary"},
+                {"title": "Dictionary work with new terms", "type": "dictionary_skills"}
+            ],
+            "Comprehension": [
+                {"title": "Story comprehension questions", "type": "reading_comprehension"},
+                {"title": "Character relationships analysis", "type": "character_analysis"},
+                {"title": "Cultural food practices discussion", "type": "cultural_analysis"}
+            ],
+            "Oral Communication": [
+                {"title": "Discuss favorite foods with classmates", "type": "group_discussion"},
+                {"title": "Recipe sharing activity", "type": "presentation"},
+                {"title": "Role-play restaurant scenarios", "type": "role_play"}
+            ]
+        },
+        "Chapter 3: Pinky and Jojo Write a Story": {
+            "Reading": [
+                {"title": "Story about story writing - meta narrative", "type": "reading_comprehension"},
+                {"title": "Creative process understanding", "type": "process_reading"},
+                {"title": "Character collaboration analysis", "type": "character_study"}
+            ],
+            "Writing": [
+                {"title": "Collaborative story writing with partner", "type": "collaborative_writing"},
+                {"title": "Create story outlines and plots", "type": "story_planning"},
+                {"title": "Character development exercises", "type": "character_creation"}
+            ],
+            "Grammar": [
+                {"title": "Story writing punctuation and dialogue", "type": "punctuation_practice"},
+                {"title": "Past tense verbs in narratives", "type": "verb_tenses"},
+                {"title": "Sentence variety in storytelling", "type": "sentence_structure"}
+            ],
+            "Vocabulary": [
+                {"title": "Story writing vocabulary and terms", "type": "writing_vocabulary"},
+                {"title": "Creative and imaginative words", "type": "descriptive_vocabulary"},
+                {"title": "Literary terms for young writers", "type": "literary_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Understanding the writing process", "type": "process_comprehension"},
+                {"title": "Story elements identification", "type": "literary_analysis"},
+                {"title": "Creative collaboration benefits", "type": "analytical_thinking"}
+            ],
+            "Oral Communication": [
+                {"title": "Share created stories with class", "type": "presentation"},
+                {"title": "Discuss favorite story ideas", "type": "group_discussion"},
+                {"title": "Story brainstorming sessions", "type": "collaborative_speaking"}
+            ]
+        },
+        "Chapter 4: Heroes of History": {
+            "Reading": [
+                {"title": "Historical hero stories and biographies", "type": "biographical_reading"},
+                {"title": "Pakistani historical figures", "type": "cultural_reading"},
+                {"title": "Heroic qualities and characteristics", "type": "character_analysis"}
+            ],
+            "Writing": [
+                {"title": "Write about your personal hero", "type": "descriptive_writing"},
+                {"title": "Create hero biography summaries", "type": "biographical_writing"},
+                {"title": "Heroic qualities essay", "type": "expository_writing"}
+            ],
+            "Grammar": [
+                {"title": "Past tense for historical events", "type": "verb_tenses"},
+                {"title": "Proper nouns for historical figures", "type": "capitalization"},
+                {"title": "Descriptive language for hero qualities", "type": "adjective_usage"}
+            ],
+            "Vocabulary": [
+                {"title": "Historical and heroic vocabulary", "type": "thematic_vocabulary"},
+                {"title": "Pakistani history terms", "type": "cultural_vocabulary"},
+                {"title": "Character trait descriptors", "type": "descriptive_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Historical timeline understanding", "type": "chronological_comprehension"},
+                {"title": "Hero characteristics analysis", "type": "character_analysis"},
+                {"title": "Cultural heritage appreciation", "type": "cultural_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Present historical hero research", "type": "presentation"},
+                {"title": "Debate heroic qualities", "type": "debate"},
+                {"title": "Interview a community hero role-play", "type": "role_play"}
+            ]
+        },
+        "Chapter 5: Culture Craze with Pinky!": {
+            "Reading": [
+                {"title": "Pakistani cultural traditions and festivals", "type": "cultural_reading"},
+                {"title": "Traditional clothing, food, and customs", "type": "informational_reading"},
+                {"title": "Cultural diversity within Pakistan", "type": "comparative_reading"}
+            ],
+            "Writing": [
+                {"title": "Describe your family's cultural traditions", "type": "cultural_writing"},
+                {"title": "Festival celebration narratives", "type": "narrative_writing"},
+                {"title": "Cultural comparison essays", "type": "comparative_writing"}
+            ],
+            "Grammar": [
+                {"title": "Cultural terms and proper nouns", "type": "capitalization_practice"},
+                {"title": "Present tense for traditions", "type": "verb_tenses"},
+                {"title": "Cultural adjectives and descriptions", "type": "descriptive_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Pakistani cultural vocabulary", "type": "cultural_vocabulary"},
+                {"title": "Festival and celebration terms", "type": "thematic_vocabulary"},
+                {"title": "Traditional arts and crafts words", "type": "specialized_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Cultural practices understanding", "type": "cultural_comprehension"},
+                {"title": "Tradition significance analysis", "type": "analytical_comprehension"},
+                {"title": "Cultural diversity appreciation", "type": "social_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Share family cultural traditions", "type": "cultural_sharing"},
+                {"title": "Cultural show-and-tell presentations", "type": "presentation"},
+                {"title": "Traditional games and activities", "type": "interactive_communication"}
+            ]
+        },
+        "Chapter 6: Tech Tales & Starry Sights": {
+            "Reading": [
+                {"title": "Technology in daily life stories", "type": "contemporary_reading"},
+                {"title": "Space and astronomy information", "type": "scientific_reading"},
+                {"title": "Future technology predictions", "type": "speculative_reading"}
+            ],
+            "Writing": [
+                {"title": "Write about favorite technology", "type": "descriptive_writing"},
+                {"title": "Create space adventure stories", "type": "science_fiction_writing"},
+                {"title": "Technology invention descriptions", "type": "technical_writing"}
+            ],
+            "Grammar": [
+                {"title": "Technology-related vocabulary and terms", "type": "technical_grammar"},
+                {"title": "Future tense for predictions", "type": "verb_tenses"},
+                {"title": "Scientific description language", "type": "specialized_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Technology and digital vocabulary", "type": "technical_vocabulary"},
+                {"title": "Space and astronomy terms", "type": "scientific_vocabulary"},
+                {"title": "Innovation and invention words", "type": "specialized_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Technology impact analysis", "type": "analytical_comprehension"},
+                {"title": "Space facts and information", "type": "factual_comprehension"},
+                {"title": "Future possibilities discussion", "type": "speculative_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Technology debate and discussion", "type": "debate"},
+                {"title": "Space exploration presentations", "type": "scientific_presentation"},
+                {"title": "Invention idea sharing", "type": "creative_communication"}
+            ]
+        },
+        "Chapter 7: Pinky's Safety Squad!": {
+            "Reading": [
+                {"title": "Safety rules and guidelines", "type": "instructional_reading"},
+                {"title": "Emergency procedures and protocols", "type": "safety_reading"},
+                {"title": "Community safety helpers", "type": "informational_reading"}
+            ],
+            "Writing": [
+                {"title": "Create safety rule posters", "type": "instructional_writing"},
+                {"title": "Emergency action plan writing", "type": "procedural_writing"},
+                {"title": "Safety story scenarios", "type": "narrative_writing"}
+            ],
+            "Grammar": [
+                {"title": "Imperative sentences for instructions", "type": "command_structure"},
+                {"title": "Safety vocabulary and terms", "type": "specialized_grammar"},
+                {"title": "Warning and caution language", "type": "functional_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Safety and emergency vocabulary", "type": "safety_vocabulary"},
+                {"title": "Community helpers terms", "type": "social_vocabulary"},
+                {"title": "Warning and instruction words", "type": "functional_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Safety rule importance understanding", "type": "practical_comprehension"},
+                {"title": "Emergency response comprehension", "type": "procedural_comprehension"},
+                {"title": "Community safety awareness", "type": "social_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Safety rule discussions and sharing", "type": "instructional_communication"},
+                {"title": "Emergency response role-play", "type": "safety_role_play"},
+                {"title": "Community helper interviews", "type": "informational_speaking"}
+            ]
+        },
+        "Chapter 8: Dream Town Builders!": {
+            "Reading": [
+                {"title": "Community planning and development", "type": "civic_reading"},
+                {"title": "Architecture and building concepts", "type": "technical_reading"},
+                {"title": "Urban planning stories", "type": "thematic_reading"}
+            ],
+            "Writing": [
+                {"title": "Design your ideal community", "type": "creative_writing"},
+                {"title": "Building description and planning", "type": "technical_writing"},
+                {"title": "Community improvement proposals", "type": "persuasive_writing"}
+            ],
+            "Grammar": [
+                {"title": "Descriptive language for buildings", "type": "descriptive_grammar"},
+                {"title": "Spatial relationship words", "type": "prepositional_practice"},
+                {"title": "Planning and future tense", "type": "verb_tenses"}
+            ],
+            "Vocabulary": [
+                {"title": "Architecture and building vocabulary", "type": "technical_vocabulary"},
+                {"title": "Community and civic terms", "type": "civic_vocabulary"},
+                {"title": "Planning and development words", "type": "specialized_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Community planning understanding", "type": "civic_comprehension"},
+                {"title": "Building and design concepts", "type": "technical_comprehension"},
+                {"title": "Urban development analysis", "type": "analytical_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Present community design ideas", "type": "presentation"},
+                {"title": "Debate community improvement plans", "type": "debate"},
+                {"title": "Collaborative town planning", "type": "group_collaboration"}
+            ]
+        },
+        "Chapter 9: Pinky's Personality Play": {
+            "Reading": [
+                {"title": "Character traits and personality", "type": "character_analysis"},
+                {"title": "Emotions and feelings exploration", "type": "psychological_reading"},
+                {"title": "Personal growth stories", "type": "developmental_reading"}
+            ],
+            "Writing": [
+                {"title": "Describe your personality traits", "type": "self_reflective_writing"},
+                {"title": "Character development exercises", "type": "character_writing"},
+                {"title": "Personal growth narratives", "type": "reflective_narrative"}
+            ],
+            "Grammar": [
+                {"title": "Personality-describing adjectives", "type": "descriptive_grammar"},
+                {"title": "Emotion and feeling vocabulary", "type": "expressive_grammar"},
+                {"title": "Self-description sentence patterns", "type": "personal_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Personality trait vocabulary", "type": "psychological_vocabulary"},
+                {"title": "Emotions and feelings words", "type": "emotional_vocabulary"},
+                {"title": "Character description terms", "type": "descriptive_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Personality development understanding", "type": "personal_comprehension"},
+                {"title": "Character motivation analysis", "type": "character_analysis"},
+                {"title": "Emotional intelligence development", "type": "social_emotional_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Share personality traits with peers", "type": "personal_sharing"},
+                {"title": "Discuss character qualities", "type": "character_discussion"},
+                {"title": "Personality-based role-playing", "type": "character_role_play"}
+            ]
+        },
+        "Chapter 10: Wonders of the Wild!": {
+            "Reading": [
+                {"title": "Wildlife and nature stories", "type": "nature_reading"},
+                {"title": "Animal habitats and behaviors", "type": "scientific_reading"},
+                {"title": "Environmental conservation themes", "type": "environmental_reading"}
+            ],
+            "Writing": [
+                {"title": "Animal fact files and descriptions", "type": "informational_writing"},
+                {"title": "Nature adventure stories", "type": "adventure_writing"},
+                {"title": "Environmental protection essays", "type": "persuasive_writing"}
+            ],
+            "Grammar": [
+                {"title": "Animal names and classifications", "type": "scientific_grammar"},
+                {"title": "Habitat description language", "type": "descriptive_grammar"},
+                {"title": "Environmental action verbs", "type": "action_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Wildlife and animal vocabulary", "type": "scientific_vocabulary"},
+                {"title": "Habitat and ecosystem terms", "type": "environmental_vocabulary"},
+                {"title": "Conservation and protection words", "type": "advocacy_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Animal behavior understanding", "type": "scientific_comprehension"},
+                {"title": "Ecosystem relationships analysis", "type": "environmental_comprehension"},
+                {"title": "Conservation importance awareness", "type": "advocacy_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Animal research presentations", "type": "scientific_presentation"},
+                {"title": "Environmental protection debates", "type": "advocacy_debate"},
+                {"title": "Nature documentary discussions", "type": "analytical_discussion"}
+            ]
+        },
+        "Chapter 11: Sands, Secrets, and Schooltime Surprises": {
+            "Reading": [
+                {"title": "Mystery and adventure stories", "type": "mystery_reading"},
+                {"title": "School life and experiences", "type": "relatable_reading"},
+                {"title": "Discovery and exploration themes", "type": "adventure_reading"}
+            ],
+            "Writing": [
+                {"title": "Create mystery stories and puzzles", "type": "mystery_writing"},
+                {"title": "School experience narratives", "type": "personal_narrative"},
+                {"title": "Adventure tale writing", "type": "adventure_writing"}
+            ],
+            "Grammar": [
+                {"title": "Mystery story structure and language", "type": "narrative_grammar"},
+                {"title": "Question formation for mysteries", "type": "interrogative_grammar"},
+                {"title": "Suspense-building sentence variety", "type": "stylistic_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Mystery and detective vocabulary", "type": "genre_vocabulary"},
+                {"title": "School and education terms", "type": "academic_vocabulary"},
+                {"title": "Adventure and exploration words", "type": "action_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Mystery plot and clue analysis", "type": "mystery_comprehension"},
+                {"title": "School situation problem-solving", "type": "practical_comprehension"},
+                {"title": "Adventure sequence understanding", "type": "narrative_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Share school experience stories", "type": "personal_storytelling"},
+                {"title": "Mystery-solving group discussions", "type": "collaborative_problem_solving"},
+                {"title": "Adventure planning conversations", "type": "planning_communication"}
+            ]
+        },
+        "Chapter 12: Sharing is Caring": {
+            "Reading": [
+                {"title": "Stories about kindness and generosity", "type": "moral_reading"},
+                {"title": "Community service and helping others", "type": "social_reading"},
+                {"title": "Friendship and cooperation themes", "type": "social_emotional_reading"}
+            ],
+            "Writing": [
+                {"title": "Write about acts of kindness", "type": "reflective_writing"},
+                {"title": "Create sharing and caring stories", "type": "moral_narrative"},
+                {"title": "Community service project proposals", "type": "persuasive_writing"}
+            ],
+            "Grammar": [
+                {"title": "Kindness and helping verbs", "type": "action_grammar"},
+                {"title": "Community service vocabulary", "type": "social_grammar"},
+                {"title": "Positive emotion adjectives", "type": "emotional_grammar"}
+            ],
+            "Vocabulary": [
+                {"title": "Kindness and caring vocabulary", "type": "moral_vocabulary"},
+                {"title": "Community service terms", "type": "civic_vocabulary"},
+                {"title": "Sharing and cooperation words", "type": "social_vocabulary"}
+            ],
+            "Comprehension": [
+                {"title": "Moral lessons and values understanding", "type": "moral_comprehension"},
+                {"title": "Community impact analysis", "type": "social_comprehension"},
+                {"title": "Caring behavior consequences", "type": "cause_effect_comprehension"}
+            ],
+            "Oral Communication": [
+                {"title": "Share kindness experiences", "type": "moral_sharing"},
+                {"title": "Plan community service projects", "type": "project_planning"},
+                {"title": "Discuss ways to help others", "type": "social_action_discussion"}
+            ]
+        }
+    }
 
 def generate_exercises(topics):
     """Generate categorized exercises for given topics"""
@@ -2402,8 +2797,9 @@ def chat():
                     'show_menu': True
                 })
         
+        # LEGACY HANDLER - DISABLED - Now using auto-loading system
         # Handle Subject selections
-        if 'grade' in session.get('curriculum_selection', {}):
+        if False and 'grade' in session.get('curriculum_selection', {}):
             current_grade = session['curriculum_selection']['grade']
             subjects = list(curriculum_data[current_grade].keys())
             
@@ -2485,8 +2881,8 @@ def chat():
                     session['curriculum_selection'] = curriculum_selection
                     session.modified = True
                     
-                    # Now show chapters from the curriculum data
-                    chapters = list(curriculum_data[current_grade][current_subject].keys())
+                    # DISABLED - Now using auto-loading system
+                    # chapters = list(curriculum_data[current_grade][current_subject].keys())
                     feature_name = {
                         'lesson_planning': 'Lesson Planning Help',
                         'assessment': 'Assessment',
@@ -2500,8 +2896,9 @@ def chat():
                         'show_menu': True
                     })
 
+        # LEGACY HANDLER - DISABLED - Now using auto-loading system
         # Handle Chapter selections  
-        if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}) and 'book' in session.get('curriculum_selection', {}):
+        if False and 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}) and 'book' in session.get('curriculum_selection', {}):
             current_grade = session['curriculum_selection']['grade']
             current_subject = session['curriculum_selection']['subject']
             chapters = list(curriculum_data[current_grade][current_subject].keys())
@@ -2515,7 +2912,8 @@ def chat():
                     curriculum_selection['chapter'] = chapter
                     session['curriculum_selection'] = curriculum_selection
                     session.modified = True
-                    topics = curriculum_data[current_grade][current_subject][chapter]
+                    # DISABLED - using auto-loading system
+                    # topics = curriculum_data[current_grade][current_subject][chapter]
                     feature_name = {
                         'lesson_planning': 'Lesson Planning Help',
                         'assessment': 'Assessment',
@@ -2529,12 +2927,13 @@ def chat():
                         'show_menu': True
                     })
         
+        # LEGACY HANDLER - DISABLED - Now using auto-loading system
         # Handle Topic selections
-        if all(key in session.get('curriculum_selection', {}) for key in ['grade', 'subject', 'chapter']):
+        if False and all(key in session.get('curriculum_selection', {}) for key in ['grade', 'subject', 'chapter']):
             current_grade = session['curriculum_selection']['grade']
             current_subject = session['curriculum_selection']['subject'] 
             current_chapter = session['curriculum_selection']['chapter']
-            topics = curriculum_data[current_grade][current_subject][current_chapter]
+            # topics = curriculum_data[current_grade][current_subject][current_chapter]
             
             for topic in topics:
                 topic_text = topic.lower()
