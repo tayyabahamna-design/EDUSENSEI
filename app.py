@@ -268,63 +268,63 @@ def generate_curriculum_data():
     return {
         "Grade 1": {
             "English": {
-                "Chapter 1: Letters and Sounds": [
-                    "Letter Recognition A-Z",
-                    "Phonics and Sound Blending", 
-                    "Simple Three-Letter Words",
-                    "Sight Words (I, me, you, we)"
+                "Lesson 1: First Day at School": [
+                    "Meeting New Friends",
+                    "Classroom Rules",
+                    "School Places",
+                    "My Teacher and Me"
                 ],
-                "Chapter 2: My Family": [
-                    "Family Members Names",
-                    "Family Relationships",
-                    "Describing Family",
-                    "Family Activities"
+                "Lesson 2: Colors and Shapes": [
+                    "Red, Blue, Yellow",
+                    "Circle, Square, Triangle",
+                    "Big and Small",
+                    "Coloring and Drawing"
                 ],
-                "Chapter 3: Animals": [
-                    "Pet Animals",
-                    "Wild Animals", 
-                    "Animal Sounds",
-                    "Animal Homes"
+                "Lesson 3: Numbers and Counting": [
+                    "Numbers 1 to 10",
+                    "Counting Toys",
+                    "More and Less",
+                    "Number Songs"
                 ]
             },
             "Math": {
-                "Chapter 1: Numbers 1-10": [
-                    "Number Recognition",
+                "Unit 1: Numbers 1 to 9": [
+                    "Recognizing Numbers",
+                    "Writing Numbers",
                     "Counting Objects",
-                    "Number Writing",
-                    "Before and After Numbers"
+                    "Number Order"
                 ],
-                "Chapter 2: Addition": [
-                    "Adding Numbers 1-5",
-                    "Addition with Objects",
+                "Unit 2: Addition to 10": [
+                    "Joining Groups",
                     "Addition Stories",
-                    "Sum up to 10"
+                    "Number Bonds",
+                    "Adding with Pictures"
                 ],
-                "Chapter 3: Shapes": [
-                    "Basic Shapes (Circle, Square, Triangle)",
-                    "Shape Recognition",
-                    "Drawing Shapes",
-                    "Shapes in Environment"
+                "Unit 3: Subtraction from 10": [
+                    "Taking Away",
+                    "Subtraction Stories", 
+                    "How Many Left?",
+                    "Subtract with Pictures"
                 ]
             },
             "Science": {
-                "Chapter 1: Living and Non-Living": [
-                    "What is Living?",
-                    "What is Non-Living?",
-                    "Needs of Living Things",
-                    "Caring for Living Things"
+                "Topic 1: My Body": [
+                    "Body Parts Names",
+                    "What I Can Do",
+                    "Keeping Clean",
+                    "Healthy Food"
                 ],
-                "Chapter 2: Plants": [
-                    "Parts of a Plant",
-                    "How Plants Grow",
-                    "What Plants Need",
-                    "Uses of Plants"
+                "Topic 2: Around Me": [
+                    "At Home",
+                    "At School",
+                    "In the Garden",
+                    "On the Road"
                 ],
-                "Chapter 3: Weather": [
-                    "Types of Weather",
-                    "Weather Changes",
-                    "Weather and Clothes",
-                    "Weather Safety"
+                "Topic 3: Day and Night": [
+                    "Morning Activities",
+                    "Afternoon Fun",
+                    "Evening Time",
+                    "Night Sleep"
                 ]
             },
             "Islamiyat": {
@@ -1626,9 +1626,10 @@ def chat():
     if 'selected_feature' in session:
         curriculum_data = generate_curriculum_data()
         
-        # Store selection in session for navigation
+        # Store selection in session for navigation with proper persistence
         if 'curriculum_selection' not in session:
             session['curriculum_selection'] = {}
+            session.modified = True
         
         # Grade 1-5 selections
         for grade_num in range(1, 6):
@@ -1636,7 +1637,10 @@ def chat():
             grade_emoji = f'{grade_num}️⃣ grade {grade_num}'
             
             if user_message.lower() in [grade_text, grade_emoji.lower()]:
-                session['curriculum_selection']['grade'] = f'Grade {grade_num}'
+                curriculum_selection = session.get('curriculum_selection', {})
+                curriculum_selection['grade'] = f'Grade {grade_num}'
+                session['curriculum_selection'] = curriculum_selection
+                session.modified = True
                 subjects = list(curriculum_data[f'Grade {grade_num}'].keys())
                 feature_name = {
                     'lesson_planning': 'Lesson Planning Help',
@@ -1660,8 +1664,11 @@ def chat():
                 subject_text = subject.lower()
                 subject_emoji = f'📖 {subject}'.lower()
                 
-                if user_message.lower() in [subject_text, subject_emoji]:
-                    session['curriculum_selection']['subject'] = subject
+                if user_message.lower() in [subject_text, subject_emoji.lower()]:
+                    curriculum_selection = session.get('curriculum_selection', {})
+                    curriculum_selection['subject'] = subject
+                    session['curriculum_selection'] = curriculum_selection
+                    session.modified = True
                     chapters = list(curriculum_data[current_grade][subject].keys())
                     feature_name = {
                         'lesson_planning': 'Lesson Planning Help',
@@ -1686,8 +1693,11 @@ def chat():
                 chapter_text = chapter.lower()
                 chapter_emoji = f'📄 {chapter}'.lower()
                 
-                if user_message.lower() in [chapter_text, chapter_emoji]:
-                    session['curriculum_selection']['chapter'] = chapter
+                if user_message.lower() in [chapter_text, chapter_emoji.lower()]:
+                    curriculum_selection = session.get('curriculum_selection', {})
+                    curriculum_selection['chapter'] = chapter
+                    session['curriculum_selection'] = curriculum_selection
+                    session.modified = True
                     topics = curriculum_data[current_grade][current_subject][chapter]
                     feature_name = {
                         'lesson_planning': 'Lesson Planning Help',
@@ -1714,7 +1724,10 @@ def chat():
                 topic_emoji = f'✏️ {topic}'.lower()
                 
                 if user_message.lower() in [topic_text, topic_emoji]:
-                    session['curriculum_selection']['topic'] = topic
+                    curriculum_selection = session.get('curriculum_selection', {})
+                    curriculum_selection['topic'] = topic
+                    session['curriculum_selection'] = curriculum_selection
+                    session.modified = True
                     # Directly proceed to the selected feature instead of showing action menu
                     selected_feature = session.get('selected_feature')
                     
