@@ -14,13 +14,27 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'ai-assistant-secret-key')
 app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 
-# Initialize Gemini client
+# Initialize AI client - prefer OpenAI for reliability
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    gemini_model = None
+
+# Try OpenAI first, fallback to Gemini
+openai_client = None
+gemini_model = None
+
+if OPENAI_API_KEY:
+    try:
+        import openai
+        openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+    except ImportError:
+        openai_client = None
+
+if not openai_client and GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+        gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    except Exception:
+        gemini_model = None
 
 # Upload configuration
 UPLOAD_DIR = 'uploads'
@@ -160,32 +174,45 @@ def cleanup_old_files():
         print(f"Error during cleanup: {e}")
 
 def get_ai_response(user_message, conversation_type="general"):
-    """Get AI-powered response using Google Gemini"""
-    if not gemini_model:
-        return get_teaching_guidance_fallback(user_message)
+    """Get AI-powered response using OpenAI or Gemini"""
+    # Create system prompt based on conversation type
+    if conversation_type == "teaching":
+        system_prompt = """You are a helpful AI teaching assistant for primary school teachers (grades 1-5). 
+        You provide practical, actionable advice about classroom management, lesson planning, student engagement, 
+        assessment, and parent communication. Keep responses friendly, supportive, and focused on elementary education. 
+        Use bullet points and clear formatting when helpful."""
+    else:
+        system_prompt = """You are a friendly, helpful AI assistant for primary school teachers. 
+        You can discuss teaching topics, answer general questions, and have natural conversations. 
+        Be warm, supportive, and helpful while maintaining a professional but friendly tone."""
     
-    try:
-        # Create system prompt based on conversation type
-        if conversation_type == "teaching":
-            system_prompt = """You are a helpful AI teaching assistant for primary school teachers (grades 1-5). 
-            You provide practical, actionable advice about classroom management, lesson planning, student engagement, 
-            assessment, and parent communication. Keep responses friendly, supportive, and focused on elementary education. 
-            Use bullet points and clear formatting when helpful."""
-        else:
-            system_prompt = """You are a friendly, helpful AI assistant for primary school teachers. 
-            You can discuss teaching topics, answer general questions, and have natural conversations. 
-            Be warm, supportive, and helpful while maintaining a professional but friendly tone."""
-        
-        # Combine system prompt with user message for Gemini
-        full_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nAssistant:"
-        
-        response = gemini_model.generate_content(full_prompt)
-        
-        return response.text
-        
-    except Exception as e:
-        print(f"Gemini API error: {e}")
-        return get_teaching_guidance_fallback(user_message)
+    # Try OpenAI first
+    if openai_client:
+        try:
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message}
+                ],
+                max_tokens=500,
+                temperature=0.7
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            print(f"OpenAI API error: {e}")
+    
+    # Fallback to Gemini
+    if gemini_model:
+        try:
+            full_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nAssistant:"
+            response = gemini_model.generate_content(full_prompt)
+            return response.text
+        except Exception as e:
+            print(f"Gemini API error: {e}")
+    
+    # Final fallback
+    return get_teaching_guidance_fallback(user_message)
 
 def get_teaching_guidance_fallback(question):
     """Fallback teaching guidance when AI is not available"""
@@ -264,6 +291,21 @@ def chat():
     file_ids = request.json.get('file_ids', [])
     audio_id = request.json.get('audio_id', None)
     
+    # Handle special greetings and commands
+    if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
+        return jsonify({
+            'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
+            'options': [
+                '📝 Lesson Planning Help',
+                '🎮 Fun Classroom Activities', 
+                '💡 Teaching Tips & Advice',
+                '📚 Educational Resources',
+                '❓ Answer Questions',
+                '💬 Free Chat'
+            ],
+            'show_menu': True
+        })
+    
     # Handle multimodal content
     content_parts = []
     full_text = user_message
@@ -288,8 +330,9 @@ def chat():
                     image_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
                     if os.path.exists(image_path):
                         try:
-                            image = Image.open(image_path)
-                            content_parts.append(image)
+                            if gemini_model:  # Only for Gemini
+                                image = Image.open(image_path)
+                                content_parts.append(image)
                             full_text += f"\n[Image attached: {file_metadata['original_name']}]"
                             break
                         except Exception as e:
@@ -307,12 +350,12 @@ def chat():
     
     # Generate AI response
     try:
-        if content_parts:
-            # Multimodal content with images
+        if content_parts and gemini_model:
+            # Multimodal content with images (Gemini only)
             response = gemini_model.generate_content([full_text] + content_parts)
             ai_response = response.text
         else:
-            # Text-only content
+            # Text-only content (works with OpenAI or Gemini)
             ai_response = get_ai_response(full_text)
     except Exception as e:
         print(f"Error generating AI response: {e}")

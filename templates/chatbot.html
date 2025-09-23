@@ -21,7 +21,8 @@
             <div class="bot-message">
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
-                    <p>Hello! I'm your cute AI Teaching Assistant! Type "hi" to see how I can help you with lesson planning, fun activities, and more!</p>
+                    <p>Hello! I'm your AI Teaching Assistant! 💖 I'm here to help you with lesson planning, classroom activities, educational questions, and more! 🌟</p>
+                    <p>Type <strong>"hi"</strong> or <strong>"hello"</strong> to get started and see all the ways I can help you! ✨</p>
                 </div>
             </div>
         </div>
@@ -509,6 +510,223 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
+/* Main Chatbot Page Layout */
+.chatbot-page {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.chatbot-page h1 {
+    text-align: center;
+    color: #8b4d7a;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+.chat-container {
+    background: linear-gradient(135deg, #fff0f5, #f0f8ff);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(255, 182, 193, 0.3);
+    padding: 30px;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    margin-bottom: 20px;
+}
+
+.chat-breadcrumb {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 215, 0, 0.2);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.breadcrumb-text {
+    font-weight: 600;
+    color: #8b4d7a;
+}
+
+.btn-back {
+    background: #ffd700;
+    color: #8b4d7a;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.chat-navigation {
+    background: rgba(135, 206, 235, 0.2);
+    padding: 10px 15px;
+    border-radius: 10px;
+    color: #4682b4;
+    font-weight: 600;
+}
+
+.chat-messages {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+    max-height: 50vh;
+    margin-bottom: 20px;
+}
+
+.bot-message, .user-message {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.message-avatar {
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.message-content {
+    background: white;
+    padding: 15px 20px;
+    border-radius: 15px;
+    max-width: 70%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 2px solid #ffb6c1;
+}
+
+.user-message .message-content {
+    background: linear-gradient(135deg, #ffb6c1, #ffd700);
+    border: 2px solid #ffd700;
+    color: #8b4d7a;
+}
+
+.response-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.option-btn {
+    background: linear-gradient(135deg, #87ceeb, #b0e0e6);
+    color: #4682b4;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.option-btn:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #6bb6ff, #87ceeb);
+}
+
+.response-actions {
+    margin-top: 15px;
+}
+
+.action-btn {
+    background: #ffd700;
+    color: #8b4d7a;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+}
+
+.chat-input-container {
+    margin-top: 20px;
+}
+
+.chat-suggestions {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 10px;
+    border: 2px solid #ffb6c1;
+}
+
+.suggestions-label {
+    font-weight: 600;
+    color: #8b4d7a;
+    margin-bottom: 10px;
+}
+
+.suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.suggestion-btn {
+    background: rgba(255, 215, 0, 0.3);
+    color: #8b4d7a;
+    border: 1px solid #ffd700;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.suggestion-btn:hover {
+    background: #ffd700;
+    transform: scale(1.05);
+}
+
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+}
+
+.quick-btn {
+    background: rgba(255, 182, 193, 0.3);
+    color: #8b4d7a;
+    border: 2px solid #ffb6c1;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.quick-btn:hover {
+    background: #ffb6c1;
+    transform: scale(1.05);
+}
+
 /* File Upload Styles */
 .file-upload-area {
     margin-bottom: 15px;
