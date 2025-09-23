@@ -2,15 +2,21 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, f
 import json
 import os
 import uuid
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import calendar
 from werkzeug.utils import secure_filename
 import requests
 import re
 import google.generativeai as genai
+import mimetypes
+import hashlib
+from PIL import Image, ExifTags
+from pypdf import PdfReader
+from docx import Document
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'tutor-assistant-secret-key')
+app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 
 # Initialize Gemini client
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -28,10 +34,28 @@ SCHEDULE_FILE = os.path.join(DATA_DIR, 'schedule.json')
 GRADES_FILE = os.path.join(DATA_DIR, 'grades.json')
 CLASSES_FILE = os.path.join(DATA_DIR, 'classes.json')
 
+# Upload configuration
+UPLOAD_DIR = 'uploads'
+AUDIO_DIR = os.path.join(UPLOAD_DIR, 'audio')
+IMAGES_DIR = os.path.join(UPLOAD_DIR, 'images')
+DOCS_DIR = os.path.join(UPLOAD_DIR, 'docs')
+META_DIR = os.path.join(UPLOAD_DIR, 'meta')
+
+# Allowed file types
+ALLOWED_IMAGE_TYPES = {'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'}
+ALLOWED_AUDIO_TYPES = {'audio/webm', 'audio/ogg', 'audio/wav', 'audio/mp3'}
+ALLOWED_DOC_TYPES = {'application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+
 # Ensure data directory and files exist
 def init_data_files():
+    # Create data directory
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
+    
+    # Create upload directories
+    for upload_dir in [UPLOAD_DIR, AUDIO_DIR, IMAGES_DIR, DOCS_DIR, META_DIR]:
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
     
     # Initialize empty data files if they don't exist
     default_data = {
@@ -46,6 +70,125 @@ def init_data_files():
         if not os.path.exists(file_path):
             with open(file_path, 'w') as f:
                 json.dump(default_content, f)
+
+# File handling utility functions
+def get_file_mime_type(file_path):
+    """Get MIME type of a file using Python's mimetypes module"""
+    mime_type, _ = mimetypes.guess_type(file_path)
+    return mime_type or 'application/octet-stream'
+
+def generate_unique_filename(original_filename):
+    """Generate a unique filename using UUID"""
+    file_extension = os.path.splitext(original_filename)[1]
+    unique_id = str(uuid.uuid4())
+    return f"{unique_id}{file_extension}"
+
+def save_file_metadata(file_id, original_name, mime_type, file_size, file_type):
+    """Save file metadata for tracking and cleanup"""
+    metadata = {
+        'id': file_id,
+        'original_name': original_name,
+        'mime_type': mime_type,
+        'size': file_size,
+        'type': file_type,
+        'session_id': session.get('session_id', 'anonymous'),
+        'created_at': datetime.now().isoformat(),
+        'accessed_at': datetime.now().isoformat()
+    }
+    
+    metadata_path = os.path.join(META_DIR, f"{file_id}.json")
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f)
+    
+    return metadata
+
+def get_file_metadata(file_id):
+    """Get file metadata if it exists"""
+    metadata_path = os.path.join(META_DIR, f"{file_id}.json")
+    if os.path.exists(metadata_path):
+        with open(metadata_path, 'r') as f:
+            return json.load(f)
+    return None
+
+def extract_text_from_pdf(file_path):
+    """Extract text from PDF file"""
+    try:
+        reader = PdfReader(file_path)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\n"
+        return text.strip()
+    except Exception as e:
+        print(f"Error extracting PDF text: {e}")
+        return ""
+
+def extract_text_from_docx(file_path):
+    """Extract text from DOCX file"""
+    try:
+        doc = Document(file_path)
+        text = ""
+        for paragraph in doc.paragraphs:
+            text += paragraph.text + "\n"
+        return text.strip()
+    except Exception as e:
+        print(f"Error extracting DOCX text: {e}")
+        return ""
+
+def strip_image_metadata(image_path):
+    """Remove EXIF data from images for privacy"""
+    try:
+        image = Image.open(image_path)
+        data = list(image.getdata())
+        image_without_exif = Image.new(image.mode, image.size)
+        image_without_exif.putdata(data)
+        image_without_exif.save(image_path)
+    except Exception as e:
+        print(f"Error stripping image metadata: {e}")
+
+def cleanup_old_files():
+    """Clean up files older than 7 days"""
+    try:
+        cutoff_time = datetime.now() - timedelta(days=7)
+        
+        for metadata_file in os.listdir(META_DIR):
+            if metadata_file.endswith('.json'):
+                metadata_path = os.path.join(META_DIR, metadata_file)
+                try:
+                    with open(metadata_path, 'r') as f:
+                        metadata = json.load(f)
+                    
+                    created_at = datetime.fromisoformat(metadata['created_at'])
+                    if created_at < cutoff_time:
+                        # Remove the actual file
+                        file_id = metadata['id']
+                        file_type = metadata['type']
+                        
+                        if file_type == 'audio':
+                            file_path = os.path.join(AUDIO_DIR, f"{file_id}.webm")
+                        elif file_type == 'image':
+                            # Find the actual file (could have different extensions)
+                            for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+                                file_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
+                                if os.path.exists(file_path):
+                                    break
+                        elif file_type == 'document':
+                            # Find the actual file
+                            for ext in ['.pdf', '.txt', '.docx']:
+                                file_path = os.path.join(DOCS_DIR, f"{file_id}{ext}")
+                                if os.path.exists(file_path):
+                                    break
+                        
+                        if os.path.exists(file_path):
+                            os.remove(file_path)
+                        
+                        # Remove metadata file
+                        os.remove(metadata_path)
+                        
+                except Exception as e:
+                    print(f"Error cleaning up file {metadata_file}: {e}")
+                    
+    except Exception as e:
+        print(f"Error during cleanup: {e}")
 
 # Load data from JSON files
 def load_data(file_path):
@@ -1423,6 +1566,191 @@ def handle_free_chat(user_message):
             'message': 'I\'m here for a natural conversation! Ask me anything you\'d like to discuss.',
             'navigation': 'Free Chat'
         })
+
+# File Upload Routes
+@app.route('/upload_audio', methods=['POST'])
+def upload_audio():
+    """Handle audio file upload and transcription"""
+    try:
+        if 'audio' not in request.files:
+            return jsonify({'error': 'No audio file provided'}), 400
+        
+        audio_file = request.files['audio']
+        if audio_file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}.webm"
+        file_path = os.path.join(AUDIO_DIR, filename)
+        
+        # Save the audio file
+        audio_file.save(file_path)
+        
+        # Get file size
+        file_size = os.path.getsize(file_path)
+        
+        # Save metadata
+        save_file_metadata(file_id, audio_file.filename, 'audio/webm', file_size, 'audio')
+        
+        # Try to transcribe with Gemini
+        transcript = ""
+        if gemini_model:
+            try:
+                # Upload to Gemini for transcription
+                audio_file_gemini = genai.upload_file(file_path)
+                
+                prompt = "Please transcribe this audio exactly as spoken. Only provide the transcription text, no additional commentary."
+                response = gemini_model.generate_content([prompt, audio_file_gemini])
+                transcript = response.text.strip()
+                
+                # Clean up the Gemini uploaded file
+                genai.delete_file(audio_file_gemini.name)
+                
+            except Exception as e:
+                print(f"Transcription error: {e}")
+                transcript = "[Audio recorded but transcription unavailable]"
+        
+        return jsonify({
+            'audio_id': file_id,
+            'transcript': transcript,
+            'size': file_size,
+            'duration': 'unknown'
+        })
+        
+    except Exception as e:
+        print(f"Audio upload error: {e}")
+        return jsonify({'error': 'Failed to upload audio'}), 500
+
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+    """Handle image and document file upload"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file provided'}), 400
+        
+        uploaded_file = request.files['file']
+        if uploaded_file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+        
+        # Check file size (already handled by Flask MAX_CONTENT_LENGTH)
+        
+        # Generate secure filename
+        original_filename = secure_filename(uploaded_file.filename)
+        file_extension = os.path.splitext(original_filename)[1].lower()
+        file_id = str(uuid.uuid4())
+        filename = f"{file_id}{file_extension}"
+        
+        # Determine file type and save location
+        mime_type = get_file_mime_type(original_filename)
+        
+        if mime_type in ALLOWED_IMAGE_TYPES:
+            file_path = os.path.join(IMAGES_DIR, filename)
+            file_type = 'image'
+        elif mime_type in ALLOWED_DOC_TYPES:
+            file_path = os.path.join(DOCS_DIR, filename)
+            file_type = 'document'
+        else:
+            return jsonify({'error': f'File type not allowed: {mime_type}'}), 400
+        
+        # Save the file
+        uploaded_file.save(file_path)
+        
+        # Get file size
+        file_size = os.path.getsize(file_path)
+        
+        # Additional processing based on file type
+        extracted_text = ""
+        if file_type == 'image':
+            # Strip EXIF data for privacy
+            strip_image_metadata(file_path)
+        elif file_type == 'document':
+            # Extract text for processing
+            if mime_type == 'application/pdf':
+                extracted_text = extract_text_from_pdf(file_path)
+            elif mime_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+                extracted_text = extract_text_from_docx(file_path)
+            elif mime_type == 'text/plain':
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    extracted_text = f.read()
+        
+        # Save metadata
+        metadata = save_file_metadata(file_id, original_filename, mime_type, file_size, file_type)
+        if extracted_text:
+            metadata['extracted_text'] = extracted_text
+            # Update metadata file
+            metadata_path = os.path.join(META_DIR, f"{file_id}.json")
+            with open(metadata_path, 'w') as f:
+                json.dump(metadata, f)
+        
+        return jsonify({
+            'file_id': file_id,
+            'type': file_type,
+            'mime_type': mime_type,
+            'size': file_size,
+            'original_name': original_filename,
+            'extracted_text': extracted_text[:500] + '...' if len(extracted_text) > 500 else extracted_text
+        })
+        
+    except Exception as e:
+        print(f"File upload error: {e}")
+        return jsonify({'error': 'Failed to upload file'}), 500
+
+@app.route('/media/<file_id>')
+def serve_media(file_id):
+    """Serve uploaded media files with session check"""
+    try:
+        # Get file metadata
+        metadata = get_file_metadata(file_id)
+        if not metadata:
+            return "File not found", 404
+        
+        # Find the actual file
+        file_type = metadata['type']
+        if file_type == 'audio':
+            file_path = os.path.join(AUDIO_DIR, f"{file_id}.webm")
+        elif file_type == 'image':
+            # Find file with any allowed extension
+            for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+                potential_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
+                if os.path.exists(potential_path):
+                    file_path = potential_path
+                    break
+            else:
+                return "File not found", 404
+        elif file_type == 'document':
+            # Find file with any allowed extension
+            for ext in ['.pdf', '.txt', '.docx']:
+                potential_path = os.path.join(DOCS_DIR, f"{file_id}{ext}")
+                if os.path.exists(potential_path):
+                    file_path = potential_path
+                    break
+            else:
+                return "File not found", 404
+        else:
+            return "Invalid file type", 400
+        
+        if not os.path.exists(file_path):
+            return "File not found", 404
+        
+        # Update access time
+        metadata['accessed_at'] = datetime.now().isoformat()
+        metadata_path = os.path.join(META_DIR, f"{file_id}.json")
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f)
+        
+        # Serve the file
+        from flask import send_file
+        if file_type == 'audio':
+            return send_file(file_path, mimetype=metadata['mime_type'])
+        elif file_type == 'image':
+            return send_file(file_path, mimetype=metadata['mime_type'])
+        else:  # document
+            return send_file(file_path, as_attachment=True, download_name=metadata['original_name'])
+        
+    except Exception as e:
+        print(f"Media serve error: {e}")
+        return "Error serving file", 500
 
 if __name__ == '__main__':
     init_data_files()
