@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>🌟 USTAAD DOST</h1>
+                <p>پروفائل مکمل کریں</p>
+                <h2>Complete Your Profile</h2>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" class="auth-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="cnic">🆔 CNIC Number</label>
+                    <input type="text" id="cnic" name="cnic" 
+                           placeholder="12345-1234567-1" pattern="[0-9]{5}-[0-9]{7}-[0-9]"
+                           value="{{ request.form.get('cnic', '') }}">
+                    <small class="form-help">Format: 12345-1234567-1 (Optional)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">📧 Email Address</label>
+                    <input type="email" id="email" name="email" 
+                           placeholder="your.email@example.com"
+                           value="{{ request.form.get('email', '') }}">
+                    <small class="form-help">For important notifications (Optional)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="address">🏠 Address</label>
+                    <textarea id="address" name="address" rows="3" 
+                              placeholder="Enter your complete address">{{ request.form.get('address', '') }}</textarea>
+                    <small class="form-help">School or home address (Optional)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="profile_photo">📸 Profile Photo</label>
+                    <input type="file" id="profile_photo" name="profile_photo" 
+                           accept="image/jpeg,image/jpg,image/png" class="file-input">
+                    <small class="form-help">Upload your photo (JPG, PNG, max 2MB) - Optional</small>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-primary btn-auth">
+                        ✨ Complete Setup
+                    </button>
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary btn-auth skip-btn">
+                        ⏭️ Skip for Now
+                    </a>
+                </div>
+            </form>
+            
+            <div class="auth-footer">
+                <p class="profile-note">
+                    📝 You can update your profile information anytime from your dashboard
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--gentle-mint-light) 50%, var(--soft-blue-light) 100%);
+        }
+        
+        .auth-card {
+            background: var(--warm-white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+        
+        .auth-header h1 {
+            color: var(--soft-blue-dark);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        
+        .auth-header p {
+            color: var(--sage-green-dark);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .auth-header h2 {
+            color: var(--gray-700);
+            margin-bottom: 30px;
+        }
+        
+        .auth-form {
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--sage-green-light);
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+            box-shadow: 0 0 0 3px rgba(168, 213, 232, 0.1);
+        }
+        
+        .file-input {
+            border: 2px dashed var(--sage-green-light) !important;
+            padding: 20px !important;
+            text-align: center;
+            cursor: pointer;
+            background: var(--gentle-mint-light);
+        }
+        
+        .file-input:hover {
+            border-color: var(--sage-green);
+            background: var(--gentle-mint);
+        }
+        
+        .form-help {
+            display: block;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+        
+        .form-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        .btn-auth {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sage-green), var(--soft-blue));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: var(--warm-cream);
+            color: var(--gray-700);
+            border: 2px solid var(--sage-green-light);
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .skip-btn {
+            font-size: 14px;
+        }
+        
+        .auth-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .profile-note {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            padding: 15px;
+            background: var(--gentle-mint-light);
+            border-radius: 10px;
+            border: 1px solid var(--sage-green-light);
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-info {
+            background: rgba(168, 213, 232, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(168, 213, 232, 0.3);
+        }
+        
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .form-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+    
+    <script>
+        // Format CNIC as user types
+        document.getElementById('cnic').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 5) {
+                value = value.substring(0, 5) + '-' + value.substring(5);
+            }
+            if (value.length >= 13) {
+                value = value.substring(0, 13) + '-' + value.substring(13, 14);
+            }
+            e.target.value = value;
+        });
+        
+        // File upload preview
+        document.getElementById('profile_photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                    alert('File size must be less than 2MB');
+                    e.target.value = '';
+                    return;
+                }
+                
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file');
+                    e.target.value = '';
+                    return;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

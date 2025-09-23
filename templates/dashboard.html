@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- PostHog Analytics -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);var n=t;if("undefined"!=typeof e){for(var p=0;p<o.length-1;p++)n[o[p]]=n[o[p]]||{},n=n[o[p]];n[o[o.length-1]]=i}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".com",".com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getGroups create_alias get_distinct_id get_session_id capture_pageview capture_pageleave register_for_session unregister_for_session".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        
+        // Initialize PostHog with delay to ensure script loads
+        setTimeout(function() {
+            try {
+                if (typeof posthog !== 'undefined' && posthog.init) {
+                    posthog.init('{{ posthog_key }}', {
+                        api_host: '{{ posthog_host }}'
+                    });
+                    console.log('PostHog initialized successfully');
+                } else {
+                    throw new Error('PostHog not loaded');
+                }
+            } catch (error) {
+                console.log('PostHog initialization failed:', error);
+                window.posthog = {
+                    capture: function() { console.log('PostHog tracking:', arguments); },
+                    identify: function() { console.log('PostHog identify:', arguments); }
+                };
+            }
+        }, 1000);
+    </script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">🌟 USTAAD DOST</h1>
+            <div class="nav-menu">
+                <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="dashboard">
+            <div class="welcome-section">
+                <h1>🎓 اپ کے استاد دوست میں خوش آمدید</h1>
+                <p class="welcome-subtitle">Your comprehensive Pakistani teaching assistant for grades 1-5</p>
+            </div>
+            
+            <div class="feature-grid">
+                <!-- Yearly Planner Feature -->
+                <div class="feature-card large-card yearly-planner">
+                    <div class="feature-icon">📅</div>
+                    <h3>📚 Yearly Planner</h3>
+                    <p>Plan your entire academic year with weekly schedules for all subjects (Math, English, Urdu, Islamiyat, General Knowledge, Social Studies, Science) across grades 1-5.</p>
+                    <div class="feature-highlights">
+                        <div class="highlight">📝 Weekly Templates</div>
+                        <div class="highlight">📊 Auto-Population</div>
+                        <div class="highlight">✏️ Editable Entries</div>
+                        <div class="highlight">📈 Progress Tracking</div>
+                    </div>
+                    <a href="/yearly-planner" class="btn btn-primary btn-large">📅 Start Planning</a>
+                </div>
+                
+                <!-- Grading Buddy Feature -->
+                <div class="feature-card grading-buddy">
+                    <div class="feature-icon">📊</div>
+                    <h3>🎯 Grading Buddy</h3>
+                    <p>Manage your classes, students, and assessments with comprehensive grading tools and PDF report generation.</p>
+                    <div class="feature-list">
+                        <div class="feature-item">👥 Class Management</div>
+                        <div class="feature-item">📝 Custom Scoresheets</div>
+                        <div class="feature-item">✅ Screener Grading</div>
+                        <div class="feature-item">📄 PDF Reports</div>
+                    </div>
+                    <a href="/grading-buddy" class="btn btn-secondary">📊 Manage Grades</a>
+                </div>
+                
+                <!-- AI Chatbox Feature -->
+                <div class="feature-card ai-chatbox">
+                    <div class="feature-icon">🤖</div>
+                    <h3>💬 AI Assistant</h3>
+                    <p>Get AI-powered lesson plans, teaching strategies, activities, and assessments tailored to Pakistani curriculum.</p>
+                    <div class="ai-features">
+                        <div class="ai-feature">📖 Lesson Plans</div>
+                        <div class="ai-feature">🎯 Teaching Strategies</div>
+                        <div class="ai-feature">🎮 Activities & Games</div>
+                        <div class="ai-feature">📋 Assessments</div>
+                    </div>
+                    <a href="{{ url_for('chatbot') }}" class="btn btn-accent">🤖 AI Assistant</a>
+                </div>
+            </div>
+            
+            <!-- Quick Stats Section -->
+            <div class="stats-section">
+                <h2>📈 Quick Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🏫</div>
+                        <div class="stat-info">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Classes Created</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Students Enrolled</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-info">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Assessments Created</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📅</div>
+                        <div class="stat-info">
+                            <div class="stat-number">0</div>
+                            <div class="stat-label">Weeks Planned</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
+            box-shadow: var(--shadow-md);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-welcome {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .logout-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .logout-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .welcome-section h1 {
+            color: var(--soft-blue-dark);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .welcome-subtitle {
+            color: var(--gray-600);
+            font-size: 1.2rem;
+            margin-bottom: 0;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .feature-card {
+            background: var(--warm-white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .large-card {
+            grid-column: span 2;
+        }
+        
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+        
+        .yearly-planner {
+            border-top: 5px solid var(--soft-blue);
+        }
+        
+        .grading-buddy {
+            border-top: 5px solid var(--sage-green);
+        }
+        
+        .ai-chatbox {
+            border-top: 5px solid var(--warm-cream-dark);
+        }
+        
+        .feature-card h3 {
+            color: var(--gray-700);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .feature-card p {
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .feature-highlights {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .highlight {
+            background: var(--gentle-mint-light);
+            color: var(--gray-700);
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .feature-list, .ai-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .feature-item, .ai-feature {
+            background: var(--soft-blue-light);
+            color: var(--gray-700);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
+            color: white;
+        }
+        
+        .btn-accent {
+            background: linear-gradient(135deg, var(--warm-cream-dark), var(--gentle-mint));
+            color: var(--gray-700);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-large {
+            font-size: 1.1rem;
+            padding: 15px 30px;
+        }
+        
+        .stats-section {
+            margin-top: 50px;
+        }
+        
+        .stats-section h2 {
+            text-align: center;
+            color: var(--gray-700);
+            margin-bottom: 30px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stat-card {
+            background: var(--warm-white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .stat-icon {
+            font-size: 2.5rem;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--soft-blue-dark);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        .alert-info {
+            background: rgba(168, 213, 232, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(168, 213, 232, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .large-card {
+                grid-column: span 1;
+            }
+            
+            .feature-highlights, .feature-list, .ai-features {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-menu {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-end;
+            }
+            
+            .nav-welcome {
+                font-size: 0.9rem;
+            }
+            
+            .welcome-section h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Track dashboard page view
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('dashboard_viewed');
+            }
+            
+            // Track feature card clicks
+            document.querySelectorAll('.feature-card a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    const featureName = this.closest('.feature-card').querySelector('h3').textContent.trim();
+                    if (typeof posthog !== 'undefined') {
+                        posthog.capture('feature_accessed', {
+                            feature: featureName,
+                            from: 'dashboard'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

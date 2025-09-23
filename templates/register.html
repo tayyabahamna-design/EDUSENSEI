@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>🌟 USTAAD DOST</h1>
+                <p>نئے استاد کا اندراج</p>
+                <h2>Create Teacher Account</h2>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="name">👤 Full Name</label>
+                    <input type="text" id="name" name="name" required 
+                           placeholder="Enter your full name" value="{{ request.form.get('name', '') }}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone_number">📱 Phone Number</label>
+                    <input type="tel" id="phone_number" name="phone_number" required 
+                           placeholder="03XX-XXXXXXX" pattern="[0-9]{4}-[0-9]{7}" 
+                           value="{{ request.form.get('phone_number', '') }}">
+                    <small class="form-help">This will be your login username</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">🔒 Password</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Create a strong password" minlength="6">
+                    <small class="form-help">At least 6 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">🔒 Confirm Password</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required 
+                           placeholder="Confirm your password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-auth">
+                    ✨ Create USTAAD DOST Account
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{{ url_for('login') }}" class="auth-link">Login here</a></p>
+                <div class="auth-benefits">
+                    <div class="benefit-item">
+                        <div class="benefit-icon">📅</div>
+                        <div class="benefit-text">
+                            <strong>Yearly Planner</strong>
+                            <small>Organize your entire academic year</small>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon">📊</div>
+                        <div class="benefit-text">
+                            <strong>Grading Buddy</strong>
+                            <small>Manage students and assessments</small>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <div class="benefit-icon">🤖</div>
+                        <div class="benefit-text">
+                            <strong>AI Assistant</strong>
+                            <small>Get lesson plans and activities</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--gentle-mint-light) 50%, var(--soft-blue-light) 100%);
+        }
+        
+        .auth-card {
+            background: var(--warm-white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        
+        .auth-header h1 {
+            color: var(--soft-blue-dark);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        
+        .auth-header p {
+            color: var(--sage-green-dark);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .auth-header h2 {
+            color: var(--gray-700);
+            margin-bottom: 30px;
+        }
+        
+        .auth-form {
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--sage-green-light);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+            box-shadow: 0 0 0 3px rgba(168, 213, 232, 0.1);
+        }
+        
+        .form-help {
+            display: block;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+        
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--sage-green), var(--soft-blue));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .auth-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .auth-link {
+            color: var(--soft-blue-dark);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-link:hover {
+            color: var(--sage-green-dark);
+        }
+        
+        .auth-benefits {
+            margin-top: 25px;
+            padding-top: 25px;
+            border-top: 1px solid var(--sage-green-light);
+            text-align: left;
+        }
+        
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: var(--gentle-mint-light);
+            border-radius: 10px;
+        }
+        
+        .benefit-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            width: 40px;
+            text-align: center;
+        }
+        
+        .benefit-text strong {
+            display: block;
+            color: var(--gray-700);
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+        
+        .benefit-text small {
+            color: var(--gray-500);
+            font-size: 0.8rem;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-info {
+            background: rgba(168, 213, 232, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(168, 213, 232, 0.3);
+        }
+        
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .benefit-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .benefit-icon {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+    
+    <script>
+        // Format phone number as user types
+        document.getElementById('phone_number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 4) {
+                value = value.substring(0, 4) + '-' + value.substring(4, 11);
+            }
+            e.target.value = value;
+        });
+        
+        // Password confirmation validation
+        document.getElementById('confirm_password').addEventListener('input', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = e.target.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                e.target.setCustomValidity('Passwords do not match');
+            } else {
+                e.target.setCustomValidity('');
+            }
+        });
+        
+        // Track registration page view
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('registration_page_viewed');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- PostHog Analytics -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);var n=t;if("undefined"!=typeof e){for(var p=0;p<o.length-1;p++)n[o[p]]=n[o[p]]||{},n=n[o[p]];n[o[o.length-1]]=i}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getGroups create_alias get_distinct_id get_session_id capture_pageview capture_pageleave register_for_session unregister_for_session".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        
+        // Initialize PostHog with delay to ensure script loads
+        setTimeout(function() {
+            try {
+                if (typeof posthog !== 'undefined' && posthog.init) {
+                    posthog.init('{{ posthog_key }}', {
+                        api_host: '{{ posthog_host }}'
+                    });
+                    console.log('PostHog initialized successfully');
+                } else {
+                    throw new Error('PostHog not loaded');
+                }
+            } catch (error) {
+                console.log('PostHog initialization failed:', error);
+                // Provide fallback tracking functions
+                window.posthog = {
+                    capture: function() { console.log('PostHog tracking:', arguments); },
+                    identify: function() { console.log('PostHog identify:', arguments); }
+                };
+            }
+        }, 1000);
+    </script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>🌟 USTAAD DOST</h1>
+                <p>اپنے استاد دوست میں خوش آمدید</p>
+                <h2>Teacher Login</h2>
+            </div>
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <form method="POST" class="auth-form">
+                <div class="form-group">
+                    <label for="phone_number">📱 Phone Number</label>
+                    <input type="tel" id="phone_number" name="phone_number" required 
+                           placeholder="03XX-XXXXXXX" pattern="[0-9]{4}-[0-9]{7}">
+                    <small class="form-help">Enter your phone number (e.g., 0300-1234567)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">🔒 Password</label>
+                    <input type="password" id="password" name="password" required 
+                           placeholder="Enter your password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-auth">
+                    🚪 Login to USTAAD DOST
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>New teacher? <a href="{{ url_for('register') }}" class="auth-link">Create an account</a></p>
+                <div class="auth-features">
+                    <div class="feature-item">📚 Yearly Planning</div>
+                    <div class="feature-item">📊 Grade Management</div>
+                    <div class="feature-item">🤖 AI Assistant</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--warm-cream) 0%, var(--gentle-mint-light) 50%, var(--soft-blue-light) 100%);
+        }
+        
+        .auth-card {
+            background: var(--warm-white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .auth-header h1 {
+            color: var(--soft-blue-dark);
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            font-weight: 700;
+        }
+        
+        .auth-header p {
+            color: var(--sage-green-dark);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .auth-header h2 {
+            color: var(--gray-700);
+            margin-bottom: 30px;
+        }
+        
+        .auth-form {
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--gray-700);
+            font-weight: 600;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--sage-green-light);
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+            box-shadow: 0 0 0 3px rgba(168, 213, 232, 0.1);
+        }
+        
+        .form-help {
+            display: block;
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+        
+        .btn-auth {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--sage-green), var(--soft-blue));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+        
+        .btn-auth:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .auth-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .auth-link {
+            color: var(--soft-blue-dark);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .auth-link:hover {
+            color: var(--sage-green-dark);
+        }
+        
+        .auth-features {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--sage-green-light);
+        }
+        
+        .feature-item {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            padding: 5px 10px;
+            background: var(--gentle-mint-light);
+            border-radius: 8px;
+        }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-info {
+            background: rgba(168, 213, 232, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(168, 213, 232, 0.3);
+        }
+        
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 30px 20px;
+            }
+            
+            .auth-features {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+    
+    <script>
+        // Track login page view
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('login_page_viewed');
+            }
+        });
+        
+        // Format phone number as user types
+        document.getElementById('phone_number').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 4) {
+                value = value.substring(0, 4) + '-' + value.substring(4, 11);
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>

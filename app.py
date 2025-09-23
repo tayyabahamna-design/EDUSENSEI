@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, send_file
+from flask import Flask, render_template, request, jsonify, session, send_file, redirect, url_for, flash
 import json
 import os
 import uuid
@@ -14,8 +14,19 @@ from psycopg2.extras import RealDictCursor
 import bcrypt
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SESSION_SECRET', 'ai-assistant-secret-key')
+
+# Require secure session secret in production
+SESSION_SECRET = os.environ.get('SESSION_SECRET')
+if not SESSION_SECRET:
+    raise ValueError("SESSION_SECRET environment variable must be set for security")
+
+app.secret_key = SESSION_SECRET
 app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
+
+# Security configurations (adjusted for development)
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
 
 # Initialize AI client - prefer OpenAI for reliability
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -35,7 +46,7 @@ def get_db_connection():
         conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
         return conn
     except psycopg2.Error as e:
-        print(f"Database connection error: {e}")
+        print(f"Database connection error occurred")  # Don't log sensitive details
         return None
 
 # Initialize both AI clients independently for reliable fallback
@@ -1528,7 +1539,204 @@ Is there anything specific you'd like help with in the meantime?"""
 
 @app.route('/')
 def index():
-    return render_template('index.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('dashboard.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        phone_number = normalize_phone_number(request.form.get('phone_number', ''))
+        password = request.form.get('password')
+        
+        if not phone_number or not password:
+            flash('Please enter both phone number and password', 'error')
+            return render_template('login.html')
+        
+        conn = get_db_connection()
+        if not conn:
+            flash('Database connection error', 'error')
+            return render_template('login.html')
+        
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, password_hash, name FROM users WHERE phone_number = %s", (phone_number,))
+            user = cursor.fetchone()
+            
+            if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+                # Clear session to prevent session fixation
+                session.clear()
+                session['user_id'] = user['id']
+                session['user_name'] = user['name']
+                session['phone_number'] = phone_number
+                flash(f'Welcome back, {user["name"]}!', 'success')
+                return redirect(url_for('index'))
+            else:
+                flash('Invalid phone number or password', 'error')
+        except Exception as e:
+            print(f"Login error occurred")  # Don't log sensitive details
+            flash('Login failed. Please try again.', 'error')
+        finally:
+            conn.close()
+    
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        phone_number = normalize_phone_number(request.form.get('phone_number', ''))
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validation
+        if not all([name, phone_number, password, confirm_password]):
+            flash('Please fill in all required fields', 'error')
+            return render_template('register.html')
+        
+        if password != confirm_password:
+            flash('Passwords do not match', 'error')
+            return render_template('register.html')
+        
+        if len(password) < 6:
+            flash('Password must be at least 6 characters long', 'error')
+            return render_template('register.html')
+        
+        conn = get_db_connection()
+        if not conn:
+            flash('Database connection error', 'error')
+            return render_template('register.html')
+        
+        try:
+            cursor = conn.cursor()
+            # Check if phone number already exists
+            cursor.execute("SELECT id FROM users WHERE phone_number = %s", (phone_number,))
+            if cursor.fetchone():
+                flash('Phone number already registered', 'error')
+                return render_template('register.html')
+            
+            # Hash password and create user
+            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            cursor.execute("""
+                INSERT INTO users (name, phone_number, password_hash) 
+                VALUES (%s, %s, %s) RETURNING id
+            """, (name, phone_number, password_hash))
+            
+            result = cursor.fetchone()
+            if result:
+                user_id = result['id']
+                conn.commit()
+                
+                # Clear any existing session data and log in the new user
+                session.clear()
+                session['user_id'] = user_id
+                session['user_name'] = name
+                session['phone_number'] = phone_number
+                flash(f'Registration successful! Welcome to USTAAD DOST, {name}!', 'success')
+                return redirect(url_for('profile_setup'))
+            else:
+                flash('Registration failed. Please try again.', 'error')
+                conn.rollback()
+            
+        except Exception as e:
+            print(f"Registration error occurred")  # Don't log sensitive details
+            flash('Registration failed. Please try again.', 'error')
+            conn.rollback()
+        finally:
+            conn.close()
+    
+    return render_template('register.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('You have been logged out successfully', 'info')
+    return redirect(url_for('login'))
+
+@app.route('/profile-setup', methods=['GET', 'POST'])
+def profile_setup():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        cnic = request.form.get('cnic', '').strip() if request.form.get('cnic') else None
+        email = request.form.get('email', '').strip() if request.form.get('email') else None
+        address = request.form.get('address', '').strip() if request.form.get('address') else None
+        
+        # Handle file upload
+        profile_photo_path = None
+        if 'profile_photo' in request.files:
+            file = request.files['profile_photo']
+            if file and file.filename:
+                filename = secure_filename(file.filename)
+                if allowed_file(filename, {'png', 'jpg', 'jpeg'}):
+                    # Create upload directory
+                    upload_dir = Path('uploads/profiles')
+                    upload_dir.mkdir(parents=True, exist_ok=True)
+                    
+                    # Generate unique filename
+                    unique_filename = f"{session['user_id']}_{uuid.uuid4().hex[:8]}_{filename}"
+                    file_path = upload_dir / unique_filename
+                    
+                    try:
+                        file.save(file_path)
+                        profile_photo_path = str(file_path)
+                    except Exception as e:
+                        print(f"File upload error occurred")  # Don't log sensitive details
+                        flash('Photo upload failed. Please try again.', 'warning')
+        
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                if profile_photo_path:
+                    cursor.execute("""
+                        UPDATE users SET cnic = %s, email = %s, address = %s, profile_photo = %s 
+                        WHERE id = %s
+                    """, (cnic, email, address, profile_photo_path, session['user_id']))
+                else:
+                    cursor.execute("""
+                        UPDATE users SET cnic = %s, email = %s, address = %s 
+                        WHERE id = %s
+                    """, (cnic, email, address, session['user_id']))
+                conn.commit()
+                flash('Profile updated successfully!', 'success')
+                return redirect(url_for('index'))
+            except Exception as e:
+                print(f"Profile update error occurred")  # Don't log sensitive details
+                flash('Profile update failed. Please try again.', 'error')
+                conn.rollback()
+            finally:
+                conn.close()
+    
+    return render_template('profile_setup.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+def normalize_phone_number(phone):
+    """Normalize Pakistani phone number to standard format"""
+    if not phone:
+        return phone
+    
+    # Remove all non-digits
+    digits_only = ''.join(filter(str.isdigit, phone))
+    
+    # Handle different Pakistani phone formats
+    if digits_only.startswith('92'):
+        # International format: +92 300 1234567 → 0300-1234567
+        if len(digits_only) == 12:
+            return f"0{digits_only[2:5]}-{digits_only[5:]}"
+    elif digits_only.startswith('03') and len(digits_only) == 11:
+        # Standard format: 03001234567 → 0300-1234567
+        return f"{digits_only[:4]}-{digits_only[4:]}"
+    elif len(digits_only) == 10 and digits_only.startswith('3'):
+        # Missing leading zero: 3001234567 → 0300-1234567
+        return f"0{digits_only[:3]}-{digits_only[3:]}"
+    
+    # Return as-is if format doesn't match
+    return phone
 
 @app.route('/chatbot')
 def chatbot():
