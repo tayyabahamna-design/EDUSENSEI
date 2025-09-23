@@ -379,40 +379,10 @@ def index():
     return render_template('index.html')
 
 # Attendance & Roster Management Routes
+# Backward compatibility: redirect old attendance route to integrated classes-attendance
 @app.route('/attendance')
 def attendance():
-    # Get selected date from query parameter, default to today
-    selected_date_str = request.args.get('date', date.today().isoformat())
-    
-    # Validate and parse the date
-    try:
-        selected_date = datetime.fromisoformat(selected_date_str).date()
-    except (ValueError, TypeError):
-        selected_date = date.today()
-        selected_date_str = selected_date.isoformat()
-    
-    students = load_data(STUDENTS_FILE)
-    # Ensure migration from legacy format if needed
-    students = migrate_legacy_students(students)
-    save_data(STUDENTS_FILE, students)
-    
-    attendance_data = load_data(ATTENDANCE_FILE)
-    selected_attendance = attendance_data.get(selected_date_str, {})
-    
-    # Determine if this is a past, present, or future date
-    today = date.today()
-    is_past = selected_date < today
-    is_today = selected_date == today
-    is_future = selected_date > today
-    
-    return render_template('attendance.html', 
-                         students=students, 
-                         selected_attendance=selected_attendance, 
-                         selected_date=selected_date_str,
-                         selected_date_formatted=selected_date.strftime('%B %d, %Y'),
-                         is_past=is_past,
-                         is_today=is_today,
-                         is_future=is_future)
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/add_student', methods=['POST'])
 def add_student():
@@ -474,7 +444,7 @@ def edit_student():
     else:
         flash('Please provide both old and new student names.', 'error')
     
-    return redirect(url_for('attendance'))
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/remove_student', methods=['POST'])
 def remove_student():
@@ -490,7 +460,7 @@ def remove_student():
             flash(f'Student {student_name} removed successfully!', 'success')
         else:
             flash(f'Student {student_name} not found!', 'error')
-    return redirect(url_for('attendance'))
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/mark_attendance', methods=['POST'])
 def mark_attendance():
@@ -502,7 +472,7 @@ def mark_attendance():
         datetime.fromisoformat(attendance_date).date()
     except (ValueError, TypeError):
         flash('Invalid date format', 'error')
-        return redirect(url_for('attendance'))
+        return redirect(url_for('classes_attendance'))
     
     attendance_data = load_data(ATTENDANCE_FILE)
     
@@ -759,7 +729,7 @@ def student_profile(student_id):
     student = get_student_by_id(students, student_id)
     if not student:
         flash('Student not found!', 'error')
-        return redirect(url_for('attendance'))
+        return redirect(url_for('classes_attendance'))
     
     return render_template('student_profile.html', student=student)
 
@@ -772,7 +742,7 @@ def update_student_profile(student_id):
     student = get_student_by_id(students, student_id)
     if not student:
         flash('Student not found!', 'error')
-        return redirect(url_for('attendance'))
+        return redirect(url_for('classes_attendance'))
     
     # Update student profile fields
     student['name'] = request.form.get('name', '').strip()

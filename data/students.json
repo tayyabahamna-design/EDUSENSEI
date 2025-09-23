@@ -37,7 +37,7 @@
     "address": "",
     "profile_picture": "",
     "gender": "female",
-    "class_id": ""
+    "class_id": "grade_1a"
   },
   {
     "id": "student_26cbf15b",
@@ -47,6 +47,6 @@
     "address": "",
     "profile_picture": "",
     "gender": "male",
-    "class_id": ""
+    "class_id": "grade_2a"
   }
 ]
