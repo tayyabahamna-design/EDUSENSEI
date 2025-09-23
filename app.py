@@ -929,6 +929,31 @@ def generate_curriculum_lesson_plan(grade, subject, chapter, topic):
         'show_menu': True
     })
 
+def generate_curriculum_assessment_types(grade, subject, chapter, topic):
+    """Show assessment type options for specific curriculum topic"""
+    return jsonify({
+        'message': f'''📊 **Assessment Types for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+Choose your assessment type:''',
+        'options': [
+            '❓ Quick Q&A',
+            '🔤 Multiple Choice Questions (MCQ)',
+            '📖 Short Comprehension Questions', 
+            '👍👎 Thumbs Up/Down',
+            '📝 True/False Statements',
+            '✏️ Fill in the Blanks',
+            '🎫 Exit Tickets',
+            '🔄 Choose Different Topic',
+            '← Back to Menu'
+        ],
+        'show_menu': True
+    })
+
 def generate_curriculum_assessment(grade, subject, chapter, topic):
     """Generate assessment questions for specific curriculum topic"""
     return jsonify({
@@ -1234,7 +1259,6 @@ def chat():
         return jsonify({
             'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
             'options': [
-                '📖 Curriculum Navigator',
                 '📝 Lesson Planning Help',
                 '🎮 Fun Classroom Activities', 
                 '💡 Teaching Tips & Advice',
@@ -1245,18 +1269,17 @@ def chat():
             'show_menu': True
         })
     
-    # Handle Assessment menu option
+    # Handle Assessment menu option - start with curriculum selection
     if user_message.lower() in ['assessment', '📊 assessment', 'assessments']:
+        session['selected_feature'] = 'assessment'
         return jsonify({
-            'message': '📊 Choose your assessment type! Pick the perfect question format for your classroom:',
+            'message': '📊 **Assessment** - First, select your grade level:',
             'options': [
-                '❓ Quick Q&A',
-                '🔤 Multiple Choice Questions (MCQ)',
-                '📖 Short Comprehension Questions', 
-                '👍👎 Thumbs Up/Down',
-                '📝 True/False Statements',
-                '✏️ Fill in the Blanks',
-                '🎫 Exit Tickets',
+                '1️⃣ Grade 1',
+                '2️⃣ Grade 2', 
+                '3️⃣ Grade 3',
+                '4️⃣ Grade 4',
+                '5️⃣ Grade 5',
                 '← Back to Menu'
             ],
             'show_menu': True
@@ -1285,10 +1308,12 @@ def chat():
         return generate_assessment_response('exit-ticket')
     
     if user_message.lower() in ['← back to menu', 'back to menu', 'menu']:
+        # Clear all session data when returning to main menu
+        session.pop('curriculum_selection', None)
+        session.pop('selected_feature', None)
         return jsonify({
             'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
             'options': [
-                '📖 Curriculum Navigator',
                 '📝 Lesson Planning Help',
                 '🎮 Fun Classroom Activities', 
                 '💡 Teaching Tips & Advice',
@@ -1315,10 +1340,41 @@ def chat():
             'show_menu': True
         })
     
-    # Handle Curriculum Navigator
-    if user_message.lower() in ['curriculum navigator', '📖 curriculum navigator', 'curriculum']:
+    # Handle main menu options - start with curriculum selection
+    if user_message.lower() in ['lesson planning help', '📝 lesson planning help']:
+        session['selected_feature'] = 'lesson_planning'
         return jsonify({
-            'message': '📖 **Curriculum Navigator** - Choose your grade level to explore subjects, chapters, and topics!',
+            'message': '📝 **Lesson Planning Help** - First, select your grade level:',
+            'options': [
+                '1️⃣ Grade 1',
+                '2️⃣ Grade 2', 
+                '3️⃣ Grade 3',
+                '4️⃣ Grade 4',
+                '5️⃣ Grade 5',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    if user_message.lower() in ['fun classroom activities', '🎮 fun classroom activities']:
+        session['selected_feature'] = 'activities'
+        return jsonify({
+            'message': '🎮 **Fun Classroom Activities** - First, select your grade level:',
+            'options': [
+                '1️⃣ Grade 1',
+                '2️⃣ Grade 2', 
+                '3️⃣ Grade 3',
+                '4️⃣ Grade 4',
+                '5️⃣ Grade 5',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    if user_message.lower() in ['teaching tips & advice', '💡 teaching tips & advice', 'teaching tips']:
+        session['selected_feature'] = 'teaching_tips'
+        return jsonify({
+            'message': '💡 **Teaching Tips & Advice** - First, select your grade level:',
             'options': [
                 '1️⃣ Grade 1',
                 '2️⃣ Grade 2', 
@@ -1401,42 +1457,56 @@ def chat():
             
             if user_message.lower() in [topic_text, topic_emoji]:
                 session['curriculum_selection']['topic'] = topic
-                return jsonify({
-                    'message': f'''🎯 **Selected Topic:**
+                # Directly proceed to the selected feature instead of showing action menu
+                selected_feature = session.get('selected_feature')
+                
+                if selected_feature == 'lesson_planning':
+                    return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, topic)
+                elif selected_feature == 'assessment':
+                    return generate_curriculum_assessment_types(current_grade, current_subject, current_chapter, topic)
+                elif selected_feature == 'activities':
+                    return generate_curriculum_activities(current_grade, current_subject, current_chapter, topic)
+                elif selected_feature == 'teaching_tips':
+                    return generate_curriculum_tips(current_grade, current_subject, current_chapter, topic)
+                else:
+                    # Fallback to action menu if no feature selected
+                    return jsonify({
+                        'message': f'''🎯 **Selected Topic:**
 **Grade:** {current_grade}
 **Subject:** {current_subject}
 **Chapter:** {current_chapter}
 **Topic:** {topic}
 
 What would you like me to create for this topic?''',
-                    'options': [
-                        '📝 Generate Lesson Plan',
-                        '📊 Create Assessment Questions',
-                        '🎮 Suggest Fun Activities',
-                        '💡 Teaching Tips for this Topic',
-                        '🔄 Choose Different Topic',
-                        '← Back to Menu'
-                    ],
-                    'show_menu': True
-                })
+                        'options': [
+                            '📝 Generate Lesson Plan',
+                            '📊 Create Assessment Questions',
+                            '🎮 Suggest Fun Activities',
+                            '💡 Teaching Tips for this Topic',
+                            '🔄 Choose Different Topic',
+                            '← Back to Menu'
+                        ],
+                        'show_menu': True
+                    })
     
-    # Handle curriculum action selections
-    if 'topic' in session.get('curriculum_selection', {}):
+    # Handle curriculum action selections based on selected feature
+    if 'topic' in session.get('curriculum_selection', {}) and 'selected_feature' in session:
         current_grade = session['curriculum_selection']['grade']
         current_subject = session['curriculum_selection']['subject']
         current_chapter = session['curriculum_selection']['chapter']
         current_topic = session['curriculum_selection']['topic']
+        selected_feature = session['selected_feature']
         
-        if user_message.lower() in ['generate lesson plan', '📝 generate lesson plan']:
+        if selected_feature == 'lesson_planning':
             return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, current_topic)
         
-        elif user_message.lower() in ['create assessment questions', '📊 create assessment questions']:
-            return generate_curriculum_assessment(current_grade, current_subject, current_chapter, current_topic)
+        elif selected_feature == 'assessment':
+            return generate_curriculum_assessment_types(current_grade, current_subject, current_chapter, current_topic)
         
-        elif user_message.lower() in ['suggest fun activities', '🎮 suggest fun activities']:
+        elif selected_feature == 'activities':
             return generate_curriculum_activities(current_grade, current_subject, current_chapter, current_topic)
         
-        elif user_message.lower() in ['teaching tips for this topic', '💡 teaching tips for this topic']:
+        elif selected_feature == 'teaching_tips':
             return generate_curriculum_tips(current_grade, current_subject, current_chapter, current_topic)
     
     # Handle navigation options
