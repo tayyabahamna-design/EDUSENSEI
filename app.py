@@ -1328,12 +1328,14 @@ def chatbot():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Handle chatbot messages with session-based state management"""
+    """Handle chatbot messages with session-based state management and multimodal inputs"""
     # Guard against malformed requests
     if not request.json or 'message' not in request.json:
         return jsonify({'message': 'Invalid request format'})
     
     user_message = request.json.get('message', '').strip()
+    file_ids = request.json.get('file_ids', [])
+    audio_id = request.json.get('audio_id', None)
     current_state = get_chatbot_state()
     
     # Handle special commands
@@ -1367,7 +1369,7 @@ def chat():
     elif current_state == ChatbotState.GENERAL_QUESTIONS:
         return handle_general_questions(user_message)
     elif current_state == ChatbotState.FREE_CHAT:
-        return handle_free_chat(user_message)
+        return handle_free_chat(user_message, file_ids, audio_id)
     else:
         # Fallback to main menu
         set_chatbot_state(ChatbotState.MAIN_MENU)
@@ -1548,15 +1550,68 @@ def handle_general_questions(user_message):
             'message': 'Please ask me a question about teaching, classroom management, or education in the chat below.'
         })
 
-def handle_free_chat(user_message):
-    """Handle free conversation using AI"""
-    if user_message.strip():
-        # Use AI for natural conversation
-        response = get_ai_response(user_message, "general")
+def handle_free_chat(user_message, file_ids=None, audio_id=None):
+    """Handle free conversation using AI with multimodal support"""
+    if user_message.strip() or file_ids or audio_id:
+        # Build multimodal content for Gemini
+        content_parts = []
+        full_text = user_message
+        
+        # Add audio transcript if available
+        if audio_id:
+            audio_metadata = get_file_metadata(audio_id)
+            if audio_metadata and 'extracted_text' in audio_metadata:
+                full_text += f"\n\n[Voice message: {audio_metadata['extracted_text']}]"
+        
+        # Add file contents
+        if file_ids:
+            for file_id in file_ids:
+                file_metadata = get_file_metadata(file_id)
+                if file_metadata:
+                    file_type = file_metadata['type']
+                    if file_type == 'image':
+                        # Add image to content parts for Gemini
+                        file_path = get_file_path_from_metadata(file_metadata)
+                        if file_path and os.path.exists(file_path):
+                            try:
+                                # Upload image to Gemini
+                                uploaded_file = genai.upload_file(file_path)
+                                content_parts.append(uploaded_file)
+                                full_text += f"\n\n[Image: {file_metadata['original_name']}]"
+                            except Exception as e:
+                                print(f"Error uploading image to Gemini: {e}")
+                                full_text += f"\n\n[Image: {file_metadata['original_name']} - could not process]"
+                    elif file_type == 'document' and 'extracted_text' in file_metadata:
+                        doc_text = file_metadata['extracted_text']
+                        full_text += f"\n\n[Document: {file_metadata['original_name']}]\n{doc_text[:1000]}{'...' if len(doc_text) > 1000 else ''}"
+        
+        # Get AI response with multimodal content
+        if content_parts and gemini_model:
+            try:
+                # Use multimodal Gemini with images
+                prompt = f"You are a helpful AI assistant for primary school teachers. Please respond to this message which may include images or documents: {full_text}"
+                content_parts.insert(0, prompt)
+                response = gemini_model.generate_content(content_parts)
+                ai_response = response.text
+                
+                # Clean up uploaded files
+                for part in content_parts[1:]:  # Skip the text prompt
+                    if hasattr(part, 'name'):
+                        try:
+                            genai.delete_file(part.name)
+                        except:
+                            pass
+                            
+            except Exception as e:
+                print(f"Multimodal AI error: {e}")
+                ai_response = get_ai_response(full_text, "general")
+        else:
+            # Use text-only AI response
+            ai_response = get_ai_response(full_text, "general")
         
         # Stay in free chat mode for continued conversation (don't reset state)
         return jsonify({
-            'message': response,
+            'message': ai_response,
             'type': 'free_chat',
             'navigation': 'Free Chat',
             'continue_chat': True
@@ -1566,6 +1621,28 @@ def handle_free_chat(user_message):
             'message': 'I\'m here for a natural conversation! Ask me anything you\'d like to discuss.',
             'navigation': 'Free Chat'
         })
+
+def get_file_path_from_metadata(metadata):
+    """Get the actual file path from metadata"""
+    file_id = metadata['id']
+    file_type = metadata['type']
+    
+    if file_type == 'audio':
+        return os.path.join(AUDIO_DIR, f"{file_id}.webm")
+    elif file_type == 'image':
+        # Find file with correct extension
+        for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+            file_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
+            if os.path.exists(file_path):
+                return file_path
+    elif file_type == 'document':
+        # Find file with correct extension
+        for ext in ['.pdf', '.txt', '.docx']:
+            file_path = os.path.join(DOCS_DIR, f"{file_id}{ext}")
+            if os.path.exists(file_path):
+                return file_path
+    
+    return None
 
 # File Upload Routes
 @app.route('/upload_audio', methods=['POST'])

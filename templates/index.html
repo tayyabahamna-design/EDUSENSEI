@@ -1,28 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Tutor's Assistant{% endblock %}
+{% block title %}AI Teaching Assistant{% endblock %}
 
 {% block content %}
 <div class="dashboard">
     <div class="welcome-section">
-        <h1>🎉 Welcome to Tutor's Assistant 🎀</h1>
-        <p>🌟 Your comprehensive teaching companion with AI-powered tools! ✨📚</p>
+        <h1>🤖✨ AI Teaching Assistant 💖</h1>
+        <p>🌟 Your intelligent companion for teaching support! Chat with AI using voice, text, images, and documents! 🎀📚</p>
     </div>
     
     <div class="feature-grid">
-        <div class="feature-card">
-            <div class="feature-icon">🏫📋</div>
-            <h3>👥 Classes & Attendance</h3>
-            <p>Create classes, manage student rosters, and track daily attendance all in one place! 🌈</p>
-            <a href="{{ url_for('classes_attendance') }}" class="btn btn-primary">🏫📋 Manage Classes & Attendance</a>
+        <div class="feature-card large-card">
+            <div class="feature-icon">🤖💬</div>
+            <h3>💖 Smart AI Conversation</h3>
+            <p>Chat naturally with AI using text messages, voice recordings, images, and documents! Get help with lesson planning, activities, and teaching resources! 🌈✨</p>
+            <div class="feature-highlights">
+                <div class="highlight">🗣️ Voice Messages</div>
+                <div class="highlight">📎 File Uploads</div>
+                <div class="highlight">🖼️ Image Analysis</div>
+                <div class="highlight">📄 Document Processing</div>
+            </div>
+            <a href="{{ url_for('chatbot') }}" class="btn btn-primary btn-large">🤖 Start Chatting Now!</a>
         </div>
         
         <div class="feature-card">
-            <div class="feature-icon">🤖</div>
-            <h3>💖 AI Teaching Assistant</h3>
-            <p>Get help with lesson planning, fun activities, and teaching resources! 🎀</p>
-            <a href="{{ url_for('chatbot') }}" class="btn btn-primary">🤖 Chat Now</a>
+            <div class="feature-icon">🎯</div>
+            <h3>🌟 Teaching Features</h3>
+            <div class="feature-list">
+                <div class="feature-item">📝 Lesson Planning</div>
+                <div class="feature-item">🎮 Fun Activities</div>
+                <div class="feature-item">📖 Educational Resources</div>
+                <div class="feature-item">💡 Creative Ideas</div>
+                <div class="feature-item">🔍 Research Help</div>
+                <div class="feature-item">✨ And Much More!</div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+.large-card {
+    grid-column: span 2;
+    text-align: center;
+}
+
+.feature-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.highlight {
+    background: linear-gradient(135deg, #ffb6c1, #ffd700);
+    color: #8b4d7a;
+    padding: 8px 12px;
+    border-radius: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(255, 182, 193, 0.3);
+}
+
+.btn-large {
+    font-size: 18px;
+    padding: 15px 30px;
+    margin-top: 20px;
+}
+
+.feature-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.feature-item {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ffb6c1;
+    font-size: 14px;
+    color: #8b4d7a;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .large-card {
+        grid-column: span 1;
+    }
+    
+    .feature-highlights {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
 {% endblock %}

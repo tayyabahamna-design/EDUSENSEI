@@ -32,8 +32,38 @@
         </div>
         
         <div class="chat-input-container">
-            <input type="text" id="chatInput" placeholder="Type your message here..." autocomplete="off" style="display: block;">
-            <button id="sendButton" class="btn btn-primary">Send</button>
+            <!-- File Upload Area -->
+            <div class="file-upload-area" id="fileUploadArea" style="display: none;">
+                <div class="uploaded-files" id="uploadedFiles"></div>
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text">Drop files here or click to browse</div>
+                    <div class="upload-info">Images, PDFs, and text files up to 12MB</div>
+                    <input type="file" id="fileInput" multiple accept="image/*,.pdf,.txt,.docx" style="display: none;">
+                </div>
+            </div>
+            
+            <!-- Voice Recording Area -->
+            <div class="voice-recording-area" id="voiceArea" style="display: none;">
+                <div class="voice-controls">
+                    <button id="recordButton" class="btn btn-record">🎤 Record</button>
+                    <button id="stopButton" class="btn btn-stop" style="display: none;">⏹️ Stop</button>
+                    <button id="playButton" class="btn btn-play" style="display: none;">▶️ Play</button>
+                    <button id="clearRecordingButton" class="btn btn-clear" style="display: none;">🗑️ Clear</button>
+                </div>
+                <div class="recording-status" id="recordingStatus"></div>
+                <audio id="audioPlayback" controls style="display: none;"></audio>
+            </div>
+            
+            <!-- Main Input Area -->
+            <div class="main-input-area">
+                <div class="input-controls">
+                    <button id="toggleFileButton" class="btn btn-attach" title="Attach Files">📎</button>
+                    <button id="toggleVoiceButton" class="btn btn-voice" title="Voice Message">🎤</button>
+                </div>
+                <input type="text" id="chatInput" placeholder="Type your message here..." autocomplete="off">
+                <button id="sendButton" class="btn btn-primary">Send</button>
+            </div>
         </div>
         
         <div class="quick-actions" id="quickActions">
@@ -157,21 +187,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inline input functions removed - using main chatbox instead
 
-    // Make sendMessage globally available
+    // Voice recording variables
+    let mediaRecorder;
+    let audioChunks = [];
+    let audioBlob;
+    let currentAudioId = null;
+    let uploadedFiles = [];
+    
+    // Make sendMessage globally available with multimodal support
     window.sendMessage = async function(message = null) {
         const messageText = message || (chatInput ? chatInput.value.trim() : '');
-        if (!messageText) return;
+        if (!messageText && !currentAudioId && uploadedFiles.length === 0) return;
         
-        addMessage(messageText, true);
+        // Show what's being sent
+        let displayMessage = messageText;
+        if (currentAudioId) displayMessage += " 🎤 Voice message";
+        if (uploadedFiles.length > 0) displayMessage += ` 📎 ${uploadedFiles.length} file(s)`;
+        
+        addMessage(displayMessage, true);
         if (!message && chatInput) chatInput.value = '';
         
         try {
+            const payload = { 
+                message: messageText,
+                file_ids: uploadedFiles.map(f => f.file_id),
+                audio_id: currentAudioId
+            };
+            
             const response = await fetch('/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ message: messageText })
+                body: JSON.stringify(payload)
             });
             
             if (!response.ok) {
@@ -180,11 +228,180 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await response.json();
             addMessage(data);
+            
+            // Clear uploaded files and audio after sending
+            clearUploads();
+            
         } catch (error) {
             console.error('Chat error:', error);
             addMessage('Sorry, I encountered an error. Please try again.');
         }
     };
+    
+    function clearUploads() {
+        uploadedFiles = [];
+        currentAudioId = null;
+        updateUploadDisplay();
+        hideFileArea();
+        hideVoiceArea();
+        clearRecording();
+    }
+    
+    // File upload functions
+    function showFileArea() {
+        document.getElementById('fileUploadArea').style.display = 'block';
+    }
+    
+    function hideFileArea() {
+        document.getElementById('fileUploadArea').style.display = 'none';
+    }
+    
+    function showVoiceArea() {
+        document.getElementById('voiceArea').style.display = 'block';
+    }
+    
+    function hideVoiceArea() {
+        document.getElementById('voiceArea').style.display = 'none';
+    }
+    
+    async function uploadFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch('/upload_file', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+            
+            const result = await response.json();
+            uploadedFiles.push(result);
+            updateUploadDisplay();
+            
+        } catch (error) {
+            console.error('File upload error:', error);
+            alert('Failed to upload file: ' + file.name);
+        }
+    }
+    
+    function updateUploadDisplay() {
+        const container = document.getElementById('uploadedFiles');
+        container.innerHTML = '';
+        
+        uploadedFiles.forEach((file, index) => {
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'uploaded-file';
+            fileDiv.innerHTML = `
+                <span class="file-info">
+                    ${file.type === 'image' ? '🖼️' : '📄'} ${file.original_name}
+                    <small>(${formatFileSize(file.size)})</small>
+                </span>
+                <button class="btn-remove" onclick="removeFile(${index})">❌</button>
+            `;
+            container.appendChild(fileDiv);
+        });
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    window.removeFile = function(index) {
+        uploadedFiles.splice(index, 1);
+        updateUploadDisplay();
+        if (uploadedFiles.length === 0) {
+            hideFileArea();
+        }
+    };
+    
+    // Voice recording functions
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioChunks = [];
+            
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                await uploadAudio(audioBlob);
+                stream.getTracks().forEach(track => track.stop());
+            };
+            
+            mediaRecorder.start();
+            
+            document.getElementById('recordButton').style.display = 'none';
+            document.getElementById('stopButton').style.display = 'inline-block';
+            document.getElementById('recordingStatus').textContent = '🔴 Recording...';
+            
+        } catch (error) {
+            console.error('Recording error:', error);
+            alert('Could not access microphone. Please check permissions.');
+        }
+    }
+    
+    function stopRecording() {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            document.getElementById('recordButton').style.display = 'inline-block';
+            document.getElementById('stopButton').style.display = 'none';
+            document.getElementById('recordingStatus').textContent = '⏳ Processing...';
+        }
+    }
+    
+    async function uploadAudio(audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+        
+        try {
+            const response = await fetch('/upload_audio', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!response.ok) {
+                throw new Error('Audio upload failed');
+            }
+            
+            const result = await response.json();
+            currentAudioId = result.audio_id;
+            
+            // Show playback controls
+            const audioUrl = `/media/${result.audio_id}`;
+            const audioElement = document.getElementById('audioPlayback');
+            audioElement.src = audioUrl;
+            audioElement.style.display = 'block';
+            
+            document.getElementById('playButton').style.display = 'inline-block';
+            document.getElementById('clearRecordingButton').style.display = 'inline-block';
+            document.getElementById('recordingStatus').textContent = `✅ Ready to send (${result.transcript || 'Audio recorded'})`;
+            
+        } catch (error) {
+            console.error('Audio upload error:', error);
+            document.getElementById('recordingStatus').textContent = '❌ Upload failed';
+        }
+    }
+    
+    function clearRecording() {
+        currentAudioId = null;
+        audioBlob = null;
+        document.getElementById('audioPlayback').style.display = 'none';
+        document.getElementById('playButton').style.display = 'none';
+        document.getElementById('clearRecordingButton').style.display = 'none';
+        document.getElementById('recordingStatus').textContent = '';
+        document.getElementById('recordButton').style.display = 'inline-block';
+    }
 
     // Set up event listeners
     if (sendButton) {
@@ -203,6 +420,320 @@ document.addEventListener('DOMContentLoaded', function() {
         // Focus on input when page loads
         chatInput.focus();
     }
+    
+    // File upload event listeners
+    const toggleFileButton = document.getElementById('toggleFileButton');
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
+    
+    if (toggleFileButton) {
+        toggleFileButton.addEventListener('click', function() {
+            const fileArea = document.getElementById('fileUploadArea');
+            if (fileArea.style.display === 'none') {
+                showFileArea();
+            } else {
+                hideFileArea();
+            }
+        });
+    }
+    
+    if (uploadZone) {
+        uploadZone.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+        
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+        });
+        
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            
+            const files = Array.from(e.dataTransfer.files);
+            files.forEach(file => uploadFile(file));
+        });
+    }
+    
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            files.forEach(file => uploadFile(file));
+            e.target.value = ''; // Clear input for reuse
+        });
+    }
+    
+    // Voice recording event listeners
+    const toggleVoiceButton = document.getElementById('toggleVoiceButton');
+    const recordButton = document.getElementById('recordButton');
+    const stopButton = document.getElementById('stopButton');
+    const playButton = document.getElementById('playButton');
+    const clearRecordingButton = document.getElementById('clearRecordingButton');
+    
+    if (toggleVoiceButton) {
+        toggleVoiceButton.addEventListener('click', function() {
+            const voiceArea = document.getElementById('voiceArea');
+            if (voiceArea.style.display === 'none') {
+                showVoiceArea();
+            } else {
+                hideVoiceArea();
+            }
+        });
+    }
+    
+    if (recordButton) {
+        recordButton.addEventListener('click', startRecording);
+    }
+    
+    if (stopButton) {
+        stopButton.addEventListener('click', stopRecording);
+    }
+    
+    if (playButton) {
+        playButton.addEventListener('click', function() {
+            const audio = document.getElementById('audioPlayback');
+            audio.play();
+        });
+    }
+    
+    if (clearRecordingButton) {
+        clearRecordingButton.addEventListener('click', clearRecording);
+    }
 });
 </script>
+
+<style>
+/* File Upload Styles */
+.file-upload-area {
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 2px dashed #ffb6c1;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #fff0f5, #fffacd);
+}
+
+.uploaded-files {
+    margin-bottom: 10px;
+}
+
+.uploaded-file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    margin: 5px 0;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 5px;
+    border: 1px solid #ffb6c1;
+}
+
+.file-info {
+    flex: 1;
+    color: #8b4d7a;
+}
+
+.file-info small {
+    color: #666;
+    margin-left: 5px;
+}
+
+.btn-remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.btn-remove:hover {
+    background: rgba(255, 0, 0, 0.1);
+}
+
+.upload-zone {
+    text-align: center;
+    padding: 20px;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.upload-zone:hover, .upload-zone.drag-over {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.upload-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.upload-text {
+    font-size: 16px;
+    color: #8b4d7a;
+    margin-bottom: 5px;
+}
+
+.upload-info {
+    font-size: 12px;
+    color: #666;
+}
+
+/* Voice Recording Styles */
+.voice-recording-area {
+    margin-bottom: 15px;
+    padding: 15px;
+    border: 2px solid #87ceeb;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #e6f3ff, #f0f8ff);
+}
+
+.voice-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-record, .btn-stop, .btn-play, .btn-clear {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-record {
+    background: #4CAF50;
+    color: white;
+}
+
+.btn-record:hover {
+    background: #45a049;
+}
+
+.btn-stop {
+    background: #f44336;
+    color: white;
+}
+
+.btn-stop:hover {
+    background: #da190b;
+}
+
+.btn-play {
+    background: #2196F3;
+    color: white;
+}
+
+.btn-play:hover {
+    background: #0b7dda;
+}
+
+.btn-clear {
+    background: #9E9E9E;
+    color: white;
+}
+
+.btn-clear:hover {
+    background: #757575;
+}
+
+.recording-status {
+    font-size: 14px;
+    color: #4682b4;
+    margin-bottom: 10px;
+}
+
+/* Main Input Area Styles */
+.main-input-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.input-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-attach, .btn-voice {
+    padding: 8px;
+    border: 2px solid #ffb6c1;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.btn-attach:hover, .btn-voice:hover {
+    background: #ffb6c1;
+    transform: scale(1.1);
+}
+
+#chatInput {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ffb6c1;
+    border-radius: 20px;
+    font-size: 16px;
+    outline: none;
+}
+
+#chatInput:focus {
+    border-color: #ffd700;
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.3);
+}
+
+#sendButton {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #ffb6c1, #ffd700);
+    border: none;
+    border-radius: 20px;
+    color: #8b4d7a;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#sendButton:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(255, 182, 193, 0.3);
+}
+
+/* Audio controls styling */
+#audioPlayback {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-input-area {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .input-controls {
+        justify-content: center;
+        width: 100%;
+    }
+    
+    #chatInput {
+        width: 100%;
+    }
+    
+    .voice-controls {
+        justify-content: center;
+    }
+}
+</style>
 {% endblock %}
