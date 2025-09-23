@@ -592,8 +592,17 @@ document.addEventListener('DOMContentLoaded', function() {
     gap: 15px;
 }
 
+.bot-message {
+    justify-content: flex-start;
+}
+
 .user-message {
-    flex-direction: row;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    margin-left: auto;
+    margin-right: 0;
+    width: fit-content;
+    max-width: 80%;
 }
 
 .message-avatar {
@@ -615,6 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
     max-width: 70%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     border: 2px solid #ffb6c1;
+    width: fit-content;
 }
 
 .user-message .message-content {
