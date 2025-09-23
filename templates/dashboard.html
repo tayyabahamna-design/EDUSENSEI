@@ -435,15 +435,17 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Track dashboard page view
-            if (typeof posthog !== 'undefined') {
-                posthog.capture('dashboard_viewed');
-            }
+            setTimeout(function() {
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('dashboard_viewed');
+                }
+            }, 1500);
             
             // Track feature card clicks
             document.querySelectorAll('.feature-card a').forEach(link => {
                 link.addEventListener('click', function(e) {
                     const featureName = this.closest('.feature-card').querySelector('h3').textContent.trim();
-                    if (typeof posthog !== 'undefined') {
+                    if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
                         posthog.capture('feature_accessed', {
                             feature: featureName,
                             from: 'dashboard'

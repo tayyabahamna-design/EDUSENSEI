@@ -250,9 +250,12 @@
     <script>
         // Track login page view
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof posthog !== 'undefined') {
-                posthog.capture('login_page_viewed');
-            }
+            // Wait for PostHog to initialize before capturing
+            setTimeout(function() {
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('login_page_viewed');
+                }
+            }, 1500);
         });
         
         // Format phone number as user types
