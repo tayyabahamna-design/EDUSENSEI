@@ -18,6 +18,10 @@ app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
+# PostHog configuration
+POSTHOG_KEY = os.environ.get('VITE_PUBLIC_POSTHOG_KEY', 'phc_ygiCdZb8vwOkLO5WIdGvdxzugrlGnaFxkW0F73sHyBF')
+POSTHOG_HOST = os.environ.get('VITE_PUBLIC_POSTHOG_HOST', 'https://app.posthog.com')
+
 # Initialize both AI clients independently for reliable fallback
 openai_client = None
 gemini_model = None
@@ -1508,11 +1512,11 @@ Is there anything specific you'd like help with in the meantime?"""
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
 
 @app.route('/chatbot')
 def chatbot():
-    return render_template('chatbot.html')
+    return render_template('chatbot.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
 
 @app.route('/chat', methods=['POST'])
 def chat():
