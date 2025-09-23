@@ -25,7 +25,7 @@ enhanced_backend = initialize_enhanced_backend()
 
 # ENHANCED VERSION: Replace your simple get_ai_response() with this
 def get_enhanced_ai_response(user_message, session_id, conversation_type="general"):
-    """Enhanced AI response with memory, context, and processing"""
+    """Enhanced AI response with orchestration, memory, context, and processing"""
     
     # 1. Add user message to conversation memory
     enhanced_backend['memory'].add_message(
@@ -56,44 +56,53 @@ def get_enhanced_ai_response(user_message, session_id, conversation_type="genera
         # Add current message to existing context
         context_messages.append({"role": "user", "content": user_message})
     
-    # 4. Get AI response with full context
+    # 4. Try orchestrated AI response with fallback chain
     try:
-        if openai_client:
-            response = openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=context_messages,
-                max_tokens=800,
-                temperature=0.7
+        # Primary: Use model orchestrator
+        ai_response = enhanced_backend['orchestrator'].get_ai_response_with_context(
+            openai_client, context_messages, conversation_type
+        )
+        
+        if not ai_response:
+            # Fallback chain
+            request_data = {
+                'openai_client': openai_client,
+                'messages': context_messages,
+                'query': user_message,
+                'question': user_message
+            }
+            
+            ai_response = enhanced_backend['api_layer'].call_with_fallback(
+                'openai', ['wikipedia', 'local_knowledge'], request_data
             )
-            
-            ai_response = response.choices[0].message.content
-            
-            # 5. Process response through enhancement pipeline
-            processed_response = enhanced_backend['processor'].process_response(
-                ai_response, 
-                context={'conversation_type': conversation_type}
-            )
-            
-            # 6. Add AI response to memory
-            enhanced_backend['memory'].add_message(
-                session_id, 
-                'assistant', 
-                processed_response
-            )
-            
-            # 7. Learn from the interaction
-            user_id = enhanced_backend['memory'].get_user_id(session_id)
-            conversation_history = list(enhanced_backend['memory'].conversations.get(user_id, []))
-            enhanced_backend['learning'].analyze_user_patterns(user_id, conversation_history)
-            
-            return processed_response
-            
+        
+        # 5. Process response through enhancement pipeline
+        processed_response = enhanced_backend['processor'].process_response(
+            ai_response, 
+            context={'conversation_type': conversation_type}
+        )
+        
+        # 6. Add AI response to memory
+        enhanced_backend['memory'].add_message(
+            session_id, 
+            'assistant', 
+            processed_response
+        )
+        
+        # 7. Learn from the interaction and update preferences
+        user_id = enhanced_backend['memory'].get_user_id(session_id)
+        conversation_history = list(enhanced_backend['memory'].conversations.get(user_id, []))
+        patterns = enhanced_backend['learning'].analyze_user_patterns(user_id, conversation_history)
+        
+        # Update user preferences in memory
+        enhanced_backend['memory'].update_user_preferences(user_id, patterns)
+        
+        return processed_response
+        
     except Exception as e:
         print(f"Enhanced AI error: {e}")
-        # Fallback to your existing system
+        # Final fallback to your existing system
         return get_teaching_guidance_fallback(user_message)
-    
-    return get_teaching_guidance_fallback(user_message)
 
 # ENHANCED VERSION: Update your Free Chat handler
 def handle_enhanced_free_chat(user_message, session_id):

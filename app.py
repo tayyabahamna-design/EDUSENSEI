@@ -248,8 +248,8 @@ def get_ai_response(user_message, conversation_type="general"):
         return get_teaching_guidance_fallback(user_message)
     
     try:
-        # the newest OpenAI model is "gpt-5" which was released August 7, 2025.
-        # do not change this unless explicitly requested by the user
+        # Using gpt-4o model for reliable performance
+        # Updated to use working model with valid API key
         
         if conversation_type == "teaching":
             system_prompt = """You are a helpful AI teaching assistant for primary school teachers (grades 1-5). 
@@ -417,6 +417,8 @@ def attendance():
 @app.route('/add_student', methods=['POST'])
 def add_student():
     student_name = request.form.get('student_name')
+    class_id = request.form.get('class_id', '')  # Get selected class
+    
     if student_name:
         students = load_data(STUDENTS_FILE)
         students = migrate_legacy_students(students)
@@ -424,13 +426,19 @@ def add_student():
         # Check if student already exists
         existing_student = get_student_by_name(students, student_name)
         if not existing_student:
-            new_student = create_student_profile(student_name)
+            new_student = create_student_profile(student_name, class_id=class_id)
             students.append(new_student)
             save_data(STUDENTS_FILE, students)
-            flash(f'Student {student_name} added successfully!', 'success')
+            
+            if class_id:
+                class_info = get_class_by_id(class_id)
+                flash(f'Student {student_name} added to {class_info["name"]} successfully!', 'success')
+            else:
+                flash(f'Student {student_name} added successfully!', 'success')
         else:
             flash(f'Student {student_name} already exists!', 'error')
-    return redirect(url_for('attendance'))
+    
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/edit_student', methods=['POST'])
 def edit_student():
@@ -525,9 +533,9 @@ def mark_attendance():
     return redirect(url_for('attendance', date=attendance_date))
 
 # Class Management Routes
-@app.route('/classes')
-def classes():
-    """Display all classes and allow management"""
+@app.route('/classes_attendance')
+def classes_attendance():
+    """Display integrated classes and attendance management"""
     classes = get_all_classes()
     unassigned_students = get_unassigned_students()
     
@@ -537,7 +545,13 @@ def classes():
         class_info['student_count'] = len(class_students)
         class_info['students'] = class_students
     
-    return render_template('classes.html', classes=classes, unassigned_students=unassigned_students)
+    return render_template('classes_attendance.html', classes=classes, unassigned_students=unassigned_students)
+
+# Keep original classes route for backward compatibility
+@app.route('/classes')
+def classes():
+    """Redirect to integrated classes and attendance"""
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/create_class', methods=['POST'])
 def create_class_route():
@@ -547,16 +561,16 @@ def create_class_route():
     
     if not grade or not section:
         flash('Grade and section are required!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     try:
         grade = int(grade)
         if grade < 1 or grade > 5:
             flash('Grade must be between 1 and 5!', 'error')
-            return redirect(url_for('classes'))
+            return redirect(url_for('classes_attendance'))
     except ValueError:
         flash('Invalid grade number!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Check if class already exists
     class_id = f"grade_{grade}{section.lower()}"
@@ -564,7 +578,7 @@ def create_class_route():
     
     if class_id in classes_data:
         flash(f'Grade {grade}{section.upper()} already exists!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Create new class
     new_class = create_class(grade, section)
@@ -572,7 +586,7 @@ def create_class_route():
     save_data(CLASSES_FILE, classes_data)
     
     flash(f'Grade {grade}{section.upper()} created successfully!', 'success')
-    return redirect(url_for('classes'))
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/delete_class', methods=['POST'])
 def delete_class():
@@ -581,13 +595,13 @@ def delete_class():
     
     if not class_id:
         flash('Invalid class!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Get class info for confirmation message
     class_info = get_class_by_id(class_id)
     if not class_info:
         flash('Class not found!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Unassign all students from this class
     students = load_data(STUDENTS_FILE)
@@ -616,7 +630,7 @@ def assign_student():
     
     if not student_id or not class_id:
         flash('Invalid student or class!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Load students and update the specific student
     students = load_data(STUDENTS_FILE)
@@ -655,7 +669,7 @@ def class_attendance(class_id):
     class_info = get_class_by_id(class_id)
     if not class_info:
         flash('Class not found!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Get students in this class
     students = get_students_by_class(class_id)
@@ -688,7 +702,7 @@ def mark_class_attendance():
     
     if not class_id:
         flash('Invalid class!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Validate the date
     try:
@@ -701,7 +715,7 @@ def mark_class_attendance():
     class_info = get_class_by_id(class_id)
     if not class_info:
         flash('Class not found!', 'error')
-        return redirect(url_for('classes'))
+        return redirect(url_for('classes_attendance'))
     
     # Load attendance data
     attendance_data = load_data(ATTENDANCE_FILE)

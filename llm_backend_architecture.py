@@ -7,14 +7,51 @@ from collections import defaultdict, deque
 import hashlib
 
 class ConversationMemory:
-    """Advanced conversation context and memory management"""
+    """Advanced conversation context and memory management with persistence"""
     
-    def __init__(self, max_history=50, context_window=10):
+    def __init__(self, max_history=50, context_window=10, persistence_file='data/conversations.json'):
         self.conversations = {}  # user_id -> conversation history
         self.user_preferences = {}  # user_id -> preferences
         self.max_history = max_history
         self.context_window = context_window
+        self.persistence_file = persistence_file
         self.lock = threading.Lock()
+        self.load_conversations()
+    
+    def load_conversations(self):
+        """Load conversations from persistence file"""
+        try:
+            if os.path.exists(self.persistence_file):
+                with open(self.persistence_file, 'r') as f:
+                    data = json.load(f)
+                    # Convert lists back to deques
+                    for user_id, messages in data.get('conversations', {}).items():
+                        self.conversations[user_id] = deque(messages, maxlen=self.max_history)
+                    self.user_preferences = data.get('user_preferences', {})
+        except Exception as e:
+            print(f"Error loading conversations: {e}")
+    
+    def save_conversations(self):
+        """Save conversations to persistence file"""
+        try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.persistence_file), exist_ok=True)
+            
+            data = {
+                'conversations': {user_id: list(messages) for user_id, messages in self.conversations.items()},
+                'user_preferences': self.user_preferences
+            }
+            
+            with open(self.persistence_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        except Exception as e:
+            print(f"Error saving conversations: {e}")
+    
+    def update_user_preferences(self, user_id, preferences):
+        """Update user preferences and save"""
+        with self.lock:
+            self.user_preferences[user_id] = preferences
+            self.save_conversations()
     
     def get_user_id(self, session_id):
         """Generate consistent user ID from session"""
@@ -34,6 +71,10 @@ class ConversationMemory:
                 'metadata': metadata or {}
             }
             self.conversations[user_id].append(message)
+            
+            # Save every 5 messages to maintain persistence
+            if len(self.conversations[user_id]) % 5 == 0:
+                self.save_conversations()
     
     def get_context(self, session_id, include_system_prompt=True):
         """Get conversation context for AI model"""
@@ -71,10 +112,14 @@ class ConversationMemory:
         # Add personalization based on user preferences
         if user_id in self.user_preferences:
             prefs = self.user_preferences[user_id]
-            if 'teaching_style' in prefs:
-                base_prompt += f"\n\nUser prefers {prefs['teaching_style']} teaching approaches."
-            if 'grade_focus' in prefs:
-                base_prompt += f"\nUser primarily teaches grade {prefs['grade_focus']}."
+            if 'preferred_topics' in prefs and prefs['preferred_topics']:
+                topics = ', '.join(prefs['preferred_topics'][:2])
+                base_prompt += f"\n\nThe user frequently asks about: {topics}. Reference their interests when relevant."
+            if 'response_preferences' in prefs:
+                style = prefs['response_preferences']
+                base_prompt += f"\nUser prefers {style} responses. Adjust your answer length accordingly."
+            if 'teaching_level' in prefs:
+                base_prompt += f"\nUser teaches at {prefs['teaching_level']} level."
         
         return base_prompt
 
@@ -105,14 +150,21 @@ class ModelOrchestrator:
         else:
             return 'openai_gpt', 'gpt-4o'  # Default
     
-    def get_ai_response_with_context(self, messages, task_type='conversation', user_context=None):
+    def get_ai_response_with_context(self, openai_client, messages, task_type='conversation', user_context=None):
         """Get response from the most appropriate model with full context"""
         model_key, model_name = self.choose_best_model(task_type, user_context)
         
+        if not openai_client:
+            return None
+            
         try:
-            # Use the global openai_client from your existing app
-            response = None  # Replace with actual client call
-            return response
+            response = openai_client.chat.completions.create(
+                model=model_name,
+                messages=messages,
+                max_tokens=800,
+                temperature=0.7
+            )
+            return response.choices[0].message.content
         except Exception as e:
             print(f"Model orchestrator error: {e}")
             return None
@@ -141,12 +193,23 @@ class ResponseProcessor:
     
     def safety_filter(self, response, context=None):
         """Ensure response is safe and appropriate"""
-        unsafe_patterns = ['harmful', 'dangerous', 'inappropriate']
+        unsafe_patterns = [
+            'harmful', 'dangerous', 'inappropriate', 'violence', 'weapon', 
+            'drug', 'alcohol', 'suicide', 'self-harm', 'hate', 'discrimination',
+            'adult content', 'explicit', 'sexual'
+        ]
+        
         response_lower = response.lower()
         
+        # Check for unsafe content
         for pattern in unsafe_patterns:
             if pattern in response_lower:
-                return "I'd be happy to help with educational topics. Let me know what specific teaching question you have!"
+                return "I focus on providing helpful educational guidance for teachers. Let me know what specific teaching question I can help you with!"
+        
+        # Check for age-inappropriate content for elementary education
+        elementary_inappropriate = ['college', 'university', 'advanced mathematics', 'complex chemistry']
+        if any(pattern in response_lower for pattern in elementary_inappropriate):
+            response += "\n\n*Note: This information may be more suitable for higher grade levels. Please adapt for your elementary students.*"
         
         return response
     
@@ -188,12 +251,26 @@ class LearningEngine:
             'teaching_level': 'elementary'
         }
         
+        topic_count = {}
+        
         # Analyze conversation history
         for msg in conversation_history:
-            if 'classroom management' in msg.get('content', '').lower():
-                patterns['preferred_topics'].append('classroom_management')
-            elif 'lesson plan' in msg.get('content', '').lower():
-                patterns['preferred_topics'].append('lesson_planning')
+            content = msg.get('content', '').lower()
+            if 'classroom management' in content or 'behavior' in content:
+                topic_count['classroom_management'] = topic_count.get('classroom_management', 0) + 1
+            elif 'lesson plan' in content or 'curriculum' in content:
+                topic_count['lesson_planning'] = topic_count.get('lesson_planning', 0) + 1
+            elif 'student engagement' in content or 'motivation' in content:
+                topic_count['student_engagement'] = topic_count.get('student_engagement', 0) + 1
+            elif 'assessment' in content or 'grading' in content:
+                topic_count['assessment'] = topic_count.get('assessment', 0) + 1
+        
+        # Get most frequent topics
+        patterns['preferred_topics'] = sorted(topic_count.keys(), key=topic_count.get, reverse=True)[:3]
+        
+        # Determine response preference based on message length
+        avg_length = sum(len(msg.get('content', '')) for msg in conversation_history) / max(len(conversation_history), 1)
+        patterns['response_preferences'] = 'brief' if avg_length < 50 else 'detailed'
         
         self.user_patterns[user_id] = patterns
         return patterns
@@ -268,18 +345,47 @@ class APIIntegrationLayer:
     
     def call_openai(self, request_data):
         """Call OpenAI with enhanced prompting"""
-        # Enhanced implementation
-        pass
+        try:
+            if 'openai_client' in request_data and request_data['openai_client']:
+                response = request_data['openai_client'].chat.completions.create(
+                    model='gpt-4o',
+                    messages=request_data['messages'],
+                    max_tokens=800
+                )
+                return response.choices[0].message.content
+        except Exception as e:
+            raise Exception(f"OpenAI service failed: {e}")
     
     def call_wikipedia(self, request_data):
         """Call Wikipedia for factual information"""
-        # Enhanced implementation
-        pass
+        try:
+            import requests
+            query = request_data.get('query', '')
+            search_url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{query.replace(' ', '_')}"
+            
+            response = requests.get(search_url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                summary = data.get('extract', '')
+                if summary:
+                    return f"**{query}**: {summary}\n\n*Source: Wikipedia*"
+            raise Exception("Wikipedia lookup failed")
+        except Exception as e:
+            raise Exception(f"Wikipedia service failed: {e}")
     
     def call_local_knowledge(self, request_data):
         """Use local knowledge base as fallback"""
-        # Enhanced implementation
-        pass
+        try:
+            question = request_data.get('question', '').lower()
+            
+            if any(word in question for word in ['classroom management', 'behavior']):
+                return """**Classroom Management Tips:**\n\n• Set clear, consistent expectations\n• Use positive reinforcement\n• Build relationships with students\n• Create engaging activities\n\n*This is general guidance - adapt to your classroom context.*"""
+            elif 'lesson plan' in question:
+                return """**Lesson Planning Best Practices:**\n\n• Start with clear objectives\n• Include engaging activities\n• Plan for different learning styles\n• End with assessment\n\n*Remember to align with your curriculum standards.*"""
+            else:
+                return """I'm here to help with teaching questions! For detailed guidance, consider consulting with your instructional coach or educational resources."""
+        except Exception as e:
+            raise Exception(f"Local knowledge service failed: {e}")
 
 # Usage Example Integration
 def create_enhanced_llm_backend():
