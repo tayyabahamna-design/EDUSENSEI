@@ -35,8 +35,178 @@
                 <div class="feature-item">✨ And Much More!</div>
             </div>
         </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>📊 Quick Assessments</h3>
+            <p>Generate instant assessment tools for your classroom! Get ready-made questions, activities, and evaluation methods in seconds! 🚀</p>
+            <div class="assessment-buttons">
+                <button class="btn btn-assessment" onclick="generateAssessment('qna')">❓ Quick Q&A</button>
+                <button class="btn btn-assessment" onclick="generateAssessment('thumbs')">👍👎 Thumbs Up/Down</button>
+                <button class="btn btn-assessment" onclick="generateAssessment('statements')">📝 True/False Statements</button>
+                <button class="btn btn-assessment" onclick="generateAssessment('exit-ticket')">🎫 Exit Tickets</button>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Assessment Modal -->
+<div id="assessmentModal" class="assessment-modal">
+    <div class="assessment-modal-content">
+        <span class="assessment-close" onclick="closeAssessmentModal()">&times;</span>
+        <h2 id="assessmentTitle">🎯 Quick Assessment</h2>
+        <div id="assessmentContent" class="assessment-content">
+            <!-- Assessment content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<script>
+function generateAssessment(type) {
+    const modal = document.getElementById('assessmentModal');
+    const title = document.getElementById('assessmentTitle');
+    const content = document.getElementById('assessmentContent');
+    
+    // Show loading
+    content.innerHTML = '<p>🔄 Generating assessment...</p>';
+    modal.style.display = 'block';
+    
+    // Generate content based on type
+    let assessmentData = {};
+    switch(type) {
+        case 'qna':
+            assessmentData = generateQnAAssessment();
+            title.textContent = '❓ Quick Q&A Assessment';
+            break;
+        case 'thumbs':
+            assessmentData = generateThumbsAssessment();
+            title.textContent = '👍👎 Thumbs Up/Down Assessment';
+            break;
+        case 'statements':
+            assessmentData = generateStatementsAssessment();
+            title.textContent = '📝 True/False Statements';
+            break;
+        case 'exit-ticket':
+            assessmentData = generateExitTicketAssessment();
+            title.textContent = '🎫 Exit Ticket Assessment';
+            break;
+    }
+    
+    // Display the assessment
+    setTimeout(() => {
+        content.innerHTML = assessmentData.html;
+    }, 500);
+}
+
+function generateQnAAssessment() {
+    const questions = [
+        { q: "What is the main idea of today's lesson?", a: "Accept answers that demonstrate understanding of the key concept" },
+        { q: "Can you give me an example of what we learned?", a: "Look for real-world applications or connections" },
+        { q: "What was the most interesting part of the lesson?", a: "Helps gauge engagement and memorable moments" },
+        { q: "Is there anything you'd like to know more about?", a: "Identifies areas for follow-up or extension" },
+        { q: "How would you explain this to a friend?", a: "Tests ability to communicate understanding clearly" }
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Use these questions to quickly assess student understanding. Mix and match based on your lesson!</p>';
+    
+    questions.forEach((item, index) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Question ${index + 1}:</h4>
+                <p><strong>${item.q}</strong></p>
+                <div class="assessment-answer">💡 Look for: ${item.a}</div>
+            </div>
+        `;
+    });
+    
+    return { html };
+}
+
+function generateThumbsAssessment() {
+    const statements = [
+        "I understand today's main concept",
+        "I can explain this to someone else", 
+        "I feel confident about this topic",
+        "I need more practice with this",
+        "I found today's lesson interesting",
+        "I can see how this connects to real life"
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Read each statement and have students show thumbs up (agree) or thumbs down (disagree). Great for quick class pulse checks!</p>';
+    
+    statements.forEach((statement, index) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Statement ${index + 1}:</h4>
+                <p><strong>"${statement}"</strong></p>
+                <div class="assessment-answer">👍 Thumbs Up = Agree | 👎 Thumbs Down = Disagree</div>
+            </div>
+        `;
+    });
+    
+    return { html };
+}
+
+function generateStatementsAssessment() {
+    const statements = [
+        { statement: "Plants need sunlight to make their own food", answer: "TRUE", explanation: "Photosynthesis requires sunlight" },
+        { statement: "All insects have 8 legs", answer: "FALSE", explanation: "Insects have 6 legs, spiders have 8" },
+        { statement: "Water freezes at 0 degrees Celsius", answer: "TRUE", explanation: "This is the freezing point of water" },
+        { statement: "The Earth is flat", answer: "FALSE", explanation: "The Earth is round/spherical" },
+        { statement: "Reading helps improve vocabulary", answer: "TRUE", explanation: "Exposure to new words through reading expands vocabulary" }
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Read each statement and have students write T (True) or F (False). Perfect for science and general knowledge!</p>';
+    
+    statements.forEach((item, index) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Statement ${index + 1}:</h4>
+                <p><strong>"${item.statement}"</strong></p>
+                <div class="assessment-answer">✅ Answer: ${item.answer} - ${item.explanation}</div>
+            </div>
+        `;
+    });
+    
+    return { html };
+}
+
+function generateExitTicketAssessment() {
+    const prompts = [
+        { prompt: "Today I learned...", purpose: "Identifies key takeaways" },
+        { prompt: "I'm still wondering about...", purpose: "Reveals areas of confusion" },
+        { prompt: "One thing I want to remember is...", purpose: "Highlights most important learning" },
+        { prompt: "I can use this when...", purpose: "Shows real-world connections" },
+        { prompt: "My favorite part was...", purpose: "Gauges engagement and interest" }
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Choose 2-3 prompts for students to complete before leaving class. Perfect for reflection and feedback!</p>';
+    
+    prompts.forEach((item, index) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Exit Ticket Prompt ${index + 1}:</h4>
+                <p><strong>"${item.prompt}"</strong></p>
+                <div class="assessment-answer">🎯 Purpose: ${item.purpose}</div>
+            </div>
+        `;
+    });
+    
+    return { html };
+}
+
+function closeAssessmentModal() {
+    document.getElementById('assessmentModal').style.display = 'none';
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('assessmentModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
 
 <style>
 .large-card {
@@ -84,6 +254,103 @@
     font-weight: 500;
 }
 
+.assessment-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-assessment {
+    background: linear-gradient(135deg, #87ceeb, #b0e0e6);
+    color: #4682b4;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(135, 206, 235, 0.3);
+}
+
+.btn-assessment:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(135, 206, 235, 0.4);
+    background: linear-gradient(135deg, #6bb6ff, #87ceeb);
+}
+
+/* Assessment Modal Styles */
+.assessment-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.assessment-modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: none;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+
+.assessment-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 20px;
+}
+
+.assessment-close:hover,
+.assessment-close:focus {
+    color: #000;
+    text-decoration: none;
+}
+
+.assessment-content {
+    margin-top: 20px;
+}
+
+.assessment-item {
+    background: rgba(255, 182, 193, 0.1);
+    border: 1px solid #ffb6c1;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+.assessment-item h4 {
+    color: #8b4d7a;
+    margin: 0 0 10px 0;
+}
+
+.assessment-item p {
+    margin: 5px 0;
+    color: #333;
+}
+
+.assessment-answer {
+    background: rgba(255, 215, 0, 0.2);
+    border-left: 4px solid #ffd700;
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-weight: 600;
+    color: #8b4d7a;
+}
+
 @media (max-width: 768px) {
     .large-card {
         grid-column: span 1;
@@ -91,6 +358,15 @@
     
     .feature-highlights {
         grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .assessment-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .assessment-modal-content {
+        width: 95%;
+        margin: 10% auto;
     }
 }
 </style>
