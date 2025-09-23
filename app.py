@@ -1525,6 +1525,37 @@ def chat():
     file_ids = request.json.get('file_ids', [])
     audio_id = request.json.get('audio_id', None)
     
+    # Handle Free Chat mode first - bypass all menu logic
+    if session.get('selected_feature') == 'free_chat' and user_message.lower() not in ['menu', 'start', '← back to menu']:
+        # Process uploaded files and generate AI response directly
+        full_text = user_message
+        
+        # Add audio transcript if available
+        if audio_id:
+            audio_metadata = get_file_metadata(audio_id)
+            if audio_metadata and 'extracted_text' in audio_metadata:
+                audio_text = audio_metadata['extracted_text']
+                if audio_text:
+                    full_text = f"[Voice Message]: {audio_text}\n{full_text}".strip()
+        
+        # Process uploaded files
+        for file_id in file_ids:
+            file_metadata = get_file_metadata(file_id)
+            if file_metadata:
+                file_type = file_metadata['type']
+                
+                if file_type == 'image':
+                    full_text = f"User uploaded an image. {full_text}".strip()
+                    
+                elif file_type == 'document' and 'extracted_text' in file_metadata:
+                    extracted_content = file_metadata['extracted_text']
+                    if extracted_content:
+                        full_text = f"[Document Content]: {extracted_content}\n\n{full_text}".strip()
+        
+        # Get AI response directly
+        ai_response = get_ai_response(full_text, "general")
+        return jsonify({'message': ai_response, 'is_markdown': True})
+    
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
         return jsonify({
@@ -1538,6 +1569,18 @@ def chat():
                 '💬 Free Chat'
             ],
             'show_menu': True
+        })
+    
+    # Handle Free Chat selection from menu
+    if user_message.lower() in ['💬 free chat', 'free chat']:
+        session['selected_feature'] = 'free_chat'
+        # Clear any curriculum selection to avoid conflicts
+        if 'curriculum_selection' in session:
+            del session['curriculum_selection']
+        session.modified = True
+        return jsonify({
+            'message': '💬 **Free Chat Mode Activated!** \n\nI\'m ready to help you with anything! Ask me about coding, writing, analysis, creative tasks, or any questions you have. Let\'s have a natural conversation! 🚀',
+            'show_menu': False
         })
     
     # Handle Assessment menu option - start with curriculum selection

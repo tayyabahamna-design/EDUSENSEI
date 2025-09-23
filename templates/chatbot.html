@@ -113,11 +113,22 @@ document.addEventListener('DOMContentLoaded', function() {
             messageDiv.innerHTML = `
                 <div class="message-avatar">${isUser ? '😊' : '🤖'}</div>
                 <div class="message-content">
-                    <p></p>
+                    <div class="message-text"></div>
                 </div>
             `;
-            // Set content safely to prevent XSS
-            messageDiv.querySelector('.message-content p').textContent = content;
+            // Render with markdown-like formatting
+            const textDiv = messageDiv.querySelector('.message-text');
+            textDiv.innerHTML = formatMarkdownLike(content);
+        } else if (content.is_markdown) {
+            messageDiv.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="message-content">
+                    <div class="message-text"></div>
+                </div>
+            `;
+            // Render markdown content
+            const textDiv = messageDiv.querySelector('.message-text');
+            textDiv.innerHTML = formatMarkdownLike(content.message);
         } else {
             messageDiv.innerHTML = `
                 <div class="message-avatar">🤖</div>
@@ -205,6 +216,48 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             suggestionsContainer.style.display = 'none';
         }
+    }
+    
+    // Simple markdown-like formatting function
+    function formatMarkdownLike(text) {
+        if (!text) return '';
+        
+        // Escape HTML first for security
+        text = text.replace(/&/g, '&amp;')
+                   .replace(/</g, '&lt;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/"/g, '&quot;')
+                   .replace(/'/g, '&#39;');
+        
+        // Convert markdown-like formatting
+        text = text
+            // Bold: **text** or __text__
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/__(.*?)__/g, '<strong>$1</strong>')
+            
+            // Italic: *text* or _text_
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/_(.*?)_/g, '<em>$1</em>')
+            
+            // Code blocks: ```code```
+            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+            
+            // Inline code: `code`
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            
+            // Line breaks
+            .replace(/\n/g, '<br>')
+            
+            // Lists (simple detection)
+            .replace(/^[\s]*[-*+]\s+(.+)$/gm, '<li>$1</li>')
+            .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+            
+            // Headers: # ## ### 
+            .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+            .replace(/^# (.*$)/gm, '<h1>$1</h1>');
+        
+        return text;
     }
     
     // Inline input functions removed - using main chatbox instead
