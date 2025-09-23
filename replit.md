@@ -4,7 +4,7 @@
 
 AI Teaching Assistant is a pure AI-powered conversational application designed to help primary school teachers with their daily teaching needs. The application provides an intelligent chatbot interface that supports multimodal interactions including text, voice messages, image analysis, and document processing. Built with a beautiful, colorful interface using pink, yellow, and blue themes, it offers a friendly and intuitive experience for educators.
 
-The application serves as an intelligent companion for teachers, providing instant access to AI-powered assistance for lesson planning, classroom management advice, educational resources, and general teaching support through natural conversation.
+The application serves as an intelligent companion for teachers, providing instant access to AI-powered assistance for lesson planning, classroom management advice, educational resources, and general teaching support through natural conversation. The application now features a comprehensive curriculum navigation system that allows teachers to select specific grades (1-5), subjects (English, Math, Science, Islamiyat), chapters, and topics to receive targeted lesson plans, assessments, activities, and teaching tips.
 
 ## User Preferences
 
