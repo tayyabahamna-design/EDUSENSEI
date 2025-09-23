@@ -330,7 +330,7 @@ def chat():
                 '🎮 Fun Classroom Activities', 
                 '💡 Teaching Tips & Advice',
                 '📚 Educational Resources',
-                '❓ Answer Questions',
+                '📊 Assessment',
                 '💬 Free Chat'
             ],
             'show_menu': True
