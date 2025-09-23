@@ -1,10 +1,10 @@
-# Tutor's Assistant
+# AI Teaching Assistant
 
 ## Overview
 
-Tutor's Assistant is a focused web application designed to help teachers manage classroom attendance efficiently. The application provides tools for daily attendance tracking, weekly reporting with WhatsApp sharing, and an AI chatbot assistant for lesson planning. Built with a clean, colorful interface using pink, yellow, and blue themes, it aims to make attendance management simple and effective.
+AI Teaching Assistant is a pure AI-powered conversational application designed to help primary school teachers with their daily teaching needs. The application provides an intelligent chatbot interface that supports multimodal interactions including text, voice messages, image analysis, and document processing. Built with a beautiful, colorful interface using pink, yellow, and blue themes, it offers a friendly and intuitive experience for educators.
 
-The application serves as a practical tool for day-to-day teaching activities, specifically focusing on attendance management with accurate statistics calculation and convenient sharing capabilities for parent communication.
+The application serves as an intelligent companion for teachers, providing instant access to AI-powered assistance for lesson planning, classroom management advice, educational resources, and general teaching support through natural conversation.
 
 ## User Preferences
 
