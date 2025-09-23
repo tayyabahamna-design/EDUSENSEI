@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, send_file
 import json
 import os
 import uuid
@@ -213,6 +213,36 @@ def get_ai_response(user_message, conversation_type="general"):
     
     # Final fallback
     return get_teaching_guidance_fallback(user_message)
+
+def transcribe_audio(audio_file_path):
+    """Transcribe audio using OpenAI Whisper API with Urdu language support"""
+    try:
+        if openai_client:
+            # Use OpenAI Whisper API for transcription
+            with open(audio_file_path, 'rb') as audio_file:
+                transcript = openai_client.audio.transcriptions.create(
+                    model="whisper-1",
+                    file=audio_file,
+                    language="ur"  # Urdu language code, can auto-detect if omitted
+                )
+                return transcript.text
+        else:
+            # Fallback if OpenAI is not available
+            return "Voice message received. (Speech-to-text service not available)"
+    except Exception as e:
+        print(f"Audio transcription error: {e}")
+        # Try without language specification (auto-detect)
+        try:
+            if openai_client:
+                with open(audio_file_path, 'rb') as audio_file:
+                    transcript = openai_client.audio.transcriptions.create(
+                        model="whisper-1", 
+                        file=audio_file
+                    )
+                    return transcript.text
+        except Exception as e2:
+            print(f"Audio transcription fallback error: {e2}")
+        return "Voice message received. (Transcription failed)"
 
 def get_teaching_guidance_fallback(question):
     """Fallback teaching guidance when AI is not available"""
@@ -469,9 +499,9 @@ def upload_audio():
         # In a production app, you would integrate with a speech-to-text service
         metadata = save_file_metadata(file_id, 'voice_message.webm', 'audio/webm', file_size, 'audio')
         
-        # Mock transcription for demo (replace with actual speech-to-text service)
-        mock_transcription = "Voice message uploaded successfully. (Transcription feature would be implemented with a speech-to-text service)"
-        metadata['extracted_text'] = mock_transcription
+        # Real transcription using OpenAI Whisper API with Urdu support
+        transcription = transcribe_audio(file_path)
+        metadata['extracted_text'] = transcription
         
         # Update metadata file
         metadata_path = os.path.join(META_DIR, f"{file_id}.json")
@@ -485,12 +515,50 @@ def upload_audio():
             'audio_id': file_id,
             'filename': 'voice_message.webm',
             'size': file_size,
-            'transcription': mock_transcription
+            'transcription': transcription
         })
         
     except Exception as e:
         print(f"Audio upload error: {e}")
         return jsonify({'error': 'Audio upload failed'}), 500
+
+@app.route('/media/<file_id>')
+def serve_media(file_id):
+    """Serve uploaded media files (audio, images, documents)"""
+    try:
+        # Get metadata to determine file type and location
+        metadata = get_file_metadata(file_id)
+        if not metadata:
+            return "File not found", 404
+        
+        file_type = metadata['type']
+        file_path = None
+        
+        if file_type == 'audio':
+            file_path = os.path.join(AUDIO_DIR, f"{file_id}.webm")
+        elif file_type == 'image':
+            # Find the actual image file
+            for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
+                potential_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
+                if os.path.exists(potential_path):
+                    file_path = potential_path
+                    break
+        elif file_type == 'document':
+            # Find the actual document file
+            for ext in ['.pdf', '.txt', '.docx']:
+                potential_path = os.path.join(DOCS_DIR, f"{file_id}{ext}")
+                if os.path.exists(potential_path):
+                    file_path = potential_path
+                    break
+        
+        if file_path and os.path.exists(file_path):
+            return send_file(file_path)
+        else:
+            return "File not found", 404
+            
+    except Exception as e:
+        print(f"Media serving error: {e}")
+        return "File serving failed", 500
 
 @app.route('/remove_file', methods=['POST'])
 def remove_file():
