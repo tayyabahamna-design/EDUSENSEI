@@ -196,14 +196,37 @@ def get_ai_response(user_message, conversation_type="general"):
     """Get AI-powered response using OpenAI or Gemini"""
     # Create system prompt based on conversation type
     if conversation_type == "teaching":
-        system_prompt = """You are a helpful AI teaching assistant for primary school teachers (grades 1-5). 
-        You provide practical, actionable advice about classroom management, lesson planning, student engagement, 
-        assessment, and parent communication. Keep responses friendly, supportive, and focused on elementary education. 
-        Use bullet points and clear formatting when helpful."""
+        system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Follow these guidelines:
+
+PERSONALITY & TONE:
+- Be friendly, professional, and approachable
+- Match the user's energy level and communication style
+- Be concise but thorough - provide complete answers without being overly verbose
+- Show enthusiasm when appropriate
+- Be patient and understanding
+
+RESPONSE STYLE:
+- Always aim to be helpful and provide accurate information
+- If you're uncertain about something, acknowledge it honestly
+- Break down complex topics into easy-to-understand explanations
+- Use examples when they help clarify your points
+- Ask follow-up questions when you need more context
+
+CAPABILITIES:
+- Help with coding, writing, analysis, math, creative tasks, and general questions
+- Provide step-by-step instructions when needed
+- Offer multiple approaches or solutions when applicable
+- Admit when something is outside your knowledge or capabilities
+
+SAFETY & ETHICS:
+- Prioritize user safety and well-being
+- Decline requests for harmful, illegal, or unethical content
+- Respect privacy and confidentiality
+- Be honest and transparent
+
+Remember: Your goal is to be genuinely helpful while maintaining a natural, conversational tone. Adapt your communication style to what works best for each user."""
     else:
-        system_prompt = """You are a friendly, helpful AI assistant for primary school teachers. 
-        You can discuss teaching topics, answer general questions, and have natural conversations. 
-        Be warm, supportive, and helpful while maintaining a professional but friendly tone."""
+        system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Be friendly, professional, and approachable. Match the user's communication style, be concise but thorough, and help with any questions or tasks they have. Your goal is to be genuinely helpful while maintaining a natural, conversational tone."""
     
     # Try OpenAI first
     if openai_client:
@@ -231,7 +254,7 @@ def get_ai_response(user_message, conversation_type="general"):
             print(f"Gemini API error: {e}")
     
     # Final fallback
-    return get_teaching_guidance_fallback(user_message)
+    return get_general_guidance_fallback(user_message)
 
 def transcribe_audio(audio_file_path):
     """Transcribe audio using OpenAI Whisper API with Urdu language support"""
@@ -1385,63 +1408,58 @@ def generate_curriculum_tips(grade, subject, chapter, topic):
         'show_menu': True
     })
 
-def get_teaching_guidance_fallback(question):
-    """Fallback teaching guidance when AI is not available"""
+def get_general_guidance_fallback(question):
+    """Fallback guidance when AI services are not available"""
     question_lower = question.lower()
     
-    # Common teaching topics and responses
-    if any(word in question_lower for word in ['classroom management', 'behavior', 'discipline']):
-        return """**Classroom Management Tips:**
-        
-• Set clear, consistent rules and expectations from day one
-• Use positive reinforcement more than negative consequences  
-• Create engaging activities to prevent boredom-related issues
-• Build relationships with students - they behave better for teachers they like
-• Use non-verbal cues like hand signals for quiet redirection
-• Have a calm, consistent response to disruptions
+    # Provide helpful responses for common topics
+    if any(word in question_lower for word in ['code', 'coding', 'programming', 'python', 'javascript', 'html', 'css']):
+        return """I'd be happy to help with coding questions! While I'm currently unable to access my full capabilities, here are some general programming tips:
 
-For persistent issues, involve parents and school counselors as partners in supporting the student."""
+• Break down complex problems into smaller, manageable parts
+• Use clear, descriptive variable and function names
+• Comment your code to explain the "why," not just the "what"
+• Test your code frequently with small inputs
+• Don't be afraid to look up documentation and examples
+
+For specific coding help, I recommend checking Stack Overflow, official documentation, or online coding communities."""
     
-    elif any(word in question_lower for word in ['lesson plan', 'planning', 'curriculum']):
-        return """**Lesson Planning Best Practices:**
-        
-• Start with clear learning objectives - what should students know/do by the end?
-• Include a hook or engaging opening to capture attention
-• Break content into 10-15 minute chunks for elementary students
-• Plan interactive activities, not just lectures
-• Include multiple ways to practice the skill (visual, auditory, kinesthetic)
-• End with a quick assessment or summary
-• Always have backup activities ready
+    elif any(word in question_lower for word in ['write', 'writing', 'essay', 'story', 'creative']):
+        return """I'd love to help with your writing! Here are some general writing tips:
 
-Remember: Good planning prevents poor performance!"""
+• Start with a clear outline or structure
+• Write a compelling opening that hooks your reader
+• Use specific details and examples to support your points
+• Keep your audience in mind throughout
+• Read your work aloud to catch awkward phrasing
+• Don't worry about perfection in your first draft - focus on getting ideas down
+
+What type of writing are you working on? I can provide more specific guidance once my services are fully available."""
     
-    elif any(word in question_lower for word in ['motivation', 'engage', 'interest']):
-        return """**Student Engagement Strategies:**
-        
-• Connect lessons to students' real lives and interests
-• Use games, movement, and hands-on activities
-• Give students choices when possible (topics, seating, partners)
-• Celebrate effort and improvement, not just achievement
-• Use technology thoughtfully to enhance learning
-• Break up long activities with brain breaks
-• Tell stories and use humor appropriately
+    elif any(word in question_lower for word in ['math', 'mathematics', 'calculate', 'equation', 'problem']):
+        return """I'm here to help with math! Some general problem-solving strategies:
 
-Engaged students learn better and cause fewer problems!"""
+• Read the problem carefully and identify what you're looking for
+• Write down what information you have
+• Consider what formulas or concepts might apply
+• Work through simpler examples first
+• Check your answer by substituting back or using estimation
+
+What specific math topic are you working with? I'll be able to provide more detailed help once my full capabilities are restored."""
     
     else:
-        # General teaching advice
-        return f"""Thanks for your question about: "{question}"
-        
-**General Teaching Tips:**
-        
-• Build positive relationships with all students
-• Keep lessons interactive and hands-on
-• Use clear expectations and consistent routines
-• Differentiate instruction for different learning styles
-• Communicate regularly with parents
-• Take care of yourself - you can't pour from an empty cup!
+        # General helpful response
+        return f"""Thanks for your question! I'm currently experiencing some technical difficulties, but I'm designed to help with a wide variety of topics including:
 
-For specific guidance on this topic, I recommend consulting with your school's instructional coach, mentor teacher, or educational resources like Edutopia.org or your district's curriculum materials."""
+• Coding and programming
+• Writing and creative tasks
+• Math and analysis
+• General questions and research
+• Step-by-step problem solving
+
+I aim to be helpful, accurate, and conversational in my responses. Once my services are fully restored, I'll be able to provide more detailed assistance with "{question}" and any other questions you might have.
+
+Is there anything specific you'd like help with in the meantime?"""
 
 @app.route('/')
 def index():
@@ -1465,12 +1483,12 @@ def chat():
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
         return jsonify({
-            'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
+            'message': '🎉 Hello! I\'m your helpful AI assistant! Here\'s how I can help you:',
             'options': [
-                '📝 Lesson Planning Help',
-                '🎮 Fun Classroom Activities', 
-                '💡 Teaching Tips & Advice',
-                '📚 Educational Resources',
+                '💻 Coding & Programming',
+                '✍️ Writing & Creative Tasks', 
+                '🧮 Math & Analysis',
+                '📚 General Knowledge',
                 '📊 Assessment',
                 '💬 Free Chat'
             ],
@@ -1563,10 +1581,10 @@ def chat():
         return jsonify({
             'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
             'options': [
-                '📝 Lesson Planning Help',
-                '🎮 Fun Classroom Activities', 
-                '💡 Teaching Tips & Advice',
-                '📚 Educational Resources',
+                '💻 Coding & Programming',
+                '✍️ Writing & Creative Tasks', 
+                '🧮 Math & Analysis',
+                '📚 General Knowledge',
                 '📊 Assessment',
                 '💬 Free Chat'
             ],

@@ -1,10 +1,10 @@
-# AI Teaching Assistant
+# AI Assistant
 
 ## Overview
 
-AI Teaching Assistant is a pure AI-powered conversational application designed to help primary school teachers with their daily teaching needs. The application provides an intelligent chatbot interface that supports multimodal interactions including text, voice messages, image analysis, and document processing. Built with a beautiful, colorful interface using pink, yellow, and blue themes, it offers a friendly and intuitive experience for educators.
+AI Assistant is a pure AI-powered conversational application designed as a helpful, knowledgeable, and conversational AI companion. The application provides an intelligent chatbot interface that supports multimodal interactions including text, voice messages, image analysis, and document processing. Built with a beautiful, colorful interface using pink, yellow, and blue themes, it offers a friendly and intuitive experience for users.
 
-The application serves as an intelligent companion for teachers, providing instant access to AI-powered assistance for lesson planning, classroom management advice, educational resources, and general teaching support through natural conversation. The application now features a comprehensive curriculum navigation system that allows teachers to select specific grades (1-5), subjects (English, Math, Science, Islamiyat), chapters, and topics to receive targeted lesson plans, assessments, activities, and teaching tips.
+The application serves as a versatile AI assistant, providing instant access to AI-powered help with coding, writing, analysis, creative tasks, general questions, and much more through natural conversation. It maintains assessment capabilities and curriculum navigation features while expanding to serve as a general-purpose AI assistant that adapts to user needs and communication styles.
 
 ## User Preferences
 
@@ -38,11 +38,12 @@ Preferred communication style: Simple, everyday language.
 - **Privacy**: Image metadata stripping for user privacy
 
 ### Core Features Architecture
-- **AI Chatbot**: Natural language conversation using Google Gemini AI with multimodal support
+- **AI Chatbot**: Natural language conversation using Google Gemini AI with multimodal support and adaptive personality
 - **Voice Messaging**: Audio recording, upload, and transcription capabilities
 - **File Upload**: Support for images, documents (PDF, DOCX), and audio files
 - **Multimodal AI**: Combined text, image, and document analysis in conversations
 - **Content Processing**: Automatic text extraction from PDFs and DOCX files
+- **General Purpose**: Helps with coding, writing, analysis, creative tasks, and general questions
 
 ### Authentication and Authorization
 - **Current State**: No authentication system implemented
