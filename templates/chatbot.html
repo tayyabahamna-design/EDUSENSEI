@@ -56,10 +56,30 @@
                 <audio id="audioPlayback" controls style="display: none;"></audio>
             </div>
             
+            <!-- Camera Capture Area -->
+            <div class="camera-capture-area" id="cameraArea" style="display: none;">
+                <div class="camera-preview">
+                    <video id="cameraPreview" autoplay playsinline style="display: none;"></video>
+                    <canvas id="photoCanvas" style="display: none;"></canvas>
+                    <div class="captured-photo" id="capturedPhoto" style="display: none;">
+                        <img id="capturedImage" alt="Captured photo">
+                    </div>
+                </div>
+                <div class="camera-controls">
+                    <button id="startCameraButton" class="btn btn-camera">📷 Start Camera</button>
+                    <button id="captureButton" class="btn btn-capture" style="display: none;">📸 Capture</button>
+                    <button id="retakeButton" class="btn btn-retake" style="display: none;">🔄 Retake</button>
+                    <button id="useCapturedButton" class="btn btn-use" style="display: none;">✅ Use Photo</button>
+                    <button id="stopCameraButton" class="btn btn-stop-camera" style="display: none;">❌ Close Camera</button>
+                </div>
+                <div class="camera-status" id="cameraStatus"></div>
+            </div>
+            
             <!-- Main Input Area -->
             <div class="main-input-area">
                 <div class="input-controls">
                     <button id="toggleFileButton" class="btn btn-attach" title="Attach Files">📎</button>
+                    <button id="toggleCameraButton" class="btn btn-camera" title="Take Photo">📷</button>
                     <button id="toggleVoiceButton" class="btn btn-voice" title="Voice Message">🎤</button>
                 </div>
                 <input type="text" id="chatInput" placeholder="Type your message here..." autocomplete="off">
@@ -194,6 +214,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let audioBlob;
     let currentAudioId = null;
     let uploadedFiles = [];
+    
+    // Camera variables
+    let cameraStream = null;
+    let capturedPhotoBlob = null;
     
     // Make sendMessage globally available with multimodal support
     window.sendMessage = async function(message = null) {
@@ -404,6 +428,191 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('recordButton').style.display = 'inline-block';
     }
 
+    // Camera functions
+    function showCameraArea() {
+        document.getElementById('cameraArea').style.display = 'block';
+        hideFileArea();
+        hideVoiceArea();
+    }
+    
+    function hideFileArea() {
+        document.getElementById('fileUploadArea').style.display = 'none';
+    }
+    
+    function hideVoiceArea() {
+        document.getElementById('voiceArea').style.display = 'none';
+    }
+    
+    function hideCameraArea() {
+        document.getElementById('cameraArea').style.display = 'none';
+        stopCamera();
+    }
+    
+    async function startCamera() {
+        // Check if camera is available
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            document.getElementById('cameraStatus').textContent = 'Camera not available. Please use HTTPS or a supported browser.';
+            return;
+        }
+        
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { 
+                    facingMode: 'environment', // Try back camera first
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                } 
+            });
+            
+            const video = document.getElementById('cameraPreview');
+            video.srcObject = cameraStream;
+            video.style.display = 'block';
+            
+            // Update buttons
+            document.getElementById('startCameraButton').style.display = 'none';
+            document.getElementById('captureButton').style.display = 'inline-block';
+            document.getElementById('stopCameraButton').style.display = 'inline-block';
+            
+            document.getElementById('cameraStatus').textContent = 'Camera ready - tap capture to take photo';
+            
+        } catch (error) {
+            console.error('Camera access error:', error);
+            // Try front camera if back camera fails
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: 'user', // Front camera
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    } 
+                });
+                
+                const video = document.getElementById('cameraPreview');
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                
+                // Update buttons
+                document.getElementById('startCameraButton').style.display = 'none';
+                document.getElementById('captureButton').style.display = 'inline-block';
+                document.getElementById('stopCameraButton').style.display = 'inline-block';
+                
+                document.getElementById('cameraStatus').textContent = 'Camera ready - tap capture to take photo';
+                
+            } catch (secondError) {
+                console.error('Camera access failed:', secondError);
+                document.getElementById('cameraStatus').textContent = 'Camera access denied or not available';
+            }
+        }
+    }
+    
+    function capturePhoto() {
+        const video = document.getElementById('cameraPreview');
+        const canvas = document.getElementById('photoCanvas');
+        const capturedPhoto = document.getElementById('capturedPhoto');
+        const capturedImage = document.getElementById('capturedImage');
+        
+        // Check if video is ready
+        if (video.videoWidth === 0 || video.videoHeight === 0) {
+            document.getElementById('cameraStatus').textContent = 'Camera not ready yet. Please wait...';
+            return;
+        }
+        
+        // Set canvas size to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Draw video frame to canvas
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0);
+        
+        // Convert to blob
+        canvas.toBlob(function(blob) {
+            capturedPhotoBlob = blob;
+            
+            // Show captured image
+            const imageUrl = URL.createObjectURL(blob);
+            capturedImage.src = imageUrl;
+            capturedPhoto.style.display = 'block';
+            video.style.display = 'none';
+            
+            // Update buttons
+            document.getElementById('captureButton').style.display = 'none';
+            document.getElementById('retakeButton').style.display = 'inline-block';
+            document.getElementById('useCapturedButton').style.display = 'inline-block';
+            
+            document.getElementById('cameraStatus').textContent = 'Photo captured! Use it or retake.';
+        }, 'image/jpeg', 0.8);
+    }
+    
+    function retakePhoto() {
+        // Clear captured photo
+        capturedPhotoBlob = null;
+        document.getElementById('capturedPhoto').style.display = 'none';
+        document.getElementById('cameraPreview').style.display = 'block';
+        
+        // Update buttons
+        document.getElementById('retakeButton').style.display = 'none';
+        document.getElementById('useCapturedButton').style.display = 'none';
+        document.getElementById('captureButton').style.display = 'inline-block';
+        
+        document.getElementById('cameraStatus').textContent = 'Camera ready - tap capture to take photo';
+    }
+    
+    async function useCapturedPhoto() {
+        if (!capturedPhotoBlob) return;
+        
+        try {
+            // Create a file from the blob
+            const file = new File([capturedPhotoBlob], `camera_capture_${Date.now()}.jpg`, {
+                type: 'image/jpeg'
+            });
+            
+            // Upload the captured photo
+            await uploadFile(file);
+            
+            // Close camera and reset
+            stopCamera();
+            hideCameraArea();
+            
+        } catch (error) {
+            console.error('Failed to upload captured photo:', error);
+            document.getElementById('cameraStatus').textContent = 'Failed to upload photo. Please try again.';
+        }
+    }
+    
+    function stopCamera() {
+        if (cameraStream) {
+            const tracks = cameraStream.getTracks();
+            tracks.forEach(track => track.stop());
+            cameraStream = null;
+        }
+        
+        // Clean up video stream
+        const video = document.getElementById('cameraPreview');
+        if (video.srcObject) {
+            video.srcObject = null;
+        }
+        
+        // Clean up captured image URL
+        const capturedImage = document.getElementById('capturedImage');
+        if (capturedImage.src && capturedImage.src.startsWith('blob:')) {
+            URL.revokeObjectURL(capturedImage.src);
+        }
+        
+        // Reset UI
+        document.getElementById('cameraPreview').style.display = 'none';
+        document.getElementById('capturedPhoto').style.display = 'none';
+        document.getElementById('startCameraButton').style.display = 'inline-block';
+        document.getElementById('captureButton').style.display = 'none';
+        document.getElementById('retakeButton').style.display = 'none';
+        document.getElementById('useCapturedButton').style.display = 'none';
+        document.getElementById('stopCameraButton').style.display = 'none';
+        
+        // Clear captured photo
+        capturedPhotoBlob = null;
+        document.getElementById('cameraStatus').textContent = '';
+    }
+
     // Set up event listeners
     if (sendButton) {
         sendButton.addEventListener('click', function() {
@@ -505,6 +714,45 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (clearRecordingButton) {
         clearRecordingButton.addEventListener('click', clearRecording);
+    }
+    
+    // Camera capture event listeners
+    const toggleCameraButton = document.getElementById('toggleCameraButton');
+    const startCameraButton = document.getElementById('startCameraButton');
+    const captureButton = document.getElementById('captureButton');
+    const retakeButton = document.getElementById('retakeButton');
+    const useCapturedButton = document.getElementById('useCapturedButton');
+    const stopCameraButton = document.getElementById('stopCameraButton');
+    
+    if (toggleCameraButton) {
+        toggleCameraButton.addEventListener('click', function() {
+            const cameraArea = document.getElementById('cameraArea');
+            if (cameraArea.style.display === 'none') {
+                showCameraArea();
+            } else {
+                hideCameraArea();
+            }
+        });
+    }
+    
+    if (startCameraButton) {
+        startCameraButton.addEventListener('click', startCamera);
+    }
+    
+    if (captureButton) {
+        captureButton.addEventListener('click', capturePhoto);
+    }
+    
+    if (retakeButton) {
+        retakeButton.addEventListener('click', retakePhoto);
+    }
+    
+    if (useCapturedButton) {
+        useCapturedButton.addEventListener('click', useCapturedPhoto);
+    }
+    
+    if (stopCameraButton) {
+        stopCameraButton.addEventListener('click', stopCamera);
     }
 });
 </script>
@@ -903,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', function() {
     gap: 5px;
 }
 
-.btn-attach, .btn-voice {
+.btn-attach, .btn-voice, .btn-camera {
     padding: 8px;
     border: 2px solid #ffb6c1;
     border-radius: 5px;
@@ -913,7 +1161,7 @@ document.addEventListener('DOMContentLoaded', function() {
     transition: all 0.3s ease;
 }
 
-.btn-attach:hover, .btn-voice:hover {
+.btn-attach:hover, .btn-voice:hover, .btn-camera:hover {
     background: #ffb6c1;
     transform: scale(1.1);
 }
@@ -987,9 +1235,114 @@ document.addEventListener('DOMContentLoaded', function() {
         min-width: auto;
     }
     
-    .voice-controls {
+    .voice-controls, .camera-controls {
         justify-content: center;
     }
 }
+
+/* Camera capture styling */
+.camera-capture-area {
+    background: #f8f9ff;
+    border: 2px dashed #ffb6c1;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.camera-preview {
+    margin-bottom: 15px;
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#cameraPreview {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+}
+
+.captured-photo img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.camera-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.camera-controls .btn {
+    padding: 8px 12px;
+    border: 2px solid #ffb6c1;
+    border-radius: 5px;
+    background: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.camera-controls .btn:hover {
+    background: #ffb6c1;
+    transform: scale(1.05);
+}
+
+.btn-capture {
+    background: #4CAF50 !important;
+    color: white !important;
+    border-color: #4CAF50 !important;
+}
+
+.btn-capture:hover {
+    background: #45a049 !important;
+}
+
+.btn-use {
+    background: #2196F3 !important;
+    color: white !important;
+    border-color: #2196F3 !important;
+}
+
+.btn-use:hover {
+    background: #1976D2 !important;
+}
+
+.btn-retake {
+    background: #FF9800 !important;
+    color: white !important;
+    border-color: #FF9800 !important;
+}
+
+.btn-retake:hover {
+    background: #F57C00 !important;
+}
+
+.btn-stop-camera {
+    background: #f44336 !important;
+    color: white !important;
+    border-color: #f44336 !important;
+}
+
+.btn-stop-camera:hover {
+    background: #d32f2f !important;
+}
+
+.camera-status {
+    color: #666;
+    font-size: 14px;
+    font-style: italic;
+    margin-top: 10px;
+}
+
 </style>
 {% endblock %}
