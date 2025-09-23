@@ -1,10 +1,10 @@
-# AI Assistant
+# USTAAD DOST - Pakistani Teacher Assistant App
 
 ## Overview
 
-AI Assistant is a pure AI-powered conversational application designed as a helpful, knowledgeable, and conversational AI companion. The application provides an intelligent chatbot interface that supports multimodal interactions including text, voice messages, image analysis, and document processing. Built with a beautiful, colorful interface using pink, yellow, and blue themes, it offers a friendly and intuitive experience for users.
+USTAAD DOST is a comprehensive teacher assistant application designed specifically for Pakistani educators teaching grades 1-5. The platform combines traditional teaching management with AI-powered educational tools, featuring a soothing eye-friendly design with soft blues, greens, and warm neutrals.
 
-The application serves as a versatile AI assistant, providing instant access to AI-powered help with coding, writing, analysis, creative tasks, general questions, and much more through natural conversation. It maintains assessment capabilities and curriculum navigation features while expanding to serve as a general-purpose AI assistant that adapts to user needs and communication styles.
+The application serves Pakistani teachers with three core modules: Yearly Planner for curriculum scheduling, Grading Buddy for class and assessment management, and AI Chatbox for curriculum-specific educational content generation. Built as a progressive web app with offline capabilities, it supports the complete Pakistani curriculum (Math, English, Urdu, Islamiyat, General Knowledge, Social Studies, Science) with multilingual support.
 
 ## User Preferences
 
@@ -27,28 +27,45 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Flash messages for user feedback and form validation
 
 ### Data Storage
-- **Storage Method**: File-based storage for uploaded content (images, documents, audio)
-- **File Organization**: Upload directories organized by content type (images, documents, audio, metadata)
+- **Database**: PostgreSQL with comprehensive schema for Pakistani education system
+- **Tables**: Users (teachers), classes (grades 1-5), students, subjects, yearly_plans, scoresheets, student_scores, screener_tasks, ai_chat_history, file_uploads
+- **File Storage**: Organized uploads for textbooks, profile photos, and educational resources
 - **File Structure**: 
-  - `uploads/images/` - User-uploaded images for AI analysis
-  - `uploads/docs/` - User-uploaded documents (PDF, DOCX, TXT)
-  - `uploads/audio/` - Voice message recordings
-  - `uploads/meta/` - Metadata files for tracking uploads
-- **Temporary Storage**: Automatic cleanup of files older than 7 days
-- **Privacy**: Image metadata stripping for user privacy
+  - `uploads/profiles/` - Teacher profile photos
+  - `uploads/textbooks/` - Curriculum textbooks and resources
+  - `uploads/audio/` - Voice recordings (Urdu/English)
+  - `uploads/images/` - Educational images and captures
+- **Security**: Encrypted storage with user access controls
+- **Backup**: Automatic data backup with recovery capabilities
 
 ### Core Features Architecture
-- **AI Chatbot**: Natural language conversation using Google Gemini AI with multimodal support and adaptive personality
-- **Voice Messaging**: Audio recording, upload, and transcription capabilities
-- **File Upload**: Support for images, documents (PDF, DOCX), and audio files
-- **Multimodal AI**: Combined text, image, and document analysis in conversations
-- **Content Processing**: Automatic text extraction from PDFs and DOCX files
-- **General Purpose**: Helps with coding, writing, analysis, creative tasks, and general questions
+**1. Yearly Planner Module:**
+- Weekly schedule templates with auto-population for entire academic year
+- Grade-wise (1-5) and subject-specific planning for Pakistani curriculum
+- Individual entry editing with progress tracking
+- Monthly/yearly class count displays
+
+**2. Grading Buddy Module:**
+- Class management with sections for grades 1-5
+- Student profile management with guardian contacts and CNIC integration
+- Customizable scoresheets with automatic date/time stamps
+- Screener grading with 7-task checkbox system
+- PDF report generation for individual students and classes
+- Progress dashboards and analytics
+
+**3. AI Chatbox Module:**
+- Multimodal inputs: text, camera capture, image upload, voice notes (Urdu/English)
+- Pakistani curriculum navigation: Grade → Subject → Chapter → Topic
+- Content generation: Lesson Plans, Teaching Strategies, Activities, Assessments
+- Specialized tools: Hooks/Games, Definitions, Examples with answer keys
+- OpenAI integration with curriculum-specific knowledge base
 
 ### Authentication and Authorization
-- **Current State**: No authentication system implemented
-- **Session Security**: Basic session secret configuration
-- **Access Control**: Open access to all features without user authentication
+- **Phone Authentication**: Login system using phone number and password
+- **Profile Management**: Complete teacher profiles with CNIC, address, email, photo upload
+- **Session Security**: Secure session management with teacher access controls
+- **Data Privacy**: Individual teacher data isolation with secure access patterns
+- **Progressive Features**: Editable profiles with persistent data storage
 
 ## External Dependencies
 

@@ -1,0 +1,101 @@
+Build a teacher assistant app called "USTAAD DOST" with the following specifications:
+Design & Accessibility
+
+Use soothing, eye-friendly color scheme (soft blues, greens, warm neutrals)
+Implement zoom in/out functionality on every page
+Responsive design for mobile and desktop
+Clean, intuitive interface
+
+Authentication & Profile Management
+
+Login system using phone number and password
+Profile creation/editing with fields:
+
+CNIC, phone, address, email
+Profile photo upload
+Editable anytime
+
+
+
+Core Features
+1. YEARLY PLANNER
+
+Create weekly schedule template that auto-populates entire year
+Subjects: Math, English, Urdu, Islamiyat, General Knowledge, Social Studies, Science
+Grades: 1-5
+Individual entries remain editable
+Display total planned classes (monthly/yearly) by grade and subject at page bottom
+
+2. GRADING BUDDY
+Class Management:
+
+Create/edit classes for grades 1-5 with sections
+Student profile management:
+
+Name, father/mother names, guardian contact
+Address, gender, class+section assignment
+
+
+
+Assessment Tools:
+
+"New Scoresheet" button in each class
+Customizable scoresheets with:
+
+Total/obtained marks, number of questions
+Mark distribution, auto date/time/day stamps
+Teacher-added topic names
+Multiple scoresheets per class with easy retrieval
+
+
+
+Screener Grading:
+
+Student list with 7 task columns
+Checkbox system for task completion
+All data editable
+
+Reporting:
+
+Class progress dashboard
+PDF-exportable class reports
+Individual student reports (weekly/monthly/yearly)
+PDF generation and sharing capabilities
+
+3. AI CHATBOX
+Input Methods:
+
+Text queries
+Camera capture
+Image upload
+Voice notes (Urdu/English)
+
+Menu Options:
+
+Lesson Plans (Complete & 6-point brief versions)
+Strategies (Reading, Writing, Oral Communication, Comprehension, Grammar, Vocabulary)
+Activities (Independent, Group Work, Assignments/Homework, Pair Work)
+Definitions
+Assessment (Quick Quiz, True/False, Thumbs Up/Down, Exit Tickets, Comprehension Questions, Fill-in-blanks, MCQs)
+Hooks/Games (Reading, Writing, Oral Communication, Comprehension, Grammar, Vocabulary)
+Examples
+
+Navigation Flow:
+Menu Selection → Grade Selection (1-5) → Subject Selection → Chapter Selection → Topic/Exercise Selection → Generated Content
+AI Personality:
+
+Friendly, supportive tone
+Simple, clear instructions
+Provide answer keys for assessments
+Use OpenAI API for knowledge base
+
+Technical Requirements
+
+Implement file upload system for textbooks (backend)
+Database for user profiles, classes, students, and assessments
+PDF generation capability
+Voice recognition for Urdu/English
+Image processing capabilities
+Secure authentication system
+
+Build this as a progressive web app with offline capabilities where possible. Ensure all data is securely stored and easily accessible

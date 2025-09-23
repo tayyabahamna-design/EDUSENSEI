@@ -9,6 +9,9 @@ import mimetypes
 from PIL import Image
 from pypdf import PdfReader
 from docx import Document
+import psycopg2
+from psycopg2.extras import RealDictCursor
+import bcrypt
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'ai-assistant-secret-key')
@@ -21,6 +24,19 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 # PostHog configuration
 POSTHOG_KEY = os.environ.get('VITE_PUBLIC_POSTHOG_KEY', 'phc_ygiCdZb8vwOkLO5WIdGvdxzugrlGnaFxkW0F73sHyBF')
 POSTHOG_HOST = os.environ.get('VITE_PUBLIC_POSTHOG_HOST', 'https://app.posthog.com')
+
+# Database configuration
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# Database connection helper
+def get_db_connection():
+    """Get database connection with RealDictCursor for easy column access"""
+    try:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+        return conn
+    except psycopg2.Error as e:
+        print(f"Database connection error: {e}")
+        return None
 
 # Initialize both AI clients independently for reliable fallback
 openai_client = None
