@@ -574,6 +574,22 @@ def chat():
             'show_menu': True
         })
     
+    if user_message.lower() in ['📊 more assessment types', 'more assessment types']:
+        return jsonify({
+            'message': '📊 Choose your assessment type! Pick the perfect question format for your classroom:',
+            'options': [
+                '❓ Quick Q&A',
+                '🔤 Multiple Choice Questions (MCQ)',
+                '📖 Short Comprehension Questions', 
+                '👍👎 Thumbs Up/Down',
+                '📝 True/False Statements',
+                '✏️ Fill in the Blanks',
+                '🎫 Exit Tickets',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
     # Handle multimodal content
     content_parts = []
     full_text = user_message
