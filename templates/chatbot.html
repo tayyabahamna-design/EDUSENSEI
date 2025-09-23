@@ -512,9 +512,10 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 /* Main Chatbot Page Layout */
 .chatbot-page {
-    max-width: 1000px;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 15px;
+    width: 100%;
 }
 
 .chatbot-page h1 {
@@ -528,10 +529,13 @@ document.addEventListener('DOMContentLoaded', function() {
     background: linear-gradient(135deg, #fff0f5, #f0f8ff);
     border-radius: 20px;
     box-shadow: 0 8px 32px rgba(255, 182, 193, 0.3);
-    padding: 30px;
-    min-height: 70vh;
+    padding: 20px;
+    min-height: 60vh;
+    max-height: 85vh;
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow: hidden;
 }
 
 .chat-header {
@@ -574,10 +578,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .chat-messages {
     flex: 1;
-    padding: 20px 0;
+    padding: 15px 0;
     overflow-y: auto;
-    max-height: 50vh;
-    margin-bottom: 20px;
+    max-height: 40vh;
+    margin-bottom: 15px;
+    min-height: 200px;
 }
 
 .bot-message, .user-message {
@@ -664,7 +669,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .chat-input-container {
-    margin-top: 20px;
+    margin-top: 15px;
+    position: relative;
+    z-index: 10;
 }
 
 .chat-suggestions {
@@ -899,11 +906,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 #chatInput {
     flex: 1;
-    padding: 10px;
+    padding: 12px 15px;
     border: 2px solid #ffb6c1;
-    border-radius: 20px;
+    border-radius: 25px;
     font-size: 16px;
     outline: none;
+    min-width: 200px;
+    background: white;
 }
 
 #chatInput:focus {
@@ -935,6 +944,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 /* Responsive design */
 @media (max-width: 768px) {
+    .chatbot-page {
+        padding: 10px;
+        max-width: 100%;
+    }
+    
+    .chat-container {
+        padding: 15px;
+        min-height: 50vh;
+    }
+    
+    .chat-messages {
+        max-height: 35vh;
+    }
+    
     .main-input-area {
         flex-direction: column;
         gap: 10px;
@@ -947,6 +970,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     #chatInput {
         width: 100%;
+        min-width: auto;
     }
     
     .voice-controls {
