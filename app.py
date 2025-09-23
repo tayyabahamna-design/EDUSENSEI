@@ -1493,6 +1493,19 @@ def chat():
             'show_menu': True
         })
     
+    # Handle "Specific Topic Assessment" option
+    if user_message.lower() in ['specific topic assessment', '📋 specific topic assessment']:
+        if 'curriculum_selection' in session and 'subject' in session.get('curriculum_selection', {}):
+            current_grade = session['curriculum_selection']['grade']
+            current_subject = session['curriculum_selection']['subject']
+            curriculum_data = generate_curriculum_data()
+            chapters = list(curriculum_data[current_grade][current_subject].keys())
+            return jsonify({
+                'message': f'📑 **{current_grade} - {current_subject}** - Choose a chapter:',
+                'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
+                'show_menu': True
+            })
+
     # Handle individual assessment types - now with curriculum context
     if 'curriculum_selection' in session and 'topic' in session['curriculum_selection']:
         current_grade = session['curriculum_selection']['grade']
@@ -1677,11 +1690,36 @@ def chat():
                         'teaching_tips': 'Teaching Tips & Advice'
                     }.get(session['selected_feature'], 'Selected Feature')
                     
-                    return jsonify({
-                        'message': f'📑 **{feature_name} - {current_grade} - {subject}** - Choose a chapter:',
-                        'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
-                        'show_menu': True
-                    })
+                    # For Assessment feature, show assessment types directly after subject selection
+                    if session.get('selected_feature') == 'assessment':
+                        # Set generic values for quick assessment
+                        curriculum_selection['chapter'] = 'General Topics'
+                        curriculum_selection['topic'] = f'All {subject} Topics'
+                        session['curriculum_selection'] = curriculum_selection
+                        session.modified = True
+                        
+                        return jsonify({
+                            'message': f'📊 **Assessment Types for {current_grade} - {subject}**\n\nChoose your assessment type:',
+                            'options': [
+                                '❓ Quick Q&A',
+                                '🔤 Multiple Choice Questions (MCQ)',
+                                '📖 Short Comprehension Questions',
+                                '👍👎 Thumbs Up/Down',
+                                '📝 True/False Statements',
+                                '✏️ Fill in the Blanks',
+                                '🎫 Exit Tickets',
+                                '📋 Specific Topic Assessment',
+                                '🔄 Change Subject',
+                                '← Back to Menu'
+                            ],
+                            'show_menu': True
+                        })
+                    else:
+                        return jsonify({
+                            'message': f'📑 **{feature_name} - {current_grade} - {subject}** - Choose a chapter:',
+                            'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
+                            'show_menu': True
+                        })
         
         # Handle Chapter selections  
         if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}):
