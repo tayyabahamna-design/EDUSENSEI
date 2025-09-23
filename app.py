@@ -228,28 +228,73 @@ Remember: Your goal is to be genuinely helpful while maintaining a natural, conv
     else:
         system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Be friendly, professional, and approachable. Match the user's communication style, be concise but thorough, and help with any questions or tasks they have. Your goal is to be genuinely helpful while maintaining a natural, conversational tone."""
     
-    # Try OpenAI first
+    # Try OpenAI first with conversation history
     if openai_client:
         try:
+            # Get chat history from session
+            chat_history = session.get('chat_history', [])
+            
+            # Build messages with system prompt and history
+            messages = [{"role": "system", "content": system_prompt}]
+            
+            # Add recent chat history (keep last 15 exchanges to manage token limits)
+            if len(chat_history) > 30:  # 30 messages = 15 exchanges
+                chat_history = chat_history[-30:]
+                session['chat_history'] = chat_history
+                session.modified = True
+            
+            messages.extend(chat_history)
+            messages.append({"role": "user", "content": user_message})
+            
             response = openai_client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ],
-                max_tokens=500,
+                model="gpt-4o-mini",
+                messages=messages,
+                max_tokens=1500,
                 temperature=0.7
             )
-            return response.choices[0].message.content
+            
+            assistant_response = response.choices[0].message.content
+            
+            # Update chat history
+            chat_history.append({"role": "user", "content": user_message})
+            chat_history.append({"role": "assistant", "content": assistant_response})
+            session['chat_history'] = chat_history
+            session.modified = True
+            
+            return assistant_response
+            
         except Exception as e:
             print(f"OpenAI API error: {e}")
     
-    # Fallback to Gemini
+    # Fallback to Gemini with conversation history
     if gemini_model:
         try:
-            full_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nAssistant:"
+            # Get chat history for context
+            chat_history = session.get('chat_history', [])
+            
+            # Build conversation context
+            conversation_context = ""
+            if chat_history:
+                # Get last few exchanges for context
+                recent_history = chat_history[-10:] if len(chat_history) > 10 else chat_history
+                for msg in recent_history:
+                    role = "Assistant" if msg["role"] == "assistant" else "User"
+                    conversation_context += f"{role}: {msg['content']}\n"
+            
+            full_prompt = f"{system_prompt}\n\nConversation History:\n{conversation_context}\nUser: {user_message}\n\nAssistant:"
             response = gemini_model.generate_content(full_prompt)
-            return response.text
+            
+            assistant_response = response.text
+            
+            # Update chat history
+            if 'chat_history' not in session:
+                session['chat_history'] = []
+            session['chat_history'].append({"role": "user", "content": user_message})
+            session['chat_history'].append({"role": "assistant", "content": assistant_response})
+            session.modified = True
+            
+            return assistant_response
+            
         except Exception as e:
             print(f"Gemini API error: {e}")
     
