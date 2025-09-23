@@ -244,6 +244,191 @@ def transcribe_audio(audio_file_path):
             print(f"Audio transcription fallback error: {e2}")
         return "Voice message received. (Transcription failed)"
 
+def generate_assessment_response(assessment_type):
+    """Generate assessment content for chatbot responses"""
+    if assessment_type == 'qna':
+        return jsonify({
+            'message': '''❓ **Quick Q&A Assessment Questions:**
+
+**Question 1:** What is the main idea of today's lesson?
+💡 *Look for: Accept answers that demonstrate understanding of the key concept*
+
+**Question 2:** Can you give me an example of what we learned?
+💡 *Look for: Real-world applications or connections*
+
+**Question 3:** What was the most interesting part of the lesson?
+💡 *Look for: Helps gauge engagement and memorable moments*
+
+**Question 4:** Is there anything you'd like to know more about?
+💡 *Look for: Identifies areas for follow-up or extension*
+
+**Question 5:** How would you explain this to a friend?
+💡 *Look for: Tests ability to communicate understanding clearly*
+
+📋 **Instructions:** Use these questions to quickly assess student understanding. Mix and match based on your lesson!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'mcq':
+        return jsonify({
+            'message': '''🔤 **Multiple Choice Questions (MCQ):**
+
+**Question 1:** What is the process by which plants make their own food?
+A) Respiration  B) Photosynthesis  C) Digestion  D) Circulation
+✅ *Answer: B) Photosynthesis - Plants use sunlight, water, and carbon dioxide to make food*
+
+**Question 2:** Which planet is closest to the Sun?
+A) Venus  B) Earth  C) Mercury  D) Mars
+✅ *Answer: C) Mercury - Mercury is the smallest planet and closest to the Sun*
+
+**Question 3:** What is the main source of energy for Earth?
+A) The Moon  B) The Sun  C) Wind  D) Water
+✅ *Answer: B) The Sun - The Sun provides light and heat energy for Earth*
+
+**Question 4:** How many continents are there on Earth?
+A) 5  B) 6  C) 7  D) 8
+✅ *Answer: C) 7 - The seven continents are Asia, Africa, North America, South America, Antarctica, Europe, and Australia*
+
+📋 **Instructions:** Read each question and ask students to choose the correct answer. Perfect for testing specific knowledge!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'comprehension':
+        return jsonify({
+            'message': '''📖 **Short Comprehension Questions:**
+
+**Passage 1:** *"The butterfly starts its life as a tiny egg. Then it becomes a caterpillar that eats lots of leaves. Next, it forms a chrysalis around itself. Finally, it emerges as a beautiful butterfly."*
+
+**Questions:**
+1. What does the caterpillar eat? 💡 *Expected Answer: Leaves*
+2. What forms around the caterpillar? 💡 *Expected Answer: A chrysalis*
+3. What are the four stages mentioned? 💡 *Expected Answer: Egg, caterpillar, chrysalis, butterfly*
+
+**Passage 2:** *"Rain is very important for our planet. It waters the plants and fills the rivers and lakes. When the sun heats up water, it turns into vapor and goes up into the sky. In the clouds, the vapor turns back into water drops that fall as rain."*
+
+**Questions:**
+1. Why is rain important? 💡 *Expected Answer: It waters plants and fills rivers and lakes*
+2. What happens when the sun heats water? 💡 *Expected Answer: It turns into vapor and goes up into the sky*
+3. Where does vapor turn back into water drops? 💡 *Expected Answer: In the clouds*
+
+📋 **Instructions:** Read the passage aloud, then ask the comprehension questions. Great for reading and understanding skills!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'fill-blanks':
+        return jsonify({
+            'message': '''✏️ **Fill in the Blanks:**
+
+**Question 1:** The _____ is the center of our solar system.
+💡 *Hint: It gives us light and heat*
+✅ *Answer: Sun*
+
+**Question 2:** Plants need _____, water, and carbon dioxide to make food.
+💡 *Hint: Something that comes from the sun*
+✅ *Answer: sunlight/light*
+
+**Question 3:** The _____ is the largest ocean on Earth.
+💡 *Hint: It's between Asia and America*
+✅ *Answer: Pacific*
+
+**Question 4:** A _____ has three sides and three corners.
+💡 *Hint: It's a shape*
+✅ *Answer: triangle*
+
+**Question 5:** We use our _____ to breathe air into our body.
+💡 *Hint: They're inside your chest*
+✅ *Answer: lungs*
+
+📋 **Instructions:** Read each sentence and have students fill in the missing word. Give hints if needed!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'thumbs':
+        return jsonify({
+            'message': '''👍👎 **Thumbs Up/Down Assessment:**
+
+**Statement 1:** "I understand today's main concept"
+👍 *Thumbs Up = Agree | 👎 Thumbs Down = Disagree*
+
+**Statement 2:** "I can explain this to someone else"
+👍 *Thumbs Up = Agree | 👎 Thumbs Down = Disagree*
+
+**Statement 3:** "I feel confident about this topic"
+👍 *Thumbs Up = Agree | 👎 Thumbs Down = Disagree*
+
+**Statement 4:** "I need more practice with this"
+👍 *Thumbs Up = Agree | 👎 Thumbs Down = Disagree*
+
+**Statement 5:** "I found today's lesson interesting"
+👍 *Thumbs Up = Agree | 👎 Thumbs Down = Disagree*
+
+**Statement 6:** "I can see how this connects to real life"
+👍 *Thumbs Up = Agree | 👎 Thumbs Down = Disagree*
+
+📋 **Instructions:** Read each statement and have students show thumbs up (agree) or thumbs down (disagree). Great for quick class pulse checks!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'statements':
+        return jsonify({
+            'message': '''📝 **True/False Statements:**
+
+**Statement 1:** "Plants need sunlight to make their own food"
+✅ *Answer: TRUE - Photosynthesis requires sunlight*
+
+**Statement 2:** "All insects have 8 legs"
+✅ *Answer: FALSE - Insects have 6 legs, spiders have 8*
+
+**Statement 3:** "Water freezes at 0 degrees Celsius"
+✅ *Answer: TRUE - This is the freezing point of water*
+
+**Statement 4:** "The Earth is flat"
+✅ *Answer: FALSE - The Earth is round/spherical*
+
+**Statement 5:** "Reading helps improve vocabulary"
+✅ *Answer: TRUE - Exposure to new words through reading expands vocabulary*
+
+📋 **Instructions:** Read each statement and have students write T (True) or F (False). Perfect for science and general knowledge!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'exit-ticket':
+        return jsonify({
+            'message': '''🎫 **Exit Ticket Prompts:**
+
+**Prompt 1:** "Today I learned..."
+🎯 *Purpose: Identifies key takeaways*
+
+**Prompt 2:** "I'm still wondering about..."
+🎯 *Purpose: Reveals areas of confusion*
+
+**Prompt 3:** "One thing I want to remember is..."
+🎯 *Purpose: Highlights most important learning*
+
+**Prompt 4:** "I can use this when..."
+🎯 *Purpose: Shows real-world connections*
+
+**Prompt 5:** "My favorite part was..."
+🎯 *Purpose: Gauges engagement and interest*
+
+📋 **Instructions:** Choose 2-3 prompts for students to complete before leaving class. Perfect for reflection and feedback!''',
+            'options': ['📊 More Assessment Types', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    # Default fallback
+    return jsonify({
+        'message': '📊 Assessment feature is being prepared! Please try again or choose from the main menu.',
+        'options': ['📊 Assessment', '← Back to Menu'],
+        'show_menu': True
+    })
+
 def get_teaching_guidance_fallback(question):
     """Fallback teaching guidance when AI is not available"""
     question_lower = question.lower()
@@ -323,6 +508,59 @@ def chat():
     
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
+        return jsonify({
+            'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
+            'options': [
+                '📝 Lesson Planning Help',
+                '🎮 Fun Classroom Activities', 
+                '💡 Teaching Tips & Advice',
+                '📚 Educational Resources',
+                '📊 Assessment',
+                '💬 Free Chat'
+            ],
+            'show_menu': True
+        })
+    
+    # Handle Assessment menu option
+    if user_message.lower() in ['assessment', '📊 assessment', 'assessments']:
+        return jsonify({
+            'message': '📊 Choose your assessment type! Pick the perfect question format for your classroom:',
+            'options': [
+                '❓ Quick Q&A',
+                '🔤 Multiple Choice Questions (MCQ)',
+                '📖 Short Comprehension Questions', 
+                '👍👎 Thumbs Up/Down',
+                '📝 True/False Statements',
+                '✏️ Fill in the Blanks',
+                '🎫 Exit Tickets',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    # Handle individual assessment types
+    if user_message.lower() in ['quick q&a', '❓ quick q&a', 'qna']:
+        return generate_assessment_response('qna')
+    
+    if user_message.lower() in ['multiple choice questions (mcq)', '🔤 multiple choice questions (mcq)', 'mcq', 'multiple choice']:
+        return generate_assessment_response('mcq')
+    
+    if user_message.lower() in ['short comprehension questions', '📖 short comprehension questions', 'comprehension']:
+        return generate_assessment_response('comprehension')
+    
+    if user_message.lower() in ['thumbs up/down', '👍👎 thumbs up/down', 'thumbs']:
+        return generate_assessment_response('thumbs')
+    
+    if user_message.lower() in ['true/false statements', '📝 true/false statements', 'true false']:
+        return generate_assessment_response('statements')
+    
+    if user_message.lower() in ['fill in the blanks', '✏️ fill in the blanks', 'fill blanks']:
+        return generate_assessment_response('fill-blanks')
+    
+    if user_message.lower() in ['exit tickets', '🎫 exit tickets', 'exit ticket']:
+        return generate_assessment_response('exit-ticket')
+    
+    if user_message.lower() in ['← back to menu', 'back to menu', 'menu']:
         return jsonify({
             'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
             'options': [

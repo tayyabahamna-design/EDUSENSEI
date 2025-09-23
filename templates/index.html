@@ -93,6 +93,18 @@ function generateAssessment(type) {
             assessmentData = generateExitTicketAssessment();
             title.textContent = '🎫 Exit Ticket Assessment';
             break;
+        case 'mcq':
+            assessmentData = generateMCQAssessment();
+            title.textContent = '🔤 Multiple Choice Questions (MCQ)';
+            break;
+        case 'comprehension':
+            assessmentData = generateComprehensionAssessment();
+            title.textContent = '📖 Short Comprehension Questions';
+            break;
+        case 'fill-blanks':
+            assessmentData = generateFillBlanksAssessment();
+            title.textContent = '✏️ Fill in the Blanks';
+            break;
     }
     
     // Display the assessment
@@ -191,6 +203,142 @@ function generateExitTicketAssessment() {
                 <h4>Exit Ticket Prompt ${index + 1}:</h4>
                 <p><strong>"${item.prompt}"</strong></p>
                 <div class="assessment-answer">🎯 Purpose: ${item.purpose}</div>
+            </div>
+        `;
+    });
+    
+    return { html };
+}
+
+function generateMCQAssessment() {
+    const questions = [
+        { 
+            q: "What is the process by which plants make their own food?", 
+            options: ["A) Respiration", "B) Photosynthesis", "C) Digestion", "D) Circulation"], 
+            answer: "B) Photosynthesis",
+            explanation: "Plants use sunlight, water, and carbon dioxide to make food"
+        },
+        { 
+            q: "Which planet is closest to the Sun?", 
+            options: ["A) Venus", "B) Earth", "C) Mercury", "D) Mars"], 
+            answer: "C) Mercury",
+            explanation: "Mercury is the smallest planet and closest to the Sun"
+        },
+        { 
+            q: "What is the main source of energy for Earth?", 
+            options: ["A) The Moon", "B) The Sun", "C) Wind", "D) Water"], 
+            answer: "B) The Sun",
+            explanation: "The Sun provides light and heat energy for Earth"
+        },
+        { 
+            q: "How many continents are there on Earth?", 
+            options: ["A) 5", "B) 6", "C) 7", "D) 8"], 
+            answer: "C) 7",
+            explanation: "The seven continents are Asia, Africa, North America, South America, Antarctica, Europe, and Australia"
+        }
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Read each question and ask students to choose the correct answer. Perfect for testing specific knowledge!</p>';
+    
+    questions.forEach((item, index) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Question ${index + 1}:</h4>
+                <p><strong>${item.q}</strong></p>
+                <div class="mcq-options">
+                    ${item.options.map(option => `<div class="mcq-option">${option}</div>`).join('')}
+                </div>
+                <div class="assessment-answer">✅ Answer: ${item.answer} - ${item.explanation}</div>
+            </div>
+        `;
+    });
+    
+    return { html };
+}
+
+function generateComprehensionAssessment() {
+    const passages = [
+        {
+            passage: "The butterfly starts its life as a tiny egg. Then it becomes a caterpillar that eats lots of leaves. Next, it forms a chrysalis around itself. Finally, it emerges as a beautiful butterfly.",
+            questions: [
+                { q: "What does the caterpillar eat?", a: "Leaves" },
+                { q: "What forms around the caterpillar?", a: "A chrysalis" },
+                { q: "What are the four stages mentioned?", a: "Egg, caterpillar, chrysalis, butterfly" }
+            ]
+        },
+        {
+            passage: "Rain is very important for our planet. It waters the plants and fills the rivers and lakes. When the sun heats up water, it turns into vapor and goes up into the sky. In the clouds, the vapor turns back into water drops that fall as rain.",
+            questions: [
+                { q: "Why is rain important?", a: "It waters plants and fills rivers and lakes" },
+                { q: "What happens when the sun heats water?", a: "It turns into vapor and goes up into the sky" },
+                { q: "Where does vapor turn back into water drops?", a: "In the clouds" }
+            ]
+        }
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Read the passage aloud, then ask the comprehension questions. Great for reading and understanding skills!</p>';
+    
+    passages.forEach((item, passageIndex) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Passage ${passageIndex + 1}:</h4>
+                <div class="passage-text">${item.passage}</div>
+                <h5>Questions:</h5>
+        `;
+        
+        item.questions.forEach((question, qIndex) => {
+            html += `
+                <div class="comprehension-question">
+                    <p><strong>${qIndex + 1}. ${question.q}</strong></p>
+                    <div class="assessment-answer">💡 Expected Answer: ${question.a}</div>
+                </div>
+            `;
+        });
+        
+        html += `</div>`;
+    });
+    
+    return { html };
+}
+
+function generateFillBlanksAssessment() {
+    const sentences = [
+        { 
+            sentence: "The _____ is the center of our solar system.", 
+            answer: "Sun",
+            hint: "It gives us light and heat"
+        },
+        { 
+            sentence: "Plants need _____, water, and carbon dioxide to make food.", 
+            answer: "sunlight/light",
+            hint: "Something that comes from the sun"
+        },
+        { 
+            sentence: "The _____ is the largest ocean on Earth.", 
+            answer: "Pacific",
+            hint: "It's between Asia and America"
+        },
+        { 
+            sentence: "A _____ has three sides and three corners.", 
+            answer: "triangle",
+            hint: "It's a shape"
+        },
+        { 
+            sentence: "We use our _____ to breathe air into our body.", 
+            answer: "lungs",
+            hint: "They're inside your chest"
+        }
+    ];
+    
+    let html = '<p><strong>Instructions:</strong> Read each sentence and have students fill in the missing word. Give hints if needed!</p>';
+    
+    sentences.forEach((item, index) => {
+        html += `
+            <div class="assessment-item">
+                <h4>Question ${index + 1}:</h4>
+                <p><strong>${item.sentence}</strong></p>
+                <div class="fill-blank-hint">💡 Hint: ${item.hint}</div>
+                <div class="assessment-answer">✅ Answer: ${item.answer}</div>
             </div>
         `;
     });
@@ -352,6 +500,48 @@ window.onclick = function(event) {
     margin-top: 8px;
     font-weight: 600;
     color: #8b4d7a;
+}
+
+/* MCQ Specific Styles */
+.mcq-options {
+    margin: 10px 0;
+}
+
+.mcq-option {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 8px 12px;
+    margin: 5px 0;
+    font-weight: 500;
+}
+
+/* Comprehension Specific Styles */
+.passage-text {
+    background: linear-gradient(135deg, #fffacd, #fff8dc);
+    border: 2px solid #dda0dd;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.comprehension-question {
+    margin: 10px 0;
+    padding-left: 15px;
+}
+
+/* Fill in the Blanks Specific Styles */
+.fill-blank-hint {
+    color: #ff6b6b;
+    font-style: italic;
+    margin: 5px 0;
+    padding: 5px 10px;
+    background: linear-gradient(135deg, #ffe4e1, #fff0f5);
+    border-radius: 5px;
+    border-left: 3px solid #ff6b6b;
 }
 
 @media (max-width: 768px) {
