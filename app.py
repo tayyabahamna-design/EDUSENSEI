@@ -7,17 +7,18 @@ import calendar
 from werkzeug.utils import secure_filename
 import requests
 import re
-from openai import OpenAI
+import google.generativeai as genai
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SESSION_SECRET', 'tutor-assistant-secret-key')
 
-# Initialize OpenAI client
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-if OPENAI_API_KEY:
-    openai_client = OpenAI(api_key=OPENAI_API_KEY)
+# Initialize Gemini client
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 else:
-    openai_client = None
+    gemini_model = None
 
 # Data file paths
 DATA_DIR = 'data'
@@ -243,14 +244,12 @@ def get_wikipedia_definition(term):
     return f"I'd be happy to help define '{term}' for you! For detailed definitions, I recommend checking educational resources like dictionaries, encyclopedia, or asking a librarian for age-appropriate explanations."
 
 def get_ai_response(user_message, conversation_type="general"):
-    """Get AI-powered response using OpenAI GPT-5"""
-    if not openai_client:
+    """Get AI-powered response using Google Gemini"""
+    if not gemini_model:
         return get_teaching_guidance_fallback(user_message)
     
     try:
-        # Using gpt-4o model for reliable performance
-        # Updated to use working model with valid API key
-        
+        # Create system prompt based on conversation type
         if conversation_type == "teaching":
             system_prompt = """You are a helpful AI teaching assistant for primary school teachers (grades 1-5). 
             You provide practical, actionable advice about classroom management, lesson planning, student engagement, 
@@ -261,19 +260,15 @@ def get_ai_response(user_message, conversation_type="general"):
             You can discuss teaching topics, answer general questions, and have natural conversations. 
             Be warm, supportive, and helpful while maintaining a professional but friendly tone."""
         
-        response = openai_client.chat.completions.create(
-            model="gpt-4o",  # Use working model instead of gpt-5
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_message}
-            ],
-            max_tokens=500
-        )
+        # Combine system prompt with user message for Gemini
+        full_prompt = f"{system_prompt}\n\nUser: {user_message}\n\nAssistant:"
         
-        return response.choices[0].message.content
+        response = gemini_model.generate_content(full_prompt)
+        
+        return response.text
         
     except Exception as e:
-        print(f"OpenAI API error: {e}")
+        print(f"Gemini API error: {e}")
         return get_teaching_guidance_fallback(user_message)
 
 def get_teaching_guidance_fallback(question):
