@@ -18,23 +18,42 @@ app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# Try OpenAI first, fallback to Gemini
+# Initialize both AI clients independently for reliable fallback
 openai_client = None
 gemini_model = None
 
+# Initialize OpenAI if key is available
 if OPENAI_API_KEY:
     try:
         import openai
         openai_client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        print("OpenAI client initialized successfully")
     except ImportError:
+        print("OpenAI library not available")
+        openai_client = None
+    except Exception as e:
+        print(f"OpenAI client initialization failed: {e}")
         openai_client = None
 
-if not openai_client and GEMINI_API_KEY:
+# Initialize Gemini if key is available (independent of OpenAI)
+if GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
         gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-    except Exception:
+        print("Gemini model initialized successfully")
+    except Exception as e:
+        print(f"Gemini model initialization failed: {e}")
         gemini_model = None
+
+# Log available AI services
+if openai_client and gemini_model:
+    print("Both OpenAI and Gemini available")
+elif openai_client:
+    print("Only OpenAI available")
+elif gemini_model:
+    print("Only Gemini available")
+else:
+    print("No AI services available - using fallback responses")
 
 # Upload configuration
 UPLOAD_DIR = 'uploads'
@@ -1215,12 +1234,12 @@ def chat():
         return jsonify({
             'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
             'options': [
+                '📖 Curriculum Navigator',
                 '📝 Lesson Planning Help',
                 '🎮 Fun Classroom Activities', 
                 '💡 Teaching Tips & Advice',
                 '📚 Educational Resources',
                 '📊 Assessment',
-                '📖 Curriculum Navigator',
                 '💬 Free Chat'
             ],
             'show_menu': True
@@ -1269,12 +1288,12 @@ def chat():
         return jsonify({
             'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
             'options': [
+                '📖 Curriculum Navigator',
                 '📝 Lesson Planning Help',
                 '🎮 Fun Classroom Activities', 
                 '💡 Teaching Tips & Advice',
                 '📚 Educational Resources',
                 '📊 Assessment',
-                '📖 Curriculum Navigator',
                 '💬 Free Chat'
             ],
             'show_menu': True
