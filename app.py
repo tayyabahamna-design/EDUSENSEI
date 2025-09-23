@@ -1082,6 +1082,214 @@ def generate_curriculum_activities(grade, subject, chapter, topic):
         'show_menu': True
     })
 
+def generate_curriculum_specific_assessment(assessment_type, grade, subject, chapter, topic):
+    """Generate curriculum-specific assessments"""
+    if assessment_type == 'qna':
+        return jsonify({
+            'message': f'''❓ **Quick Q&A for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Question 1:** What is {topic}? Explain in your own words.
+
+**Question 2:** Can you give an example of {topic} from your daily life?
+
+**Question 3:** Why is learning about {topic} important for {grade} students?
+
+**Question 4:** How does {topic} connect to what we learned in previous lessons?
+
+**Question 5:** What is the most interesting thing about {topic}?
+
+📋 **Instructions:** Ask these questions one at a time and encourage students to explain their thinking. Great for checking understanding!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'mcq':
+        return jsonify({
+            'message': f'''🔤 **Multiple Choice Questions for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Question 1:** Which best describes {topic}?
+A) Option related to basic concept
+B) Option with correct answer about {topic}
+C) Incorrect but plausible option
+D) Another incorrect option
+✅ *Answer: B*
+
+**Question 2:** {topic} is most important because:
+A) It helps with {subject} learning
+B) Students need to understand it for {grade}
+C) It connects to real life
+D) All of the above
+✅ *Answer: D*
+
+**Question 3:** When learning about {topic}, students should focus on:
+A) Memorizing facts only
+B) Understanding concepts and examples
+C) Just reading about it
+D) Ignoring practical applications
+✅ *Answer: B*
+
+📋 **Instructions:** Read each question and have students choose the correct answer. Discuss why other options are incorrect!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'comprehension':
+        return jsonify({
+            'message': f'''📖 **Comprehension Questions for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Passage:** *"{topic} is an important concept that {grade} students learn in {subject}. Understanding {topic} helps students develop better knowledge and skills. When students learn about {topic}, they can apply this knowledge in many different situations and connect it to their daily experiences."*
+
+**Questions:**
+1. What subject do students learn {topic} in? 💡 *Expected Answer: {subject}*
+2. Who learns about {topic}? 💡 *Expected Answer: {grade} students*
+3. How can students use knowledge about {topic}? 💡 *Expected Answer: Apply it in different situations and connect to daily life*
+4. Why is {topic} important for students? 💡 *Expected Answer: Helps develop better knowledge and skills*
+
+📋 **Instructions:** Read the passage aloud, then ask the comprehension questions. Perfect for reading and understanding skills!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'fill-blanks':
+        return jsonify({
+            'message': f'''✏️ **Fill in the Blanks for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Question 1:** In {subject}, we learn that {topic} is _______.
+💡 *Hint: What is the main concept?*
+✅ *Answer: [key concept about the topic]*
+
+**Question 2:** {grade} students should understand {topic} because it helps them _______.
+💡 *Hint: Think about the benefits*
+✅ *Answer: learn better/understand concepts/apply knowledge*
+
+**Question 3:** When we study {topic}, we can see examples in _______.
+💡 *Hint: Where do we find this in real life?*
+✅ *Answer: daily life/real world/our environment*
+
+**Question 4:** The most important thing about {topic} is _______.
+💡 *Hint: What's the key takeaway?*
+✅ *Answer: [main learning objective]*
+
+📋 **Instructions:** Read each sentence and have students fill in the missing word. Give hints if needed!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'thumbs':
+        return jsonify({
+            'message': f'''👍👎 **Quick Check for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Statement 1:** "I understand what {topic} means"
+👍 *Thumbs Up = I understand | 👎 Thumbs Down = I need help*
+
+**Statement 2:** "I can give an example of {topic}"
+👍 *Thumbs Up = I can | 👎 Thumbs Down = I'm not sure*
+
+**Statement 3:** "I know why {topic} is important in {subject}"
+👍 *Thumbs Up = I know why | 👎 Thumbs Down = I don't know*
+
+**Statement 4:** "I feel confident about {topic}"
+👍 *Thumbs Up = Very confident | 👎 Thumbs Down = Need more practice*
+
+**Statement 5:** "I can connect {topic} to real life"
+👍 *Thumbs Up = Yes, I can | 👎 Thumbs Down = Not really*
+
+📋 **Instructions:** Read each statement and have students show thumbs up or down. Great for quick understanding checks!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'statements':
+        return jsonify({
+            'message': f'''📝 **True/False for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Statement 1:** {topic} is an important concept in {subject}. 
+✅ *Answer: TRUE - It's part of the {grade} curriculum*
+
+**Statement 2:** Only {grade} students need to learn about {topic}.
+❌ *Answer: FALSE - Other grades may also learn this concept*
+
+**Statement 3:** {topic} can be found in everyday life.
+✅ *Answer: TRUE - Many concepts have real-world applications*
+
+**Statement 4:** Understanding {topic} helps with other {subject} topics.
+✅ *Answer: TRUE - Learning builds on previous knowledge*
+
+**Statement 5:** {topic} is too difficult for {grade} students.
+❌ *Answer: FALSE - It's designed for this grade level*
+
+📋 **Instructions:** Read each statement and have students decide if it's true or false. Discuss the reasoning!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    elif assessment_type == 'exit-ticket':
+        return jsonify({
+            'message': f'''🎫 **Exit Ticket for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+**Before you leave today, please complete:**
+
+**1. One thing I learned about {topic} today:**
+_________________________________
+
+**2. One question I still have about {topic}:**
+_________________________________
+
+**3. How I can use {topic} outside of school:**
+_________________________________
+
+**4. My confidence level with {topic} (1-5 stars):**
+⭐ ⭐ ⭐ ⭐ ⭐
+
+**5. I need more help with:**
+□ Understanding the concept
+□ Finding examples
+□ Connecting to real life
+□ Nothing - I feel confident!
+
+📋 **Instructions:** Have students complete this before leaving class. Great for assessing learning and planning next steps!''',
+            'options': ['🔄 Try Different Assessment Type', '🔄 Choose Different Topic', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    # Fallback
+    return generate_assessment_response(assessment_type)
+
 def generate_curriculum_tips(grade, subject, chapter, topic):
     """Generate teaching tips for specific curriculum topic"""
     return jsonify({
@@ -1285,7 +1493,35 @@ def chat():
             'show_menu': True
         })
     
-    # Handle individual assessment types
+    # Handle individual assessment types - now with curriculum context
+    if 'curriculum_selection' in session and 'topic' in session['curriculum_selection']:
+        current_grade = session['curriculum_selection']['grade']
+        current_subject = session['curriculum_selection']['subject']
+        current_chapter = session['curriculum_selection']['chapter']
+        current_topic = session['curriculum_selection']['topic']
+        
+        if user_message.lower() in ['quick q&a', '❓ quick q&a', 'qna']:
+            return generate_curriculum_specific_assessment('qna', current_grade, current_subject, current_chapter, current_topic)
+        
+        if user_message.lower() in ['multiple choice questions (mcq)', '🔤 multiple choice questions (mcq)', 'mcq', 'multiple choice']:
+            return generate_curriculum_specific_assessment('mcq', current_grade, current_subject, current_chapter, current_topic)
+        
+        if user_message.lower() in ['short comprehension questions', '📖 short comprehension questions', 'comprehension']:
+            return generate_curriculum_specific_assessment('comprehension', current_grade, current_subject, current_chapter, current_topic)
+        
+        if user_message.lower() in ['thumbs up/down', '👍👎 thumbs up/down', 'thumbs']:
+            return generate_curriculum_specific_assessment('thumbs', current_grade, current_subject, current_chapter, current_topic)
+        
+        if user_message.lower() in ['true/false statements', '📝 true/false statements', 'true false']:
+            return generate_curriculum_specific_assessment('statements', current_grade, current_subject, current_chapter, current_topic)
+        
+        if user_message.lower() in ['fill in the blanks', '✏️ fill in the blanks', 'fill blanks']:
+            return generate_curriculum_specific_assessment('fill-blanks', current_grade, current_subject, current_chapter, current_topic)
+        
+        if user_message.lower() in ['exit tickets', '🎫 exit tickets', 'exit ticket']:
+            return generate_curriculum_specific_assessment('exit-ticket', current_grade, current_subject, current_chapter, current_topic)
+    
+    # Fallback to generic assessment types if no curriculum context
     if user_message.lower() in ['quick q&a', '❓ quick q&a', 'qna']:
         return generate_assessment_response('qna')
     
@@ -1386,110 +1622,132 @@ def chat():
             'show_menu': True
         })
     
-    # Handle Grade selections
-    curriculum_data = generate_curriculum_data()
-    
-    # Store selection in session for navigation
-    if 'curriculum_selection' not in session:
-        session['curriculum_selection'] = {}
-    
-    # Grade 1-5 selections
-    for grade_num in range(1, 6):
-        grade_text = f'grade {grade_num}'
-        grade_emoji = f'{grade_num}️⃣ grade {grade_num}'
+    # Handle Grade selections - only if a feature is selected
+    if 'selected_feature' in session:
+        curriculum_data = generate_curriculum_data()
         
-        if user_message.lower() in [grade_text, grade_emoji.lower()]:
-            session['curriculum_selection']['grade'] = f'Grade {grade_num}'
-            subjects = list(curriculum_data[f'Grade {grade_num}'].keys())
-            return jsonify({
-                'message': f'📚 **Grade {grade_num} Subjects** - Choose a subject to explore chapters and topics:',
-                'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
-                'show_menu': True
-            })
-    
-    # Handle Subject selections
-    if 'grade' in session.get('curriculum_selection', {}):
-        current_grade = session['curriculum_selection']['grade']
-        subjects = list(curriculum_data[current_grade].keys())
+        # Store selection in session for navigation
+        if 'curriculum_selection' not in session:
+            session['curriculum_selection'] = {}
         
-        for subject in subjects:
-            subject_text = subject.lower()
-            subject_emoji = f'📖 {subject}'.lower()
+        # Grade 1-5 selections
+        for grade_num in range(1, 6):
+            grade_text = f'grade {grade_num}'
+            grade_emoji = f'{grade_num}️⃣ grade {grade_num}'
             
-            if user_message.lower() in [subject_text, subject_emoji]:
-                session['curriculum_selection']['subject'] = subject
-                chapters = list(curriculum_data[current_grade][subject].keys())
-                return jsonify({
-                    'message': f'📑 **{current_grade} - {subject}** - Choose a chapter:',
-                    'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
-                    'show_menu': True
-                })
-    
-    # Handle Chapter selections  
-    if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}):
-        current_grade = session['curriculum_selection']['grade']
-        current_subject = session['curriculum_selection']['subject']
-        chapters = list(curriculum_data[current_grade][current_subject].keys())
-        
-        for chapter in chapters:
-            chapter_text = chapter.lower()
-            chapter_emoji = f'📄 {chapter}'.lower()
-            
-            if user_message.lower() in [chapter_text, chapter_emoji]:
-                session['curriculum_selection']['chapter'] = chapter
-                topics = curriculum_data[current_grade][current_subject][chapter]
-                return jsonify({
-                    'message': f'📝 **{current_grade} - {current_subject}** \n**{chapter}** - Choose a topic:',
-                    'options': [f'✏️ {topic}' for topic in topics] + ['🔄 Change Chapter', '← Back to Menu'],
-                    'show_menu': True
-                })
-    
-    # Handle Topic selections
-    if all(key in session.get('curriculum_selection', {}) for key in ['grade', 'subject', 'chapter']):
-        current_grade = session['curriculum_selection']['grade']
-        current_subject = session['curriculum_selection']['subject'] 
-        current_chapter = session['curriculum_selection']['chapter']
-        topics = curriculum_data[current_grade][current_subject][current_chapter]
-        
-        for topic in topics:
-            topic_text = topic.lower()
-            topic_emoji = f'✏️ {topic}'.lower()
-            
-            if user_message.lower() in [topic_text, topic_emoji]:
-                session['curriculum_selection']['topic'] = topic
-                # Directly proceed to the selected feature instead of showing action menu
-                selected_feature = session.get('selected_feature')
+            if user_message.lower() in [grade_text, grade_emoji.lower()]:
+                session['curriculum_selection']['grade'] = f'Grade {grade_num}'
+                subjects = list(curriculum_data[f'Grade {grade_num}'].keys())
+                feature_name = {
+                    'lesson_planning': 'Lesson Planning Help',
+                    'assessment': 'Assessment',
+                    'activities': 'Fun Classroom Activities',
+                    'teaching_tips': 'Teaching Tips & Advice'
+                }.get(session['selected_feature'], 'Selected Feature')
                 
-                if selected_feature == 'lesson_planning':
-                    return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, topic)
-                elif selected_feature == 'assessment':
-                    return generate_curriculum_assessment_types(current_grade, current_subject, current_chapter, topic)
-                elif selected_feature == 'activities':
-                    return generate_curriculum_activities(current_grade, current_subject, current_chapter, topic)
-                elif selected_feature == 'teaching_tips':
-                    return generate_curriculum_tips(current_grade, current_subject, current_chapter, topic)
-                else:
-                    # Fallback to action menu if no feature selected
+                return jsonify({
+                    'message': f'📚 **{feature_name} - Grade {grade_num} Subjects** - Choose a subject:',
+                    'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
+                    'show_menu': True
+                })
+    
+        # Handle Subject selections
+        if 'grade' in session.get('curriculum_selection', {}):
+            current_grade = session['curriculum_selection']['grade']
+            subjects = list(curriculum_data[current_grade].keys())
+            
+            for subject in subjects:
+                subject_text = subject.lower()
+                subject_emoji = f'📖 {subject}'.lower()
+                
+                if user_message.lower() in [subject_text, subject_emoji]:
+                    session['curriculum_selection']['subject'] = subject
+                    chapters = list(curriculum_data[current_grade][subject].keys())
+                    feature_name = {
+                        'lesson_planning': 'Lesson Planning Help',
+                        'assessment': 'Assessment',
+                        'activities': 'Fun Classroom Activities',
+                        'teaching_tips': 'Teaching Tips & Advice'
+                    }.get(session['selected_feature'], 'Selected Feature')
+                    
                     return jsonify({
-                        'message': f'''🎯 **Selected Topic:**
+                        'message': f'📑 **{feature_name} - {current_grade} - {subject}** - Choose a chapter:',
+                        'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
+                        'show_menu': True
+                    })
+        
+        # Handle Chapter selections  
+        if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}):
+            current_grade = session['curriculum_selection']['grade']
+            current_subject = session['curriculum_selection']['subject']
+            chapters = list(curriculum_data[current_grade][current_subject].keys())
+            
+            for chapter in chapters:
+                chapter_text = chapter.lower()
+                chapter_emoji = f'📄 {chapter}'.lower()
+                
+                if user_message.lower() in [chapter_text, chapter_emoji]:
+                    session['curriculum_selection']['chapter'] = chapter
+                    topics = curriculum_data[current_grade][current_subject][chapter]
+                    feature_name = {
+                        'lesson_planning': 'Lesson Planning Help',
+                        'assessment': 'Assessment',
+                        'activities': 'Fun Classroom Activities',
+                        'teaching_tips': 'Teaching Tips & Advice'
+                    }.get(session['selected_feature'], 'Selected Feature')
+                    
+                    return jsonify({
+                        'message': f'📝 **{feature_name} - {current_grade} - {current_subject}** \n**{chapter}** - Choose a topic:',
+                        'options': [f'✏️ {topic}' for topic in topics] + ['🔄 Change Chapter', '← Back to Menu'],
+                        'show_menu': True
+                    })
+        
+        # Handle Topic selections
+        if all(key in session.get('curriculum_selection', {}) for key in ['grade', 'subject', 'chapter']):
+            current_grade = session['curriculum_selection']['grade']
+            current_subject = session['curriculum_selection']['subject'] 
+            current_chapter = session['curriculum_selection']['chapter']
+            topics = curriculum_data[current_grade][current_subject][current_chapter]
+            
+            for topic in topics:
+                topic_text = topic.lower()
+                topic_emoji = f'✏️ {topic}'.lower()
+                
+                if user_message.lower() in [topic_text, topic_emoji]:
+                    session['curriculum_selection']['topic'] = topic
+                    # Directly proceed to the selected feature instead of showing action menu
+                    selected_feature = session.get('selected_feature')
+                    
+                    if selected_feature == 'lesson_planning':
+                        return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, topic)
+                    elif selected_feature == 'assessment':
+                        return generate_curriculum_assessment_types(current_grade, current_subject, current_chapter, topic)
+                    elif selected_feature == 'activities':
+                        return generate_curriculum_activities(current_grade, current_subject, current_chapter, topic)
+                    elif selected_feature == 'teaching_tips':
+                        return generate_curriculum_tips(current_grade, current_subject, current_chapter, topic)
+                    else:
+                        # Fallback to action menu if no feature selected
+                        return jsonify({
+                            'message': f'''🎯 **Selected Topic:**
 **Grade:** {current_grade}
 **Subject:** {current_subject}
 **Chapter:** {current_chapter}
 **Topic:** {topic}
 
 What would you like me to create for this topic?''',
-                        'options': [
-                            '📝 Generate Lesson Plan',
-                            '📊 Create Assessment Questions',
-                            '🎮 Suggest Fun Activities',
-                            '💡 Teaching Tips for this Topic',
-                            '🔄 Choose Different Topic',
-                            '← Back to Menu'
-                        ],
-                        'show_menu': True
-                    })
+                            'options': [
+                                '📝 Generate Lesson Plan',
+                                '📊 Create Assessment Questions',
+                                '🎮 Suggest Fun Activities',
+                                '💡 Teaching Tips for this Topic',
+                                '🔄 Choose Different Topic',
+                                '← Back to Menu'
+                            ],
+                            'show_menu': True
+                        })
     
-    # Handle curriculum action selections based on selected feature
+    # Handle curriculum action selections based on selected feature (legacy fallback)
     if 'topic' in session.get('curriculum_selection', {}) and 'selected_feature' in session:
         current_grade = session['curriculum_selection']['grade']
         current_subject = session['curriculum_selection']['subject']
