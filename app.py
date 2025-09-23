@@ -223,8 +223,31 @@ def cleanup_old_files():
     except Exception as e:
         print(f"Error during cleanup: {e}")
 
-def get_ai_response(user_message, conversation_type="general"):
-    """Get AI-powered response using OpenAI or Gemini"""
+def get_ai_response(user_message, conversation_type="general", session_context=None):
+    """Get AI-powered response using OpenAI or Gemini with book-specific context"""
+    
+    # Build contextual information from session
+    context_info = ""
+    if session_context and session_context.get('curriculum_selection'):
+        selection = session_context['curriculum_selection']
+        grade = selection.get('grade', '')
+        subject = selection.get('subject', '')
+        book = selection.get('book', '')
+        chapter = selection.get('chapter', '')
+        topic = selection.get('topic', '')
+        
+        if book:
+            context_info = f"""
+
+CURRENT EDUCATIONAL CONTEXT:
+- Grade: {grade}
+- Subject: {subject}
+- Textbook: {book}
+- Chapter: {chapter if chapter else 'Not specified'}
+- Topic: {topic if topic else 'Not specified'}
+
+IMPORTANT: Base all educational content generation on this specific textbook and context. When creating lesson plans, activities, assessments, or other educational materials, reference this specific book and make the content appropriate for {grade} students studying {subject} from "{book}". If asked to create examples or definitions, make them relevant to the current chapter and topic context."""
+    
     # Create system prompt based on conversation type
     if conversation_type == "teaching":
         system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Follow these guidelines:
@@ -255,9 +278,9 @@ SAFETY & ETHICS:
 - Respect privacy and confidentiality
 - Be honest and transparent
 
-Remember: Your goal is to be genuinely helpful while maintaining a natural, conversational tone. Adapt your communication style to what works best for each user."""
+Remember: Your goal is to be genuinely helpful while maintaining a natural, conversational tone. Adapt your communication style to what works best for each user.""" + context_info
     else:
-        system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Be friendly, professional, and approachable. Match the user's communication style, be concise but thorough, and help with any questions or tasks they have. Your goal is to be genuinely helpful while maintaining a natural, conversational tone."""
+        system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Be friendly, professional, and approachable. Match the user's communication style, be concise but thorough, and help with any questions or tasks they have. Your goal is to be genuinely helpful while maintaining a natural, conversational tone.""" + context_info
     
     # Try OpenAI first with conversation history
     if openai_client:
@@ -1832,8 +1855,8 @@ def chat():
                     if extracted_content:
                         full_text = f"[Document Content]: {extracted_content}\n\n{full_text}".strip()
         
-        # Get AI response directly
-        ai_response = get_ai_response(full_text, "general")
+        # Get AI response directly with session context
+        ai_response = get_ai_response(full_text, "general", session)
         return jsonify({'message': ai_response, 'is_markdown': True})
     
     # Handle special greetings and commands
@@ -2115,7 +2138,7 @@ def chat():
         session.modified = True
         
         # Generate content based on selected feature and curriculum context
-        return generate_udost_content(session['selected_feature'], session['curriculum_selection'])
+        return generate_udost_content(session['selected_feature'], session['curriculum_selection'], session)
     
     if user_message.lower() in ['← back to menu', 'back to menu', 'menu']:
         # Clear all session data when returning to main menu
@@ -2565,8 +2588,8 @@ What would you like me to create for this topic?''',
             response = gemini_model.generate_content([full_text] + content_parts)
             ai_response = response.text
         else:
-            # Text-only content (works with OpenAI or Gemini)
-            ai_response = get_ai_response(full_text)
+            # Text-only content (works with OpenAI or Gemini) with session context
+            ai_response = get_ai_response(full_text, "general", session)
     except Exception as e:
         print(f"Error generating AI response: {e}")
         ai_response = "I'm sorry, I encountered an error processing your request. Please try again."
@@ -2781,12 +2804,12 @@ def parse_book_chapters(book_id, content, cursor, conn):
         print(f"Chapter parsing error occurred")
         pass
 
-def generate_udost_content(feature_type, curriculum_selection):
+def generate_udost_content(feature_type, curriculum_selection, session_data=None):
     """Generate curriculum-specific content for U-DOST system"""
     grade = curriculum_selection.get('grade')
     subject = curriculum_selection.get('subject')
-    book_title = curriculum_selection.get('book_title', 'textbook')
-    chapter_number = curriculum_selection.get('chapter_number')
+    book = curriculum_selection.get('book', 'textbook')
+    chapter = curriculum_selection.get('chapter')
     skill_category = curriculum_selection.get('skill_category')
     
     # Create context for AI
@@ -2795,8 +2818,8 @@ def generate_udost_content(feature_type, curriculum_selection):
     
     Grade: {grade}
     Subject: {subject}  
-    Book: {book_title}
-    Chapter: {chapter_number}
+    Book: {book}
+    Chapter: {chapter}
     Skill Focus: {skill_category}
     
     Pakistani Education Context: This is for Pakistani primary education (grades 1-5) following the local curriculum.
@@ -2804,7 +2827,7 @@ def generate_udost_content(feature_type, curriculum_selection):
     """
     
     content_prompts = {
-        'lesson_plans': f"""Create a detailed lesson plan for Grade {grade} {subject}, Chapter {chapter_number}, focusing on {skill_category}.
+        'lesson_plans': f"""Create a detailed lesson plan for Grade {grade} {subject}, Chapter {chapter}, focusing on {skill_category}.
 
 Include:
 1. **Learning Objectives** (Clear, measurable goals)
@@ -2818,7 +2841,7 @@ Include:
 
 Make it engaging and age-appropriate for Grade {grade} students in Pakistan.""",
 
-        'teaching_strategies': f"""Suggest 5-7 effective teaching strategies for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category} focus.
+        'teaching_strategies': f"""Suggest 5-7 effective teaching strategies for Grade {grade} {subject}, Chapter {chapter}, {skill_category} focus.
 
 Include:
 1. **Interactive Methods** (Group work, pair activities)
@@ -2831,7 +2854,7 @@ Include:
 
 Make strategies practical and easy to implement.""",
 
-        'activities': f"""Design 6 engaging activities for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+        'activities': f"""Design 6 engaging activities for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
 Provide activities for:
 1. **Independent Work** (Individual practice)
@@ -2848,7 +2871,7 @@ Each activity should include:
 - Learning outcomes
 - Pakistani cultural context where relevant""",
 
-        'definitions': f"""Provide clear, age-appropriate definitions and explanations for key concepts in Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+        'definitions': f"""Provide clear, age-appropriate definitions and explanations for key concepts in Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
 Include:
 1. **Key Terms** (Main vocabulary with simple definitions)
@@ -2860,7 +2883,7 @@ Include:
 
 Make definitions simple and relatable for Grade {grade} Pakistani students.""",
 
-        'assessment_tools': f"""Create comprehensive assessment tools for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+        'assessment_tools': f"""Create comprehensive assessment tools for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
 Include:
 1. **Quick Quiz** (5 multiple choice questions with answers)
@@ -2873,7 +2896,7 @@ Include:
 
 Provide answer keys for all assessments. Make them engaging and age-appropriate.""",
 
-        'educational_games': f"""Design 5 fun educational games and hooks for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+        'educational_games': f"""Design 5 fun educational games and hooks for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
 Include:
 1. **Warm-up Game** (Start class with energy)
@@ -2890,7 +2913,7 @@ For each game provide:
 - Pakistani cultural elements (where appropriate)
 - Variations for different skill levels""",
 
-        'examples_practice': f"""Provide detailed examples and practice exercises for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+        'examples_practice': f"""Provide detailed examples and practice exercises for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
 Include:
 1. **Worked Examples** (Step-by-step solutions)
@@ -2913,15 +2936,15 @@ Make examples relatable and practice progressive from easy to challenging."""
     
     prompt = context + content_prompts[feature_type]
     
-    # Get AI response
+    # Get AI response with session context
     try:
-        ai_response = get_ai_response(prompt, "educational_content")
+        ai_response = get_ai_response(prompt, "educational_content", session_data)
         
         return jsonify({
             'message': f"**📚 {feature_type.replace('_', ' ').title()} - Grade {grade} {subject}**\n\n" + ai_response,
             'is_markdown': True,
             'return_to_menu': True,
-            'breadcrumb': f"Grade {grade} › {subject} › {book_title} › Chapter {chapter_number} › {skill_category}",
+            'breadcrumb': f"Grade {grade} › {subject} › {book} › Chapter {chapter} › {skill_category}",
             'suggestions': [
                 '🔄 Generate More Content',
                 '📤 Save to Files', 
