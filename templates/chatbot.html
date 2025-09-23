@@ -50,6 +50,7 @@
                     <button id="recordButton" class="btn btn-record">🎤 Record</button>
                     <button id="stopButton" class="btn btn-stop" style="display: none;">⏹️ Stop</button>
                     <button id="playButton" class="btn btn-play" style="display: none;">▶️ Play</button>
+                    <button id="sendVoiceButton" class="btn btn-send-voice" style="display: none;">📤 Send Voice Message</button>
                     <button id="clearRecordingButton" class="btn btn-clear" style="display: none;">🗑️ Clear</button>
                 </div>
                 <div class="recording-status" id="recordingStatus"></div>
@@ -409,8 +410,9 @@ document.addEventListener('DOMContentLoaded', function() {
             audioElement.style.display = 'block';
             
             document.getElementById('playButton').style.display = 'inline-block';
+            document.getElementById('sendVoiceButton').style.display = 'inline-block';
             document.getElementById('clearRecordingButton').style.display = 'inline-block';
-            document.getElementById('recordingStatus').textContent = `✅ Ready to send (${result.transcript || 'Audio recorded'})`;
+            document.getElementById('recordingStatus').textContent = `✅ ${result.transcription ? '"' + result.transcription + '"' : 'Voice message ready to send'}`;
             
         } catch (error) {
             console.error('Audio upload error:', error);
@@ -423,9 +425,19 @@ document.addEventListener('DOMContentLoaded', function() {
         audioBlob = null;
         document.getElementById('audioPlayback').style.display = 'none';
         document.getElementById('playButton').style.display = 'none';
+        document.getElementById('sendVoiceButton').style.display = 'none';
         document.getElementById('clearRecordingButton').style.display = 'none';
         document.getElementById('recordingStatus').textContent = '';
         document.getElementById('recordButton').style.display = 'inline-block';
+    }
+    
+    function sendVoiceMessage() {
+        if (currentAudioId) {
+            // Send the voice message using the existing sendMessage function
+            window.sendMessage();
+            // Close the voice area after sending
+            hideVoiceArea();
+        }
     }
 
     // Camera functions
@@ -684,6 +696,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const recordButton = document.getElementById('recordButton');
     const stopButton = document.getElementById('stopButton');
     const playButton = document.getElementById('playButton');
+    const sendVoiceButton = document.getElementById('sendVoiceButton');
     const clearRecordingButton = document.getElementById('clearRecordingButton');
     
     if (toggleVoiceButton) {
@@ -710,6 +723,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const audio = document.getElementById('audioPlayback');
             audio.play();
         });
+    }
+    
+    if (sendVoiceButton) {
+        sendVoiceButton.addEventListener('click', sendVoiceMessage);
     }
     
     if (clearRecordingButton) {
@@ -1088,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', function() {
     flex-wrap: wrap;
 }
 
-.btn-record, .btn-stop, .btn-play, .btn-clear {
+.btn-record, .btn-stop, .btn-play, .btn-clear, .btn-send-voice {
     padding: 8px 12px;
     border: none;
     border-radius: 5px;
@@ -1131,6 +1148,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .btn-clear:hover {
     background: #757575;
+}
+
+.btn-send-voice {
+    background: #4CAF50;
+    color: white;
+    font-weight: bold;
+    border: 2px solid #4CAF50;
+}
+
+.btn-send-voice:hover {
+    background: #45a049;
+    border-color: #45a049;
+    transform: scale(1.05);
 }
 
 .recording-status {
