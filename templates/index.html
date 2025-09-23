@@ -66,6 +66,14 @@
 
 <script>
 function generateAssessment(type) {
+    // Track assessment generation
+    if (typeof posthog !== 'undefined') {
+        posthog.capture('assessment_generated', {
+            assessment_type: type,
+            page: 'home'
+        });
+    }
+    
     const modal = document.getElementById('assessmentModal');
     const title = document.getElementById('assessmentTitle');
     const content = document.getElementById('assessmentContent');
@@ -357,6 +365,37 @@ window.onclick = function(event) {
         modal.style.display = 'none';
     }
 }
+
+// Track page view on load
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof posthog !== 'undefined') {
+        posthog.capture('page_view', {
+            page: 'home',
+            timestamp: new Date().toISOString()
+        });
+    }
+    
+    // Track feature card clicks
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.feature-card')) {
+            const featureName = e.target.closest('.feature-card').querySelector('h3').textContent;
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('feature_card_clicked', {
+                    feature: featureName
+                });
+            }
+        }
+        
+        // Track chat button clicks
+        if (e.target.closest('a[href="/chatbot"]')) {
+            if (typeof posthog !== 'undefined') {
+                posthog.capture('chat_button_clicked', {
+                    location: 'home_page'
+                });
+            }
+        }
+    });
+});
 </script>
 
 <style>

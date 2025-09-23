@@ -278,6 +278,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const messageText = message || (chatInput ? chatInput.value.trim() : '');
         if (!messageText && !currentAudioId && uploadedFiles.length === 0) return;
         
+        // Track chat interaction with PostHog
+        if (typeof posthog !== 'undefined') {
+            posthog.capture('chat_message_sent', {
+                message_length: messageText.length,
+                has_files: uploadedFiles.length > 0,
+                has_audio: !!currentAudioId,
+                message_type: messageText.startsWith('🔢') ? 'assessment' : 
+                             messageText.startsWith('💬') ? 'free_chat' :
+                             messageText.startsWith('📚') ? 'subject_selection' : 'general'
+            });
+        }
+        
         // Show what's being sent
         let displayMessage = messageText;
         if (currentAudioId) displayMessage += " 🎤 Voice message";
