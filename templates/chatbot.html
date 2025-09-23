@@ -144,26 +144,36 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function formatBotResponse(response) {
+        // Validate response object
+        if (!response || typeof response !== 'object') {
+            return '<p>Error: Invalid response format</p>';
+        }
+        
         let html = '';
         
-        // Add title if present
-        if (response.title) {
-            html += `<h4 class="response-title">${response.title}</h4>`;
+        // Add title if present and valid - use formatMarkdownLike for safe HTML
+        if (response.title && typeof response.title === 'string') {
+            const cleanTitle = response.title.trim();
+            if (cleanTitle) {
+                html += `<h4 class="response-title">${formatMarkdownLike(cleanTitle)}</h4>`;
+            }
         }
         
-        // Add main message
-        html += `<p>${response.message || 'No response'}</p>`;
-        
-        // Add options buttons
-        if (response.options && response.options.length > 0) {
-            html += '<div class="response-options">';
-            response.options.forEach(option => {
-                html += `<button class="option-btn" onclick="sendMessage('${option.replace(/'/g, "\\'")}')">${option}</button>`;
-            });
-            html += '</div>';
+        // Add main message with validation - use formatMarkdownLike for safe HTML
+        const message = response.message || 'No response';
+        if (typeof message === 'string') {
+            const cleanMessage = message.trim();
+            if (cleanMessage) {
+                html += `<div class="message-content">${formatMarkdownLike(cleanMessage)}</div>`;
+            }
         }
         
-        // Removed inline input field - use main chatbox instead
+        // Generate unique ID for options container to prevent conflicts
+        let optionsContainerId = null;
+        if (response.options && Array.isArray(response.options) && response.options.length > 0) {
+            optionsContainerId = 'options-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            html += `<div class="response-options" id="${optionsContainerId}"></div>`;
+        }
         
         // Handle navigation and breadcrumbs
         updateNavigation(response);
@@ -178,7 +188,32 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '</div>';
         }
         
+        // After HTML is set, safely create option buttons with the specific container
+        if (optionsContainerId) {
+            setTimeout(() => createSafeOptionButtons(response.options, optionsContainerId), 0);
+        }
+        
         return html;
+    }
+    
+    function createSafeOptionButtons(options, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container || !options || !Array.isArray(options)) return;
+        
+        container.innerHTML = ''; // Clear existing buttons
+        
+        options.forEach(option => {
+            if (option && typeof option === 'string') {
+                const cleanOption = option.trim();
+                if (cleanOption) {
+                    const button = document.createElement('button');
+                    button.className = 'option-btn';
+                    button.textContent = cleanOption; // Safe text content
+                    button.onclick = () => sendMessage(cleanOption);
+                    container.appendChild(button);
+                }
+            }
+        });
     }
     
     function updateNavigation(response) {
@@ -204,14 +239,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const suggestionsContainer = document.getElementById('chatSuggestions');
         const suggestionsList = document.getElementById('suggestionsList');
         
-        if (suggestions && suggestions.length > 0) {
+        // Validate suggestions is an array before processing
+        if (suggestions && Array.isArray(suggestions) && suggestions.length > 0) {
             suggestionsList.innerHTML = '';
             suggestions.forEach(suggestion => {
-                const suggestionBtn = document.createElement('button');
-                suggestionBtn.className = 'suggestion-btn';
-                suggestionBtn.textContent = suggestion;
-                suggestionBtn.onclick = () => sendMessage(suggestion);
-                suggestionsList.appendChild(suggestionBtn);
+                if (suggestion && typeof suggestion === 'string') {
+                    const cleanSuggestion = suggestion.trim();
+                    if (cleanSuggestion) {
+                        const suggestionBtn = document.createElement('button');
+                        suggestionBtn.className = 'suggestion-btn';
+                        suggestionBtn.textContent = cleanSuggestion; // Safe text content
+                        suggestionBtn.onclick = () => sendMessage(cleanSuggestion);
+                        suggestionsList.appendChild(suggestionBtn);
+                    }
+                }
             });
             suggestionsContainer.style.display = 'block';
         } else {
@@ -221,7 +262,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Simple markdown-like formatting function
     function formatMarkdownLike(text) {
-        if (!text) return '';
+        if (!text || typeof text !== 'string') return '';
+        
+        // Clean and normalize text first to prevent corruption
+        text = text.trim();
         
         // Escape HTML first for security
         text = text.replace(/&/g, '&amp;')
@@ -300,26 +344,28 @@ document.addEventListener('DOMContentLoaded', function() {
         addMessage(displayMessage, true);
         if (!message && chatInput) chatInput.value = '';
         
+        const requestPayload = { 
+            message: messageText,
+            file_ids: uploadedFiles.map(f => f.file_id),
+            audio_id: currentAudioId
+        };
+        
+        let requestResponse = null;
+        
         try {
-            const payload = { 
-                message: messageText,
-                file_ids: uploadedFiles.map(f => f.file_id),
-                audio_id: currentAudioId
-            };
-            
-            const response = await fetch('/chat', {
+            requestResponse = await fetch('/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(requestPayload)
             });
             
-            if (!response.ok) {
+            if (!requestResponse.ok) {
                 throw new Error('Network response was not ok');
             }
             
-            const data = await response.json();
+            const data = await requestResponse.json();
             addMessage(data);
             
             // Clear uploaded files and audio after sending
@@ -327,6 +373,11 @@ document.addEventListener('DOMContentLoaded', function() {
             
         } catch (error) {
             console.error('Chat error:', error);
+            console.error('Failed request details:', {
+                url: '/chat',
+                payload: requestPayload,
+                response_status: requestResponse ? requestResponse.status : 'No response'
+            });
             addMessage('Sorry, I encountered an error. Please try again. If this continues, the AI services may need proper API keys.');
         }
     };
@@ -388,13 +439,29 @@ document.addEventListener('DOMContentLoaded', function() {
         uploadedFiles.forEach((file, index) => {
             const fileDiv = document.createElement('div');
             fileDiv.className = 'uploaded-file';
-            fileDiv.innerHTML = `
-                <span class="file-info">
-                    ${file.type === 'image' ? '🖼️' : '📄'} ${file.original_name}
-                    <small>(${formatFileSize(file.size)})</small>
-                </span>
-                <button class="btn-remove" onclick="removeFile(${index})">❌</button>
-            `;
+            
+            // Create file info span safely
+            const fileInfoSpan = document.createElement('span');
+            fileInfoSpan.className = 'file-info';
+            
+            // Add file icon and name safely with textContent
+            const fileIcon = file.type === 'image' ? '🖼️' : '📄';
+            fileInfoSpan.textContent = `${fileIcon} ${file.original_name}`;
+            
+            // Add file size info
+            const sizeSmall = document.createElement('small');
+            sizeSmall.textContent = ` (${formatFileSize(file.size)})`;
+            fileInfoSpan.appendChild(sizeSmall);
+            
+            // Create remove button safely
+            const removeButton = document.createElement('button');
+            removeButton.className = 'btn-remove';
+            removeButton.textContent = '❌';
+            removeButton.onclick = () => removeFile(index);
+            
+            // Append both elements
+            fileDiv.appendChild(fileInfoSpan);
+            fileDiv.appendChild(removeButton);
             container.appendChild(fileDiv);
         });
     }
