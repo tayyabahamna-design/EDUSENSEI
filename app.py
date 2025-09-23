@@ -1787,13 +1787,15 @@ def chat():
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
         return jsonify({
-            'message': '🎉 Hello! I\'m your helpful AI assistant! Here\'s how I can help you:',
+            'message': '🌟 **السلام علیکم! Hello!** 🌟\n\nI\'m **U-DOST** 🤖✨ - Your friendly Pakistani teacher assistant! Ready to help you with curriculum-based educational content for grades 1-5.\n\n**Choose how I can help:**',
             'options': [
-                '💻 Coding & Programming',
-                '✍️ Writing & Creative Tasks', 
-                '🧮 Math & Analysis',
-                '📚 General Knowledge',
-                '📊 Assessment',
+                '📚 Lesson Plans',
+                '🎯 Teaching Strategies', 
+                '🎲 Activities',
+                '📖 Definitions',
+                '📊 Assessment Tools',
+                '🎮 Educational Games/Hooks',
+                '📝 Examples & Practice',
                 '💬 Free Chat'
             ],
             'show_menu': True
@@ -1811,11 +1813,30 @@ def chat():
             'show_menu': False
         })
     
-    # Handle Assessment menu option - start with curriculum selection
-    if user_message.lower() in ['assessment', '📊 assessment', 'assessments']:
-        session['selected_feature'] = 'assessment'
+    # Handle main menu options - all lead to grade selection
+    menu_options = {
+        '📚 lesson plans': 'lesson_plans',
+        'lesson plans': 'lesson_plans',
+        '🎯 teaching strategies': 'teaching_strategies', 
+        'teaching strategies': 'teaching_strategies',
+        '🎲 activities': 'activities',
+        'activities': 'activities',
+        '📖 definitions': 'definitions',
+        'definitions': 'definitions',
+        '📊 assessment tools': 'assessment_tools',
+        'assessment tools': 'assessment_tools',
+        '🎮 educational games/hooks': 'educational_games',
+        'educational games/hooks': 'educational_games',
+        'educational games': 'educational_games',
+        '📝 examples & practice': 'examples_practice',
+        'examples & practice': 'examples_practice',
+        'examples and practice': 'examples_practice'
+    }
+    
+    if user_message.lower() in menu_options:
+        session['selected_feature'] = menu_options[user_message.lower()]
         return jsonify({
-            'message': '📊 **Assessment** - First, select your grade level:',
+            'message': f'**{user_message}** 📖\n\nFirst, select your grade level:',
             'options': [
                 '1️⃣ Grade 1',
                 '2️⃣ Grade 2', 
@@ -1890,18 +1911,178 @@ def chat():
     if user_message.lower() in ['exit tickets', '🎫 exit tickets', 'exit ticket']:
         return generate_assessment_response('exit-ticket')
     
+    # Handle grade selection
+    grade_options = {
+        '1️⃣ grade 1': 1, 'grade 1': 1,
+        '2️⃣ grade 2': 2, 'grade 2': 2,
+        '3️⃣ grade 3': 3, 'grade 3': 3,
+        '4️⃣ grade 4': 4, 'grade 4': 4,
+        '5️⃣ grade 5': 5, 'grade 5': 5
+    }
+    
+    if user_message.lower() in grade_options and 'selected_feature' in session:
+        grade = grade_options[user_message.lower()]
+        if 'curriculum_selection' not in session:
+            session['curriculum_selection'] = {}
+        session['curriculum_selection']['grade'] = grade
+        session.modified = True
+        
+        # Pakistani curriculum subjects for grades 1-5
+        subjects = ['English', 'Urdu', 'Mathematics', 'Science', 'Islamiyat', 'Social Studies', 'General Knowledge']
+        
+        return jsonify({
+            'message': f'**Grade {grade}** 📚\n\nSelect your subject:',
+            'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    # Handle subject selection
+    if 'curriculum_selection' in session and 'grade' in session['curriculum_selection'] and 'selected_feature' in session:
+        subjects = ['english', 'urdu', 'mathematics', 'science', 'islamiyat', 'social studies', 'general knowledge']
+        subject_message = user_message.lower().replace('📖 ', '')
+        
+        if subject_message in subjects:
+            session['curriculum_selection']['subject'] = subject_message.title()
+            session.modified = True
+            grade = session['curriculum_selection']['grade']
+            subject = session['curriculum_selection']['subject']
+            
+            # Get available books for this grade and subject
+            conn = get_db_connection()
+            if conn:
+                try:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT id, title, description FROM books 
+                        WHERE grade = %s AND LOWER(subject) = %s AND status = 'active'
+                        ORDER BY title
+                    """, (grade, subject.lower()))
+                    
+                    books = cursor.fetchall()
+                    
+                    if books:
+                        book_options = [f'📚 {book["title"]}' for book in books]
+                        return jsonify({
+                            'message': f'**Grade {grade} - {subject}** 📚\n\nSelect your textbook:',
+                            'options': book_options + ['📤 Upload New Book', '🔄 Change Subject', '← Back to Menu'],
+                            'show_menu': True
+                        })
+                    else:
+                        return jsonify({
+                            'message': f'**Grade {grade} - {subject}** 📚\n\nNo textbooks found for this subject. Upload one to get started!',
+                            'options': ['📤 Upload New Book', '🔄 Change Subject', '← Back to Menu'],
+                            'show_menu': True
+                        })
+                        
+                except Exception as e:
+                    print(f"Database error occurred")
+                finally:
+                    conn.close()
+    
+    # Handle book selection
+    if ('curriculum_selection' in session and 'subject' in session['curriculum_selection'] 
+        and 'selected_feature' in session and user_message.lower().startswith('📚 ')):
+        
+        book_title = user_message[3:].strip()  # Remove emoji
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']
+        
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id, title FROM books 
+                    WHERE grade = %s AND LOWER(subject) = %s AND title = %s AND status = 'active'
+                """, (grade, subject.lower(), book_title))
+                
+                book = cursor.fetchone()
+                
+                if book:
+                    session['curriculum_selection']['book_id'] = book['id']
+                    session['curriculum_selection']['book_title'] = book['title']
+                    session.modified = True
+                    
+                    # Get chapters for this book
+                    cursor.execute("""
+                        SELECT chapter_number, chapter_title FROM chapters 
+                        WHERE book_id = %s ORDER BY chapter_number
+                    """, (book['id'],))
+                    
+                    chapters = cursor.fetchall()
+                    
+                    if chapters:
+                        chapter_options = [f'📖 Chapter {ch["chapter_number"]}: {ch["chapter_title"]}' for ch in chapters]
+                        return jsonify({
+                            'message': f'**{book["title"]}** - Grade {grade}\n\nSelect a chapter:',
+                            'options': chapter_options + ['🔄 Change Book', '← Back to Menu'],
+                            'show_menu': True
+                        })
+                    else:
+                        return jsonify({
+                            'message': f'**{book["title"]}** 📚\n\nNo chapters found. The book may need to be reprocessed.',
+                            'options': ['🔄 Change Book', '← Back to Menu'],
+                            'show_menu': True
+                        })
+                        
+            except Exception as e:
+                print(f"Database error occurred")
+            finally:
+                conn.close()
+    
+    # Handle chapter selection
+    if ('curriculum_selection' in session and 'book_id' in session['curriculum_selection'] 
+        and 'selected_feature' in session and user_message.lower().startswith('📖 chapter ')):
+        
+        try:
+            # Extract chapter number from message
+            chapter_text = user_message.lower().replace('📖 chapter ', '')
+            chapter_num = int(chapter_text.split(':')[0])
+            
+            session['curriculum_selection']['chapter_number'] = chapter_num
+            session.modified = True
+            
+            # Show skill categories
+            skill_categories = ['Reading', 'Writing', 'Oral Communication', 'Comprehension', 'Grammar', 'Vocabulary']
+            
+            return jsonify({
+                'message': f'**Chapter {chapter_num}** 📚\n\nSelect a skill category:',
+                'options': [f'🎯 {skill}' for skill in skill_categories] + ['🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+            
+        except (ValueError, IndexError):
+            return jsonify({
+                'message': '❌ Invalid chapter selection. Please try again.',
+                'options': ['🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+    
+    # Handle skill category selection and generate content
+    if ('curriculum_selection' in session and 'chapter_number' in session['curriculum_selection']
+        and 'selected_feature' in session and user_message.lower().startswith('🎯 ')):
+        
+        skill_category = user_message[3:].strip()  # Remove emoji
+        session['curriculum_selection']['skill_category'] = skill_category
+        session.modified = True
+        
+        # Generate content based on selected feature and curriculum context
+        return generate_udost_content(session['selected_feature'], session['curriculum_selection'])
+    
     if user_message.lower() in ['← back to menu', 'back to menu', 'menu']:
         # Clear all session data when returning to main menu
         session.pop('curriculum_selection', None)
         session.pop('selected_feature', None)
         return jsonify({
-            'message': '🎉 Welcome! I\'m your AI Teaching Assistant! Here\'s how I can help you:',
+            'message': '🌟 **السلام علیکم! Hello!** 🌟\n\nI\'m **U-DOST** 🤖✨ - Your friendly Pakistani teacher assistant! Ready to help you with curriculum-based educational content for grades 1-5.\n\n**Choose how I can help:**',
             'options': [
-                '💻 Coding & Programming',
-                '✍️ Writing & Creative Tasks', 
-                '🧮 Math & Analysis',
-                '📚 General Knowledge',
-                '📊 Assessment',
+                '📚 Lesson Plans',
+                '🎯 Teaching Strategies', 
+                '🎲 Activities',
+                '📖 Definitions',
+                '📊 Assessment Tools',
+                '🎮 Educational Games/Hooks',
+                '📝 Examples & Practice',
                 '💬 Free Chat'
             ],
             'show_menu': True
@@ -2343,6 +2524,290 @@ def upload_file():
     except Exception as e:
         print(f"Upload error: {e}")
         return jsonify({'error': 'Upload failed'}), 500
+
+@app.route('/upload_book', methods=['POST'])
+def upload_book():
+    """Handle textbook uploads for the U-DOST system"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Authentication required'}), 401
+    
+    if 'book_file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+    
+    file = request.files['book_file']
+    if not file.filename:
+        return jsonify({'error': 'No file selected'}), 400
+    
+    # Get form data
+    title = request.form.get('title', '').strip()
+    grade = request.form.get('grade', '').strip()
+    subject = request.form.get('subject', '').strip()
+    description = request.form.get('description', '').strip()
+    
+    if not all([title, grade, subject]):
+        return jsonify({'error': 'Title, grade, and subject are required'}), 400
+    
+    try:
+        grade = int(grade)
+        if grade < 1 or grade > 5:
+            return jsonify({'error': 'Grade must be between 1 and 5'}), 400
+    except ValueError:
+        return jsonify({'error': 'Invalid grade format'}), 400
+    
+    # Validate file type
+    filename = secure_filename(file.filename)
+    if not filename.lower().endswith(('.pdf', '.txt', '.docx')):
+        return jsonify({'error': 'Only PDF, TXT, and DOCX files are supported'}), 400
+    
+    try:
+        # Create upload directory
+        upload_dir = Path('uploads/textbooks')
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        unique_filename = f"{session['user_id']}_{uuid.uuid4().hex[:8]}_{filename}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        file.save(file_path)
+        file_size = file_path.stat().st_size
+        
+        # Extract text content for indexing
+        content = ""
+        if filename.lower().endswith('.pdf'):
+            content = extract_pdf_text(str(file_path))
+        elif filename.lower().endswith('.txt'):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        elif filename.lower().endswith('.docx'):
+            content = extract_docx_text(str(file_path))
+        
+        # Save to database
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    INSERT INTO books (title, grade, subject, file_path, original_filename, 
+                                     uploaded_by, file_size, description)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+                """, (title, grade, subject, str(file_path), filename, 
+                     session['user_id'], file_size, description))
+                
+                book_id = cursor.fetchone()[0]
+                conn.commit()
+                
+                # Auto-parse chapters (basic implementation)
+                if content:
+                    parse_book_chapters(book_id, content, cursor, conn)
+                
+                return jsonify({
+                    'success': True,
+                    'message': 'Book uploaded successfully!',
+                    'book_id': book_id,
+                    'title': title
+                })
+                
+            except Exception as e:
+                print(f"Database error occurred")
+                conn.rollback()
+                return jsonify({'error': 'Database error occurred'}), 500
+            finally:
+                conn.close()
+        else:
+            return jsonify({'error': 'Database connection failed'}), 500
+            
+    except Exception as e:
+        print(f"File upload error occurred")
+        return jsonify({'error': 'File upload failed'}), 500
+
+def parse_book_chapters(book_id, content, cursor, conn):
+    """Basic chapter parsing for textbooks"""
+    try:
+        # Simple chapter detection - look for "Chapter" followed by number
+        import re
+        chapter_pattern = r'Chapter\s+(\d+)[:\-\s]*([^\n]+)'
+        chapters = re.findall(chapter_pattern, content, re.IGNORECASE)
+        
+        for i, (chapter_num, chapter_title) in enumerate(chapters[:20]):  # Limit to 20 chapters
+            cursor.execute("""
+                INSERT INTO chapters (book_id, chapter_number, chapter_title)
+                VALUES (%s, %s, %s) RETURNING id
+            """, (book_id, int(chapter_num), chapter_title.strip()))
+            
+            chapter_id = cursor.fetchone()[0]
+            
+            # Create default exercises for each chapter
+            skill_categories = ['Reading', 'Writing', 'Oral Communication', 'Comprehension', 'Grammar', 'Vocabulary']
+            for skill in skill_categories:
+                cursor.execute("""
+                    INSERT INTO exercises (chapter_id, exercise_title, exercise_type, skill_category)
+                    VALUES (%s, %s, %s, %s)
+                """, (chapter_id, f"{skill} Exercise", "Practice", skill))
+        
+        conn.commit()
+        
+    except Exception as e:
+        print(f"Chapter parsing error occurred")
+        pass
+
+def generate_udost_content(feature_type, curriculum_selection):
+    """Generate curriculum-specific content for U-DOST system"""
+    grade = curriculum_selection.get('grade')
+    subject = curriculum_selection.get('subject')
+    book_title = curriculum_selection.get('book_title', 'textbook')
+    chapter_number = curriculum_selection.get('chapter_number')
+    skill_category = curriculum_selection.get('skill_category')
+    
+    # Create context for AI
+    context = f"""
+    You are U-DOST, a friendly Pakistani teacher assistant. Generate content for:
+    
+    Grade: {grade}
+    Subject: {subject}  
+    Book: {book_title}
+    Chapter: {chapter_number}
+    Skill Focus: {skill_category}
+    
+    Pakistani Education Context: This is for Pakistani primary education (grades 1-5) following the local curriculum.
+    Language: Provide content in English but include Urdu terms where appropriate for Pakistani context.
+    """
+    
+    content_prompts = {
+        'lesson_plans': f"""Create a detailed lesson plan for Grade {grade} {subject}, Chapter {chapter_number}, focusing on {skill_category}.
+
+Include:
+1. **Learning Objectives** (Clear, measurable goals)
+2. **Materials Needed** (Textbook, whiteboard, etc.)
+3. **Introduction** (5-10 minutes warm-up activity)
+4. **Main Activity** (20-25 minutes structured learning)
+5. **Practice Session** (10-15 minutes hands-on work)
+6. **Assessment** (How to check understanding)
+7. **Homework/Extension** (Optional follow-up activities)
+8. **Pakistani Context** (Local examples, cultural references)
+
+Make it engaging and age-appropriate for Grade {grade} students in Pakistan.""",
+
+        'teaching_strategies': f"""Suggest 5-7 effective teaching strategies for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category} focus.
+
+Include:
+1. **Interactive Methods** (Group work, pair activities)
+2. **Visual Aids** (Charts, pictures, demonstrations) 
+3. **Local Examples** (Pakistani context, familiar scenarios)
+4. **Differentiated Approaches** (For different learning styles)
+5. **Assessment Techniques** (Quick checks, formative assessment)
+6. **Classroom Management Tips** (Keeping students engaged)
+7. **Cultural Sensitivity** (Islamic values, Pakistani customs)
+
+Make strategies practical and easy to implement.""",
+
+        'activities': f"""Design 6 engaging activities for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+
+Provide activities for:
+1. **Independent Work** (Individual practice)
+2. **Group Activity** (Collaborative learning) 
+3. **Assignment/Homework** (Take-home practice)
+4. **Pair Work** (Partner activities)
+5. **Creative Activity** (Arts, crafts, creative expression)
+6. **Assessment Activity** (Fun way to check learning)
+
+Each activity should include:
+- Clear instructions
+- Time required
+- Materials needed
+- Learning outcomes
+- Pakistani cultural context where relevant""",
+
+        'definitions': f"""Provide clear, age-appropriate definitions and explanations for key concepts in Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+
+Include:
+1. **Key Terms** (Main vocabulary with simple definitions)
+2. **Concept Explanations** (Break down complex ideas)
+3. **Pakistani Examples** (Local context for better understanding)
+4. **Urdu Translations** (Where helpful for comprehension)
+5. **Memory Aids** (Mnemonics, rhymes, visual associations)
+6. **Practice Questions** (Simple questions to check understanding)
+
+Make definitions simple and relatable for Grade {grade} Pakistani students.""",
+
+        'assessment_tools': f"""Create comprehensive assessment tools for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+
+Include:
+1. **Quick Quiz** (5 multiple choice questions with answers)
+2. **True/False Statements** (5 statements with answers)
+3. **Thumbs Up/Down Activities** (5 interactive checks)
+4. **Exit Tickets** (3 reflection questions)
+5. **Fill in the Blanks** (5 sentences with answers)
+6. **Comprehension Questions** (3-5 open-ended questions)
+7. **Assessment Rubric** (Simple scoring guide)
+
+Provide answer keys for all assessments. Make them engaging and age-appropriate.""",
+
+        'educational_games': f"""Design 5 fun educational games and hooks for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+
+Include:
+1. **Warm-up Game** (Start class with energy)
+2. **Review Game** (Reinforce previous learning)
+3. **Practice Game** (Make drilling fun)
+4. **Group Competition** (Team-based activity)
+5. **Closing Hook** (End class memorably)
+
+For each game provide:
+- Rules and setup
+- Time required  
+- Materials needed
+- Learning objectives
+- Pakistani cultural elements (where appropriate)
+- Variations for different skill levels""",
+
+        'examples_practice': f"""Provide detailed examples and practice exercises for Grade {grade} {subject}, Chapter {chapter_number}, {skill_category}.
+
+Include:
+1. **Worked Examples** (Step-by-step solutions)
+2. **Pakistani Context Examples** (Local scenarios, familiar settings)
+3. **Practice Problems** (5-10 exercises with answers)
+4. **Common Mistakes** (What to watch out for)
+5. **Tips and Tricks** (Memory aids, shortcuts)
+6. **Extension Activities** (For advanced students)
+7. **Real-world Applications** (How this applies to daily life in Pakistan)
+
+Make examples relatable and practice progressive from easy to challenging."""
+    }
+    
+    if feature_type not in content_prompts:
+        return jsonify({
+            'message': '❌ Invalid feature type selected.',
+            'options': ['← Back to Menu'],
+            'show_menu': True
+        })
+    
+    prompt = context + content_prompts[feature_type]
+    
+    # Get AI response
+    try:
+        ai_response = get_ai_response(prompt, "educational_content")
+        
+        return jsonify({
+            'message': f"**📚 {feature_type.replace('_', ' ').title()} - Grade {grade} {subject}**\n\n" + ai_response,
+            'is_markdown': True,
+            'return_to_menu': True,
+            'breadcrumb': f"Grade {grade} › {subject} › {book_title} › Chapter {chapter_number} › {skill_category}",
+            'suggestions': [
+                '🔄 Generate More Content',
+                '📤 Save to Files', 
+                '🎯 Change Skill Category',
+                '📖 Change Chapter',
+                '← Back to Menu'
+            ]
+        })
+        
+    except Exception as e:
+        print(f"AI content generation error occurred")
+        return jsonify({
+            'message': '❌ Sorry, I encountered an error generating content. Please ensure AI services are properly configured with valid API keys.',
+            'options': ['🔄 Try Again', '← Back to Menu'],
+            'show_menu': True
+        })
 
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
