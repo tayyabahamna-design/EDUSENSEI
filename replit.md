@@ -27,18 +27,22 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Flash messages for user feedback and form validation
 
 ### Data Storage
-- **Storage Method**: File-based JSON storage system
-- **Data Organization**: Separate JSON files for different data types (students, attendance)
+- **Storage Method**: File-based storage for uploaded content (images, documents, audio)
+- **File Organization**: Upload directories organized by content type (images, documents, audio, metadata)
 - **File Structure**: 
-  - `students.json` - Array of specific student names for the classroom roster
-  - `attendance.json` - Nested object structure by date and student for daily attendance tracking
-- **Data Initialization**: Automatic creation of data directory and files with default values
-- **Persistence**: Synchronous file I/O for immediate data consistency
+  - `uploads/images/` - User-uploaded images for AI analysis
+  - `uploads/docs/` - User-uploaded documents (PDF, DOCX, TXT)
+  - `uploads/audio/` - Voice message recordings
+  - `uploads/meta/` - Metadata files for tracking uploads
+- **Temporary Storage**: Automatic cleanup of files older than 7 days
+- **Privacy**: Image metadata stripping for user privacy
 
 ### Core Features Architecture
-- **Attendance System**: Manual roster management with daily attendance tracking for specific students (Syeda Sughra Fatima, Mehmoona, Aira, Aliza)
-- **Weekly Reporting**: Generate attendance reports with date range selection, accurate statistics calculation, and WhatsApp sharing functionality
-- **AI Chatbot**: Pattern-matching conversational interface with predefined responses for lesson planning assistance
+- **AI Chatbot**: Natural language conversation using Google Gemini AI with multimodal support
+- **Voice Messaging**: Audio recording, upload, and transcription capabilities
+- **File Upload**: Support for images, documents (PDF, DOCX), and audio files
+- **Multimodal AI**: Combined text, image, and document analysis in conversations
+- **Content Processing**: Automatic text extraction from PDFs and DOCX files
 
 ### Authentication and Authorization
 - **Current State**: No authentication system implemented
@@ -49,19 +53,24 @@ Preferred communication style: Simple, everyday language.
 
 ### Python Dependencies
 - **Flask**: Web framework for routing, templating, and request handling
-- **Standard Library**: `json`, `os`, `datetime`, `calendar` for core functionality
+- **Google Generative AI**: Gemini API for natural language processing and multimodal AI
+- **Pillow (PIL)**: Image processing and metadata removal
+- **pypdf**: PDF text extraction
+- **python-docx**: DOCX document text extraction
+- **Standard Library**: `json`, `os`, `datetime`, `uuid`, `mimetypes` for core functionality
 
 ### Frontend Dependencies
 - **No External Libraries**: Pure HTML, CSS, and JavaScript implementation
+- **MediaRecorder API**: Native browser voice recording capabilities
 - **Font**: System fonts (Segoe UI family) for cross-platform compatibility
 
-### Simulated AI Services
-- **Grading AI**: Placeholder implementation that generates random scores
-- **Chatbot AI**: Rule-based response system with predefined conversation flows
-- **Future Integration Points**: Ready for integration with actual AI services for photo analysis and natural language processing
+### AI Services Integration
+- **Google Gemini**: Production AI service for natural conversation and multimodal analysis
+- **Multimodal Processing**: Combined text, image, and document understanding
+- **Fallback System**: Educational guidance system when AI is unavailable
 
 ### File System Dependencies
-- **Data Directory**: Local file system for JSON data storage
+- **Upload Directory**: Local file system for temporary file storage with automatic cleanup
 - **Static Assets**: CSS files served through Flask's static file handling
 - **Templates**: Jinja2 template files for dynamic content rendering
 
