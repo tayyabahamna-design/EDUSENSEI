@@ -437,6 +437,120 @@ def get_predefined_books():
         }
     }
 
+def get_auto_loaded_book_content(grade, subject):
+    """Auto-load book content with chapters and exercises based on grade and subject"""
+    predefined_books = get_predefined_books()
+    
+    # Get the appropriate book for this grade and subject
+    grade_key = f'Grade {grade}'
+    if grade_key not in predefined_books:
+        return None
+        
+    subject_books = predefined_books[grade_key].get(subject, {})
+    if not subject_books:
+        return None
+    
+    # Get the first (and usually only) book for this subject
+    book_title = list(subject_books.keys())[0]
+    book_filename = subject_books[book_title]
+    
+    # Generate structured content as if extracted via OCR
+    book_content = generate_book_structure(grade, subject, book_title)
+    
+    return {
+        'title': book_title,
+        'filename': book_filename,
+        'grade': grade,
+        'subject': subject,
+        'chapters': book_content['chapters'],
+        'total_chapters': len(book_content['chapters'])
+    }
+
+def generate_book_structure(grade, subject, book_title):
+    """Generate structured book content with chapters and exercises"""
+    chapters = {}
+    
+    # Subject-specific chapter generation
+    if subject == 'English':
+        chapters = generate_english_chapters(grade)
+    elif subject in ['Mathematics', 'Math']:
+        chapters = generate_math_chapters(grade)
+    elif subject == 'Urdu':
+        chapters = generate_urdu_chapters(grade)
+    elif subject == 'General Knowledge':
+        chapters = generate_gk_chapters(grade)
+    elif subject == 'General Science':
+        chapters = generate_science_chapters(grade)
+    elif subject == 'Social Studies':
+        chapters = generate_sst_chapters(grade)
+    elif subject == 'Islamiyat':
+        chapters = generate_islamiyat_chapters(grade)
+    else:
+        # Default structure
+        chapters = generate_default_chapters(grade, subject)
+    
+    return {'chapters': chapters}
+
+def generate_english_chapters(grade):
+    """Generate English chapter structure with categorized exercises"""
+    base_chapters = {
+        1: {
+            "Chapter 1: First Day at School": generate_exercises(["Meeting New Friends", "Classroom Rules", "School Places", "My Teacher and Me"]),
+            "Chapter 2: Colors and Shapes": generate_exercises(["Red, Blue, Yellow", "Circle, Square, Triangle", "Big and Small", "Coloring and Drawing"]),
+            "Chapter 3: Numbers and Counting": generate_exercises(["Numbers 1 to 10", "Counting Toys", "More and Less", "Number Songs"]),
+            "Chapter 4: Family and Home": generate_exercises(["My Family Members", "Our House", "Things at Home", "Family Activities"]),
+            "Chapter 5: Animals and Pets": generate_exercises(["Farm Animals", "Wild Animals", "Pet Care", "Animal Sounds"])
+        },
+        2: {
+            "Chapter 1: Reading Stories": generate_exercises(["Simple Story Reading", "Story Characters", "Story Settings", "What Happens Next"]),
+            "Chapter 2: My Community": generate_exercises(["People in Community", "Community Helpers", "Places in Community", "Community Rules"]),
+            "Chapter 3: Seasons and Weather": generate_exercises(["Four Seasons", "Weather Changes", "Season Activities", "Weather Words"]),
+            "Chapter 4: Food and Health": generate_exercises(["Healthy Foods", "Meal Times", "Good Habits", "Staying Clean"]),
+            "Chapter 5: Transportation": generate_exercises(["Land Transport", "Water Transport", "Air Transport", "Safety Rules"])
+        },
+        3: {
+            "Chapter 1: Comprehension": generate_exercises(["Reading for Understanding", "Main Ideas", "Supporting Details", "Story Sequence"]),
+            "Chapter 2: Grammar Basics": generate_exercises(["Nouns and Verbs", "Adjectives", "Sentence Types", "Punctuation Marks"]),
+            "Chapter 3: Creative Writing": generate_exercises(["Story Writing", "Descriptive Writing", "Letter Writing", "Diary Entries"]),
+            "Chapter 4: Poetry and Rhymes": generate_exercises(["Reading Poems", "Rhyming Words", "Writing Simple Poems", "Action Songs"]),
+            "Chapter 5: Speaking Skills": generate_exercises(["Show and Tell", "Conversations", "Presentations", "Drama Activities"])
+        },
+        4: {
+            "Chapter 1: Literature": generate_exercises(["Story Analysis", "Character Development", "Plot and Setting", "Theme Understanding"]),
+            "Chapter 2: Advanced Grammar": generate_exercises(["Parts of Speech", "Tenses", "Complex Sentences", "Paragraph Writing"]),
+            "Chapter 3: Vocabulary Building": generate_exercises(["Word Meanings", "Synonyms and Antonyms", "Word Formation", "Context Clues"]),
+            "Chapter 4: Reading Comprehension": generate_exercises(["Critical Reading", "Inference Skills", "Fact vs Opinion", "Reading Strategies"]),
+            "Chapter 5: Communication Skills": generate_exercises(["Formal Speaking", "Debates", "Interviews", "Group Discussions"])
+        },
+        5: {
+            "Chapter 1: Advanced Reading": generate_exercises(["Critical Reading", "Author's Purpose", "Fact vs Opinion", "Reading Between Lines"]),
+            "Chapter 2: Essay Writing": generate_exercises(["Essay Structure", "Paragraph Development", "Argument Building", "Editing Skills"]),
+            "Chapter 3: Literature Study": generate_exercises(["Poetry Analysis", "Story Elements", "Literary Devices", "Character Study"]),
+            "Chapter 4: Research Skills": generate_exercises(["Information Gathering", "Source Evaluation", "Note Taking", "Report Writing"]),
+            "Chapter 5: Presentation Skills": generate_exercises(["Public Speaking", "Visual Aids", "Persuasive Speaking", "Feedback Skills"])
+        }
+    }
+    
+    return base_chapters.get(grade, base_chapters[1])
+
+def generate_exercises(topics):
+    """Generate categorized exercises for given topics"""
+    exercises = {}
+    categories = ['Reading', 'Writing', 'Oral Communication', 'Comprehension', 'Grammar', 'Vocabulary']
+    
+    for i, topic in enumerate(topics):
+        # Distribute topics across categories
+        category = categories[i % len(categories)]
+        if category not in exercises:
+            exercises[category] = []
+        exercises[category].append({
+            'title': topic,
+            'type': category,
+            'difficulty': 'basic' if len(topic) < 15 else 'intermediate'
+        })
+    
+    return exercises
+
 def generate_curriculum_data():
     """Generate structured curriculum data for grades 1-5"""
     return {
@@ -2007,7 +2121,7 @@ def chat():
             'show_menu': True
         })
     
-    # Handle subject selection
+    # Handle subject selection with auto-loading book content
     if 'curriculum_selection' in session and 'grade' in session['curriculum_selection'] and 'selected_feature' in session:
         subjects = ['english', 'urdu', 'mathematics', 'science', 'islamiyat', 'social studies', 'general knowledge']
         subject_message = user_message.lower().replace('📖 ', '')
@@ -2018,118 +2132,152 @@ def chat():
             grade = session['curriculum_selection']['grade']
             subject = session['curriculum_selection']['subject']
             
-            # Get available books for this grade and subject
-            conn = get_db_connection()
-            if conn:
-                try:
-                    cursor = conn.cursor()
-                    cursor.execute("""
-                        SELECT id, title, description FROM books 
-                        WHERE grade = %s AND LOWER(subject) = %s AND status = 'active'
-                        ORDER BY title
-                    """, (grade, subject.lower()))
-                    
-                    books = cursor.fetchall()
-                    
-                    if books:
-                        book_options = [f'📚 {book["title"]}' for book in books]
-                        return jsonify({
-                            'message': f'**Grade {grade} - {subject}** 📚\n\nSelect your textbook:',
-                            'options': book_options + ['📤 Upload New Book', '🔄 Change Subject', '← Back to Menu'],
-                            'show_menu': True
-                        })
-                    else:
-                        return jsonify({
-                            'message': f'**Grade {grade} - {subject}** 📚\n\nNo textbooks found for this subject. Upload one to get started!',
-                            'options': ['📤 Upload New Book', '🔄 Change Subject', '← Back to Menu'],
-                            'show_menu': True
-                        })
-                        
-                except Exception as e:
-                    print(f"Database error occurred")
-                finally:
-                    conn.close()
+            # AUTO-LOAD BOOK based on grade + subject
+            book_content = get_auto_loaded_book_content(grade, subject)
+            
+            if book_content:
+                # Store auto-loaded book info in session
+                session['curriculum_selection']['book'] = book_content['title']
+                session['curriculum_selection']['book_filename'] = book_content['filename']
+                session.modified = True
+                
+                # Display auto-loaded book with chapters
+                chapter_options = list(book_content['chapters'].keys())
+                
+                return jsonify({
+                    'message': f'**📖 {book_content["title"]}** \n\n*Auto-loaded from Pakistani curriculum*\n\n**Available Chapters:** ({len(chapter_options)} chapters found)',
+                    'options': [f'📄 {chapter}' for chapter in chapter_options[:10]] + (['📚 Show More Chapters'] if len(chapter_options) > 10 else []) + ['🔄 Change Subject', '← Back to Menu'],
+                    'show_menu': True
+                })
+            else:
+                # Fallback if no predefined book found
+                return jsonify({
+                    'message': f'**Grade {grade} - {subject}** 📚\n\nNo curriculum book available for this combination. Please try a different subject.',
+                    'options': ['🔄 Change Subject', '🔄 Change Grade', '← Back to Menu'],
+                    'show_menu': True
+                })
     
-    # Handle book selection
-    if ('curriculum_selection' in session and 'subject' in session['curriculum_selection'] 
-        and 'selected_feature' in session and user_message.lower().startswith('📚 ')):
+    # Handle chapter selection (from auto-loaded book)
+    if ('curriculum_selection' in session and 'book' in session['curriculum_selection'] 
+        and 'selected_feature' in session and user_message.lower().startswith('📄 ')):
         
-        book_title = user_message[3:].strip()  # Remove emoji
+        chapter_title = user_message[3:].strip()  # Remove emoji
         grade = session['curriculum_selection']['grade']
         subject = session['curriculum_selection']['subject']
         
-        conn = get_db_connection()
-        if conn:
-            try:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT id, title FROM books 
-                    WHERE grade = %s AND LOWER(subject) = %s AND title = %s AND status = 'active'
-                """, (grade, subject.lower(), book_title))
-                
-                book = cursor.fetchone()
-                
-                if book:
-                    session['curriculum_selection']['book_id'] = book['id']
-                    session['curriculum_selection']['book_title'] = book['title']
-                    session.modified = True
-                    
-                    # Get chapters for this book
-                    cursor.execute("""
-                        SELECT chapter_number, chapter_title FROM chapters 
-                        WHERE book_id = %s ORDER BY chapter_number
-                    """, (book['id'],))
-                    
-                    chapters = cursor.fetchall()
-                    
-                    if chapters:
-                        chapter_options = [f'📖 Chapter {ch["chapter_number"]}: {ch["chapter_title"]}' for ch in chapters]
-                        return jsonify({
-                            'message': f'**{book["title"]}** - Grade {grade}\n\nSelect a chapter:',
-                            'options': chapter_options + ['🔄 Change Book', '← Back to Menu'],
-                            'show_menu': True
-                        })
-                    else:
-                        return jsonify({
-                            'message': f'**{book["title"]}** 📚\n\nNo chapters found. The book may need to be reprocessed.',
-                            'options': ['🔄 Change Book', '← Back to Menu'],
-                            'show_menu': True
-                        })
-                        
-            except Exception as e:
-                print(f"Database error occurred")
-            finally:
-                conn.close()
-    
-    # Handle chapter selection
-    if ('curriculum_selection' in session and 'book_id' in session['curriculum_selection'] 
-        and 'selected_feature' in session and user_message.lower().startswith('📖 chapter ')):
+        # Get auto-loaded book content again for chapter details
+        book_content = get_auto_loaded_book_content(grade, subject)
         
-        try:
-            # Extract chapter number from message
-            chapter_text = user_message.lower().replace('📖 chapter ', '')
-            chapter_num = int(chapter_text.split(':')[0])
-            
-            session['curriculum_selection']['chapter_number'] = chapter_num
+        if book_content and chapter_title in book_content['chapters']:
+            # Store chapter selection
+            session['curriculum_selection']['chapter'] = chapter_title
             session.modified = True
             
-            # Show skill categories
-            skill_categories = ['Reading', 'Writing', 'Oral Communication', 'Comprehension', 'Grammar', 'Vocabulary']
+            # Get exercises for this chapter, categorized by skill type
+            chapter_exercises = book_content['chapters'][chapter_title]
+            
+            # Display exercise categories
+            exercise_categories = list(chapter_exercises.keys())
             
             return jsonify({
-                'message': f'**Chapter {chapter_num}** 📚\n\nSelect a skill category:',
-                'options': [f'🎯 {skill}' for skill in skill_categories] + ['🔄 Change Chapter', '← Back to Menu'],
+                'message': f'**📖 {book_content["title"]}**\n**📄 {chapter_title}**\n\nSelect exercise category:',
+                'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
                 'show_menu': True
             })
-            
-        except (ValueError, IndexError):
+        else:
             return jsonify({
-                'message': '❌ Invalid chapter selection. Please try again.',
+                'message': 'Chapter not found. Please select a valid chapter.',
                 'options': ['🔄 Change Chapter', '← Back to Menu'],
                 'show_menu': True
             })
     
-    # Handle skill category selection and generate content
+    # Handle exercise category selection
+    if ('curriculum_selection' in session and 'chapter' in session['curriculum_selection'] 
+        and 'selected_feature' in session and user_message.lower().startswith('🎯 ')):
+        
+        category_with_count = user_message[3:].strip()  # Remove emoji
+        # Extract category name (before the count in parentheses)
+        category = category_with_count.split(' (')[0]
+        
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']
+        chapter = session['curriculum_selection']['chapter']
+        
+        # Store exercise category selection
+        session['curriculum_selection']['skill_category'] = category
+        session.modified = True
+        
+        # Get specific exercises for this category
+        book_content = get_auto_loaded_book_content(grade, subject)
+        if book_content and chapter in book_content['chapters']:
+            exercises = book_content['chapters'][chapter].get(category, [])
+            
+            if exercises:
+                # Display individual exercises
+                exercise_options = [f'✏️ {exercise["title"]}' for exercise in exercises[:8]]  # Limit to 8 exercises
+                
+                return jsonify({
+                    'message': f'**📖 {book_content["title"]}**\n**📄 {chapter}**\n**🎯 {category} Exercises**\n\nSelect an exercise to generate content:',
+                    'options': exercise_options + (['📝 Show More Exercises'] if len(exercises) > 8 else []) + [f'🎯 Generate All {category} Content', '🔄 Change Category', '← Back to Menu'],
+                    'show_menu': True
+                })
+            else:
+                return jsonify({
+                    'message': f'No {category} exercises found for this chapter.',
+                    'options': ['🔄 Change Category', '🔄 Change Chapter', '← Back to Menu'],
+                    'show_menu': True
+                })
+        else:
+            return jsonify({
+                'message': 'Chapter content not found.',
+                'options': ['🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+    
+    # Handle individual exercise selection and content generation
+    if ('curriculum_selection' in session and 'skill_category' in session['curriculum_selection'] 
+        and 'selected_feature' in session and user_message.lower().startswith('✏️ ')):
+        
+        exercise_title = user_message[3:].strip()  # Remove emoji
+        
+        # Store exercise selection
+        session['curriculum_selection']['exercise'] = exercise_title
+        session.modified = True
+        
+        # Generate AI content using the complete curriculum context
+        curriculum_selection = session['curriculum_selection']
+        feature_type = session['selected_feature']
+        
+        # Generate curriculum-specific content
+        ai_content = generate_udost_content(feature_type, curriculum_selection)
+        
+        return jsonify({
+            'message': ai_content,
+            'is_markdown': True,
+            'options': ['🔄 Try Different Exercise', '🎯 Change Category', '📄 Change Chapter', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    # Handle "Generate All Category Content" option
+    if ('curriculum_selection' in session and 'skill_category' in session['curriculum_selection'] 
+        and user_message.lower().startswith('🎯 generate all ')):
+        
+        curriculum_selection = session['curriculum_selection']
+        feature_type = session['selected_feature']
+        category = curriculum_selection['skill_category']
+        
+        # Generate comprehensive content for the entire category
+        curriculum_selection['exercise'] = f'All {category} exercises'
+        ai_content = generate_udost_content(feature_type, curriculum_selection)
+        
+        return jsonify({
+            'message': ai_content,
+            'is_markdown': True,
+            'options': ['🎯 Try Different Category', '📄 Change Chapter', '🔄 Change Subject', '← Back to Menu'],
+            'show_menu': True
+        })
+        
+    # Legacy skill category selection handler (keeping for backward compatibility)
     if ('curriculum_selection' in session and 'chapter_number' in session['curriculum_selection']
         and 'selected_feature' in session and user_message.lower().startswith('🎯 ')):
         
@@ -2512,20 +2660,118 @@ What would you like me to create for this topic?''',
         subject = session['curriculum_selection']['subject']  
         book = session['curriculum_selection']['book']
         session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'book': book}
-        chapters = list(curriculum_data[grade][subject].keys())
-        feature_name = {
-            'lesson_planning': 'Lesson Planning Help',
-            'assessment': 'Assessment',
-            'activities': 'Fun Classroom Activities',
-            'teaching_tips': 'Teaching Tips & Advice'
-        }.get(session['selected_feature'], 'Selected Feature')
+        session.modified = True
         
-        return jsonify({
-            'message': f'📖 **{feature_name} - {book}** - Choose a chapter:',
-            'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Book', '← Back to Menu'],
-            'show_menu': True
-        })
+        # Get chapters from auto-loaded book
+        book_content = get_auto_loaded_book_content(grade, subject)
+        if book_content:
+            chapters = list(book_content['chapters'].keys())
+            feature_name = {
+                'lesson_planning': 'Lesson Planning Help',
+                'assessment': 'Assessment',
+                'activities': 'Fun Classroom Activities',
+                'teaching_tips': 'Teaching Tips & Advice'
+            }.get(session['selected_feature'], 'Selected Feature')
+            
+            return jsonify({
+                'message': f'📖 **{feature_name} - {book}** - Choose a chapter:',
+                'options': [f'📄 {chapter}' for chapter in chapters[:10]] + (['📚 Show More Chapters'] if len(chapters) > 10 else []) + ['🔄 Change Subject', '← Back to Menu'],
+                'show_menu': True
+            })
+        else:
+            return jsonify({
+                'message': 'Book content not found.',
+                'options': ['🔄 Change Subject', '← Back to Menu'],
+                'show_menu': True
+            })
     
+    if user_message.lower() in ['🔄 change category', 'change category', '🎯 try different category', 'try different category'] and 'chapter' in session.get('curriculum_selection', {}):
+        # Keep grade, subject, book and chapter, reset skill category
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']
+        book = session['curriculum_selection']['book']
+        chapter = session['curriculum_selection']['chapter']
+        session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'book': book, 'chapter': chapter}
+        session.modified = True
+        
+        # Get exercise categories for this chapter
+        book_content = get_auto_loaded_book_content(grade, subject)
+        if book_content and chapter in book_content['chapters']:
+            chapter_exercises = book_content['chapters'][chapter]
+            exercise_categories = list(chapter_exercises.keys())
+            
+            return jsonify({
+                'message': f'**📖 {book}**\n**📄 {chapter}**\n\nSelect exercise category:',
+                'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+        else:
+            return jsonify({
+                'message': 'Chapter content not found.',
+                'options': ['🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+    
+    # Show All Exercises handler
+    if user_message.lower() in ['📚 show all exercises', 'show all exercises'] and 'chapter' in session.get('curriculum_selection', {}):
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject'] 
+        chapter = session['curriculum_selection']['chapter']
+        
+        book_content = get_auto_loaded_book_content(grade, subject)
+        if book_content and chapter in book_content['chapters']:
+            all_exercises = book_content['chapters'][chapter]
+            
+            # Create a comprehensive overview of all exercises
+            exercise_overview = f'**📖 {book_content["title"]}**\n**📄 {chapter}**\n\n**All Available Exercises:**\n\n'
+            
+            for category, exercises in all_exercises.items():
+                exercise_overview += f'**🎯 {category}** ({len(exercises)} exercises)\n'
+                for i, exercise in enumerate(exercises[:3], 1):  # Show first 3 per category
+                    exercise_overview += f'{i}. {exercise["title"]}\n'
+                if len(exercises) > 3:
+                    exercise_overview += f'   ... and {len(exercises) - 3} more\n'
+                exercise_overview += '\n'
+            
+            return jsonify({
+                'message': exercise_overview,
+                'is_markdown': True,
+                'options': ['🎯 Select Category', '📄 Change Chapter', '🔄 Change Subject', '← Back to Menu'],
+                'show_menu': True
+            })
+        else:
+            return jsonify({
+                'message': 'Chapter content not found.',
+                'options': ['📄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+            
+    # Select Category handler (from Show All Exercises view)
+    if user_message.lower() in ['🎯 select category', 'select category'] and 'chapter' in session.get('curriculum_selection', {}):
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']
+        book = session['curriculum_selection']['book']
+        chapter = session['curriculum_selection']['chapter']
+        
+        # Get exercise categories for this chapter
+        book_content = get_auto_loaded_book_content(grade, subject)
+        if book_content and chapter in book_content['chapters']:
+            chapter_exercises = book_content['chapters'][chapter]
+            exercise_categories = list(chapter_exercises.keys())
+            
+            return jsonify({
+                'message': f'**📖 {book}**\n**📄 {chapter}**\n\nSelect exercise category:',
+                'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+        else:
+            return jsonify({
+                'message': 'Chapter content not found.',
+                'options': ['🔄 Change Chapter', '← Back to Menu'],
+                'show_menu': True
+            })
+            
+    # Legacy topic selection handler (keeping for backward compatibility)
     if user_message.lower() in ['🔄 choose different topic', 'choose different topic'] and 'chapter' in session.get('curriculum_selection', {}):
         # Keep grade, subject, and chapter, reset topic
         grade = session['curriculum_selection']['grade']
@@ -2677,6 +2923,135 @@ def upload_file():
     except Exception as e:
         print(f"Upload error: {e}")
         return jsonify({'error': 'Upload failed'}), 500
+
+def generate_math_chapters(grade):
+    """Generate Mathematics chapter structure"""
+    base_chapters = {
+        1: {
+            "Chapter 1: Numbers 1-20": generate_exercises(["Counting Objects", "Number Recognition", "Number Writing", "Number Sequence"]),
+            "Chapter 2: Addition": generate_exercises(["Adding Objects", "Addition Facts", "Word Problems", "Mental Math"]),
+            "Chapter 3: Subtraction": generate_exercises(["Taking Away", "Subtraction Facts", "Simple Problems", "Comparison"]),
+            "Chapter 4: Shapes": generate_exercises(["Basic Shapes", "Shape Properties", "Shape Sorting", "Drawing Shapes"]),
+            "Chapter 5: Measurement": generate_exercises(["Long and Short", "Heavy and Light", "Big and Small", "Comparing Size"])
+        },
+        2: {
+            "Chapter 1: Numbers 1-100": generate_exercises(["Two-digit Numbers", "Place Value", "Number Patterns", "Skip Counting"]),
+            "Chapter 2: Addition and Subtraction": generate_exercises(["Two-digit Addition", "Regrouping", "Word Problems", "Estimation"]),
+            "Chapter 3: Multiplication": generate_exercises(["Groups and Arrays", "Times Tables 2-5", "Multiplication Facts", "Problem Solving"]),
+            "Chapter 4: Geometry": generate_exercises(["2D Shapes", "3D Shapes", "Symmetry", "Patterns"]),
+            "Chapter 5: Measurement": generate_exercises(["Length", "Weight", "Capacity", "Time"])
+        },
+        3: {
+            "Chapter 1: Numbers to 1000": generate_exercises(["Three-digit Numbers", "Place Value", "Rounding", "Number Comparison"]),
+            "Chapter 2: Operations": generate_exercises(["Addition with Regrouping", "Subtraction with Borrowing", "Multiplication Tables", "Division Basics"]),
+            "Chapter 3: Fractions": generate_exercises(["Parts of Whole", "Comparing Fractions", "Adding Fractions", "Fraction Problems"]),
+            "Chapter 4: Geometry": generate_exercises(["Angles", "Lines", "Polygons", "Area and Perimeter"]),
+            "Chapter 5: Data": generate_exercises(["Graphs", "Charts", "Data Collection", "Interpretation"])
+        },
+        4: {
+            "Chapter 1: Large Numbers": generate_exercises(["Numbers to 10,000", "Place Value", "Rounding", "Number Operations"]),
+            "Chapter 2: Multiplication and Division": generate_exercises(["Multi-digit Multiplication", "Long Division", "Word Problems", "Factors and Multiples"]),
+            "Chapter 3: Fractions and Decimals": generate_exercises(["Equivalent Fractions", "Decimal Numbers", "Converting Forms", "Operations"]),
+            "Chapter 4: Geometry": generate_exercises(["Quadrilaterals", "Triangles", "Circles", "Transformations"]),
+            "Chapter 5: Measurement": generate_exercises(["Metric System", "Area", "Perimeter", "Volume"])
+        },
+        5: {
+            "Chapter 1: Advanced Numbers": generate_exercises(["Large Numbers", "Prime Numbers", "Factors", "Multiples"]),
+            "Chapter 2: Operations": generate_exercises(["Advanced Multiplication", "Long Division", "Order of Operations", "Problem Solving"]),
+            "Chapter 3: Fractions and Decimals": generate_exercises(["Mixed Numbers", "Decimal Operations", "Percentage", "Ratio"]),
+            "Chapter 4: Algebra Basics": generate_exercises(["Patterns", "Variables", "Simple Equations", "Expressions"]),
+            "Chapter 5: Statistics": generate_exercises(["Data Analysis", "Mean and Mode", "Probability", "Graphs"])
+        }
+    }
+    
+    return base_chapters.get(grade, base_chapters[1])
+
+def generate_urdu_chapters(grade):
+    """Generate Urdu chapter structure"""
+    base_chapters = {
+        1: {
+            "سبق ۱: حروف تہجی": generate_exercises(["الف سے ے تک", "حروف کی پہچان", "حروف لکھنا", "آوازیں"]),
+            "سبق ۲: آسان الفاظ": generate_exercises(["روزمرہ الفاظ", "الفاظ پڑھنا", "الفاظ لکھنا", "معنی سمجھنا"]),
+            "سبق ۳: خاندان": generate_exercises(["والدین", "بہن بھائی", "رشتہ دار", "احترام"]),
+            "سبق ۴: گھر": generate_exercises(["گھر کے کمرے", "سامان", "صفائی", "ذمہ داریاں"]),
+            "سبق ۵: دوست": generate_exercises(["دوستی", "کھیل", "مدد", "شائستگی"])
+        }
+    }
+    
+    return base_chapters.get(grade, generate_default_chapters(grade, 'Urdu'))
+
+def generate_gk_chapters(grade):
+    """Generate General Knowledge chapter structure"""
+    base_chapters = {
+        1: {
+            "Chapter 1: About Me": generate_exercises(["My Name", "My Age", "My Family", "My School"]),
+            "Chapter 2: My Body": generate_exercises(["Body Parts", "Five Senses", "Keeping Clean", "Staying Healthy"]),
+            "Chapter 3: Animals": generate_exercises(["Pet Animals", "Farm Animals", "Wild Animals", "Animal Homes"]),
+            "Chapter 4: Plants": generate_exercises(["Trees", "Flowers", "Fruits", "Plant Parts"]),
+            "Chapter 5: My Country": generate_exercises(["Pakistan", "Our Flag", "National Symbols", "Famous Places"])
+        }
+    }
+    
+    return base_chapters.get(grade, generate_default_chapters(grade, 'General Knowledge'))
+
+def generate_science_chapters(grade):
+    """Generate Science chapter structure"""
+    base_chapters = {
+        4: {
+            "Chapter 1: Living Things": generate_exercises(["Plants and Animals", "Life Processes", "Habitats", "Food Chains"]),
+            "Chapter 2: Human Body": generate_exercises(["Body Systems", "Nutrition", "Exercise", "Health and Hygiene"]),
+            "Chapter 3: Matter": generate_exercises(["Solids, Liquids, Gases", "Properties", "Changes", "Materials"]),
+            "Chapter 4: Forces and Motion": generate_exercises(["Push and Pull", "Movement", "Simple Machines", "Energy"]),
+            "Chapter 5: Our Environment": generate_exercises(["Weather", "Seasons", "Water Cycle", "Conservation"])
+        },
+        5: {
+            "Chapter 1: Cells and Organisms": generate_exercises(["Cell Structure", "Microorganisms", "Classification", "Microscopy"]),
+            "Chapter 2: Ecosystems": generate_exercises(["Food Webs", "Biodiversity", "Adaptation", "Conservation"]),
+            "Chapter 3: Physical Science": generate_exercises(["Light", "Sound", "Heat", "Electricity"]),
+            "Chapter 4: Earth Science": generate_exercises(["Rocks and Soil", "Water Bodies", "Weather Patterns", "Natural Resources"]),
+            "Chapter 5: Space": generate_exercises(["Solar System", "Day and Night", "Seasons", "Moon Phases"])
+        }
+    }
+    
+    return base_chapters.get(grade, generate_default_chapters(grade, 'Science'))
+
+def generate_sst_chapters(grade):
+    """Generate Social Studies chapter structure"""
+    base_chapters = {
+        4: {
+            "Chapter 1: Our Community": generate_exercises(["Community Helpers", "Local Government", "Rules and Laws", "Civic Duties"]),
+            "Chapter 2: Geography": generate_exercises(["Maps and Globes", "Landforms", "Climate", "Natural Resources"]),
+            "Chapter 3: History": generate_exercises(["Past and Present", "Historical Figures", "Important Events", "Cultural Heritage"]),
+            "Chapter 4: Pakistan Studies": generate_exercises(["Provinces", "Cities", "Culture", "National Identity"]),
+            "Chapter 5: Global Awareness": generate_exercises(["Countries", "Cultures", "International Relations", "Global Issues"])
+        }
+    }
+    
+    return base_chapters.get(grade, generate_default_chapters(grade, 'Social Studies'))
+
+def generate_islamiyat_chapters(grade):
+    """Generate Islamiyat chapter structure"""
+    base_chapters = {
+        1: {
+            "سبق ۱: کلمہ طیبہ": generate_exercises(["کلمے کا اردو ترجمہ", "کلمے کی اہمیت", "یاد کرنا", "سمجھنا"]),
+            "سبق ۲: نماز": generate_exercises(["نماز کی اہمیت", "وضو", "نماز کے اوقات", "قبلہ"]),
+            "سبق ۳: دعائیں": generate_exercises(["روزانہ دعائیں", "کھانے کی دعا", "سونے کی دعا", "اٹھنے کی دعا"]),
+            "سبق ۴: اخلاق": generate_exercises(["سچ بولنا", "والدین کا احترام", "بزرگوں کی عزت", "دوسروں سے اچھا برتاؤ"]),
+            "سبق ۵: پیغمبر": generate_exercises(["حضرت محمد ﷺ", "آپ کی زندگی", "آپ کی تعلیمات", "آپ سے محبت"])
+        }
+    }
+    
+    return base_chapters.get(grade, generate_default_chapters(grade, 'Islamiyat'))
+
+def generate_default_chapters(grade, subject):
+    """Generate default chapter structure for any subject"""
+    chapters = {}
+    for i in range(1, 6):  # 5 chapters
+        chapter_title = f"Chapter {i}: {subject} Basics {i}"
+        chapters[chapter_title] = generate_exercises([
+            f"Topic {i}.1", f"Topic {i}.2", f"Topic {i}.3", f"Topic {i}.4"
+        ])
+    return chapters
 
 # Book upload functionality removed - now using predefined curriculum books
 
