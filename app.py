@@ -1622,7 +1622,7 @@ def chat():
             'show_menu': True
         })
     
-    # Handle Grade selections - only if a feature is selected
+    # Handle curriculum navigation - only if a feature is selected
     if 'selected_feature' in session:
         curriculum_data = generate_curriculum_data()
         
@@ -1650,7 +1650,7 @@ def chat():
                     'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
                     'show_menu': True
                 })
-    
+        
         # Handle Subject selections
         if 'grade' in session.get('curriculum_selection', {}):
             current_grade = session['curriculum_selection']['grade']
