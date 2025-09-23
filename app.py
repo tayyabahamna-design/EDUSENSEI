@@ -558,6 +558,73 @@ def create_class_route():
     flash(f'Grade {grade}{section.upper()} created successfully!', 'success')
     return redirect(url_for('classes_attendance'))
 
+@app.route('/edit_class', methods=['POST'])
+def edit_class():
+    """Edit an existing class"""
+    class_id = request.form.get('class_id')
+    new_grade = request.form.get('grade')
+    new_section = request.form.get('section')
+    
+    if not class_id or not new_grade or not new_section:
+        flash('All fields are required for editing!', 'error')
+        return redirect(url_for('classes_attendance'))
+    
+    try:
+        new_grade = int(new_grade)
+        if new_grade < 1 or new_grade > 5:
+            flash('Grade must be between 1 and 5!', 'error')
+            return redirect(url_for('classes_attendance'))
+    except ValueError:
+        flash('Invalid grade number!', 'error')
+        return redirect(url_for('classes_attendance'))
+    
+    # Load classes data
+    classes_data = load_data(CLASSES_FILE)
+    
+    if class_id not in classes_data:
+        flash('Class not found!', 'error')
+        return redirect(url_for('classes_attendance'))
+    
+    # Create new class name
+    new_class_name = f"Grade {new_grade}{new_section.upper()}"
+    new_class_id = f"grade_{new_grade}{new_section.lower()}"
+    
+    # Check if new class name/id already exists (and it's not the same class)
+    if new_class_id != class_id and new_class_id in classes_data:
+        flash(f'Class {new_class_name} already exists!', 'error')
+        return redirect(url_for('classes_attendance'))
+    
+    old_class_name = classes_data[class_id]['name']
+    
+    # If the ID is changing, we need to update student assignments
+    if new_class_id != class_id:
+        # Update all students assigned to this class
+        students_data = load_data(STUDENTS_FILE)
+        students_data = migrate_legacy_students(students_data)
+        
+        for student in students_data:
+            if student.get('class_id') == class_id:
+                student['class_id'] = new_class_id
+        
+        save_data(STUDENTS_FILE, students_data)
+        
+        # Move the class data to new ID and remove old entry
+        classes_data[new_class_id] = classes_data[class_id].copy()
+        del classes_data[class_id]
+    
+    # Update class information
+    classes_data[new_class_id].update({
+        'id': new_class_id,
+        'name': new_class_name,
+        'grade': new_grade,
+        'section': new_section.upper()
+    })
+    
+    save_data(CLASSES_FILE, classes_data)
+    
+    flash(f'Class updated from "{old_class_name}" to "{new_class_name}" successfully!', 'success')
+    return redirect(url_for('classes_attendance'))
+
 @app.route('/delete_class', methods=['POST'])
 def delete_class():
     """Delete a class and unassign all students"""
@@ -590,7 +657,7 @@ def delete_class():
         save_data(CLASSES_FILE, classes_data)
     
     flash(f'{class_info["name"]} deleted successfully! All students have been unassigned.', 'success')
-    return redirect(url_for('classes'))
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/assign_student', methods=['POST'])
 def assign_student():
@@ -620,7 +687,7 @@ def assign_student():
     else:
         flash('Student not found!', 'error')
     
-    return redirect(url_for('classes'))
+    return redirect(url_for('classes_attendance'))
 
 @app.route('/class_attendance/<class_id>')
 def class_attendance(class_id):
