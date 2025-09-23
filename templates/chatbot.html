@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}AI Teaching Assistant - Tutor's Assistant{% endblock %}
+{% block title %}U-DOST - Pakistani Teacher Assistant{% endblock %}
 
 {% block content %}
 <div class="chatbot-page">
-    <h1>🤖💖 AI Teaching Assistant 🌈✨</h1>
+    <h1>🌟 U-DOST - Pakistani Teacher Assistant 🇵🇰✨</h1>
     
     <div class="chat-container">
         <div class="chat-header" id="chatHeader">
@@ -21,8 +21,9 @@
             <div class="bot-message">
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
-                    <p>Hello! I'm your helpful AI assistant! 💖 I'm here to help you with coding, writing, analysis, creative tasks, general questions, and much more! 🌟</p>
-                    <p>Type <strong>"hi"</strong> or <strong>"hello"</strong> to get started and see all the ways I can help you! ✨</p>
+                    <p>🌟 <strong>السلام علیکم! Hello!</strong> 🌟</p>
+                    <p>I'm <strong>U-DOST</strong> 🤖✨ - Your friendly Pakistani teacher assistant! I'm here to help you create engaging lesson plans, teaching strategies, activities, and assessments for Pakistani primary education (grades 1-5).</p>
+                    <p>Type <strong>"hi"</strong> or <strong>"hello"</strong> to see all the ways I can support your teaching! 📚🇵🇰</p>
                 </div>
             </div>
         </div>
@@ -90,7 +91,64 @@
         
         <div class="quick-actions" id="quickActions">
             <button class="quick-btn" onclick="sendMessage('menu')">Main Menu</button>
+            <button class="quick-btn" onclick="showBookUploadModal()">📤 Upload Book</button>
             <button class="quick-btn" onclick="sendMessage('help')">Help</button>
+        </div>
+        
+        <!-- Book Upload Modal -->
+        <div id="bookUploadModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="hideBookUploadModal()">&times;</span>
+                <h2>📚 Upload Textbook</h2>
+                <form id="bookUploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="bookTitle">📖 Book Title *</label>
+                        <input type="text" id="bookTitle" name="title" required placeholder="e.g., English for Grade 3">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bookGrade">🎯 Grade *</label>
+                        <select id="bookGrade" name="grade" required>
+                            <option value="">Select Grade</option>
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bookSubject">📚 Subject *</label>
+                        <select id="bookSubject" name="subject" required>
+                            <option value="">Select Subject</option>
+                            <option value="english">English</option>
+                            <option value="urdu">Urdu</option>
+                            <option value="mathematics">Mathematics</option>
+                            <option value="science">Science</option>
+                            <option value="islamiyat">Islamiyat</option>
+                            <option value="social studies">Social Studies</option>
+                            <option value="general knowledge">General Knowledge</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bookDescription">📝 Description (Optional)</label>
+                        <textarea id="bookDescription" name="description" placeholder="Brief description of the textbook..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="bookFile">📄 Textbook File *</label>
+                        <input type="file" id="bookFile" name="book_file" accept=".pdf,.txt,.docx" required>
+                        <small>Supported formats: PDF, TXT, DOCX (max 12MB)</small>
+                    </div>
+                    
+                    <div class="form-buttons">
+                        <button type="submit" class="btn btn-primary">📤 Upload Book</button>
+                        <button type="button" class="btn btn-secondary" onclick="hideBookUploadModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
     
@@ -274,6 +332,70 @@ document.addEventListener('DOMContentLoaded', function() {
     let capturedPhotoBlob = null;
     
     // Make sendMessage globally available with multimodal support
+    // Book upload modal functions
+    window.showBookUploadModal = function() {
+        document.getElementById('bookUploadModal').style.display = 'block';
+    };
+    
+    window.hideBookUploadModal = function() {
+        document.getElementById('bookUploadModal').style.display = 'none';
+        document.getElementById('bookUploadForm').reset();
+    };
+    
+    // Handle book upload form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const uploadForm = document.getElementById('bookUploadForm');
+        if (uploadForm) {
+            uploadForm.addEventListener('submit', handleBookUpload);
+        }
+    });
+    
+    async function handleBookUpload(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        try {
+            // Show loading message
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.textContent = '⏳ Uploading...';
+            submitBtn.disabled = true;
+            
+            const response = await fetch('/upload_book', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                addMessage(`✅ **Book uploaded successfully!** 📚\n\n**"${result.title}"** has been added to your library and is now available for content generation.`, false);
+                hideBookUploadModal();
+                // Send a message to refresh the chat and show the main menu
+                setTimeout(() => sendMessage('menu'), 1000);
+            } else {
+                addMessage(`❌ **Upload failed:** ${result.error}`, false);
+            }
+            
+        } catch (error) {
+            console.error('Book upload error:', error);
+            addMessage('❌ **Upload failed:** Network error occurred. Please try again.', false);
+        } finally {
+            // Reset button
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.textContent = '📤 Upload Book';
+            submitBtn.disabled = false;
+        }
+    }
+    
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+        const modal = document.getElementById('bookUploadModal');
+        if (event.target === modal) {
+            hideBookUploadModal();
+        }
+    });
+
     window.sendMessage = async function(message = null) {
         const messageText = message || (chatInput ? chatInput.value.trim() : '');
         if (!messageText && !currentAudioId && uploadedFiles.length === 0) return;
@@ -1437,6 +1559,143 @@ document.addEventListener('DOMContentLoaded', function() {
     font-size: 14px;
     font-style: italic;
     margin-top: 10px;
+}
+
+/* Modal Styles */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--warm-white);
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: var(--shadow-xl);
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    color: var(--soft-blue-dark);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.close {
+    color: var(--gray-400);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: var(--danger);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--gray-700);
+    font-weight: 600;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--sage-green-light);
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: inherit;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--soft-blue);
+    box-shadow: 0 0 0 3px rgba(168, 213, 232, 0.1);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-group small {
+    display: block;
+    color: var(--gray-500);
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.form-buttons .btn {
+    flex: 1;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-buttons .btn-primary {
+    background: linear-gradient(135deg, var(--sage-green), var(--soft-blue));
+    color: white;
+}
+
+.form-buttons .btn-secondary {
+    background: var(--warm-cream);
+    color: var(--gray-700);
+    border: 2px solid var(--sage-green-light);
+}
+
+.form-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.form-buttons .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 600px) {
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 20px;
+    }
+    
+    .form-buttons {
+        flex-direction: column;
+    }
 }
 
 </style>

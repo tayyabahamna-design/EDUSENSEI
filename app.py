@@ -1848,18 +1848,14 @@ def chat():
             'show_menu': True
         })
     
-    # Handle "Specific Topic Assessment" option
+    # Handle "Specific Topic Assessment" option (legacy - for backward compatibility)
     if user_message.lower() in ['specific topic assessment', '📋 specific topic assessment']:
-        if 'curriculum_selection' in session and 'subject' in session.get('curriculum_selection', {}):
-            current_grade = session['curriculum_selection']['grade']
-            current_subject = session['curriculum_selection']['subject']
-            curriculum_data = generate_curriculum_data()
-            chapters = list(curriculum_data[current_grade][current_subject].keys())
-            return jsonify({
-                'message': f'📑 **{current_grade} - {current_subject}** - Choose a chapter:',
-                'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
-                'show_menu': True
-            })
+        # Redirect to new U-DOST flow
+        return jsonify({
+            'message': 'Please use the new enhanced U-DOST system! Select from the main menu options.',
+            'options': ['← Back to Menu'],
+            'show_menu': True
+        })
 
     # Handle individual assessment types - now with curriculum context
     if 'curriculum_selection' in session and 'topic' in session['curriculum_selection']:
