@@ -244,6 +244,421 @@ def transcribe_audio(audio_file_path):
             print(f"Audio transcription fallback error: {e2}")
         return "Voice message received. (Transcription failed)"
 
+def generate_curriculum_data():
+    """Generate structured curriculum data for grades 1-5"""
+    return {
+        "Grade 1": {
+            "English": {
+                "Chapter 1: Letters and Sounds": [
+                    "Letter Recognition A-Z",
+                    "Phonics and Sound Blending", 
+                    "Simple Three-Letter Words",
+                    "Sight Words (I, me, you, we)"
+                ],
+                "Chapter 2: My Family": [
+                    "Family Members Names",
+                    "Family Relationships",
+                    "Describing Family",
+                    "Family Activities"
+                ],
+                "Chapter 3: Animals": [
+                    "Pet Animals",
+                    "Wild Animals", 
+                    "Animal Sounds",
+                    "Animal Homes"
+                ]
+            },
+            "Math": {
+                "Chapter 1: Numbers 1-10": [
+                    "Number Recognition",
+                    "Counting Objects",
+                    "Number Writing",
+                    "Before and After Numbers"
+                ],
+                "Chapter 2: Addition": [
+                    "Adding Numbers 1-5",
+                    "Addition with Objects",
+                    "Addition Stories",
+                    "Sum up to 10"
+                ],
+                "Chapter 3: Shapes": [
+                    "Basic Shapes (Circle, Square, Triangle)",
+                    "Shape Recognition",
+                    "Drawing Shapes",
+                    "Shapes in Environment"
+                ]
+            },
+            "Science": {
+                "Chapter 1: Living and Non-Living": [
+                    "What is Living?",
+                    "What is Non-Living?",
+                    "Needs of Living Things",
+                    "Caring for Living Things"
+                ],
+                "Chapter 2: Plants": [
+                    "Parts of a Plant",
+                    "How Plants Grow",
+                    "What Plants Need",
+                    "Uses of Plants"
+                ],
+                "Chapter 3: Weather": [
+                    "Types of Weather",
+                    "Weather Changes",
+                    "Weather and Clothes",
+                    "Weather Safety"
+                ]
+            },
+            "Islamiyat": {
+                "Chapter 1: Allah and His Creation": [
+                    "Who is Allah?",
+                    "Allah's Beautiful Names",
+                    "Allah Created Everything",
+                    "Thanking Allah"
+                ],
+                "Chapter 2: Prophet Muhammad (PBUH)": [
+                    "Our Beloved Prophet",
+                    "Prophet's Kindness",
+                    "Following the Prophet",
+                    "Prophet's Family"
+                ],
+                "Chapter 3: Basic Duas": [
+                    "Bismillah",
+                    "Alhamdulillah", 
+                    "Assalamu Alaikum",
+                    "Simple Prayers"
+                ]
+            }
+        },
+        "Grade 2": {
+            "English": {
+                "Chapter 1: Reading Stories": [
+                    "Simple Story Reading",
+                    "Story Characters",
+                    "Story Settings",
+                    "Story Events"
+                ],
+                "Chapter 2: Grammar Basics": [
+                    "Nouns and Naming Words",
+                    "Action Words (Verbs)",
+                    "Describing Words",
+                    "Simple Sentences"
+                ],
+                "Chapter 3: Writing Skills": [
+                    "Letter Writing",
+                    "Story Writing",
+                    "Picture Description",
+                    "Creative Writing"
+                ]
+            },
+            "Math": {
+                "Chapter 1: Numbers 1-100": [
+                    "Two-Digit Numbers",
+                    "Place Value (Tens and Ones)",
+                    "Number Patterns",
+                    "Greater Than, Less Than"
+                ],
+                "Chapter 2: Addition and Subtraction": [
+                    "Two-Digit Addition",
+                    "Two-Digit Subtraction",
+                    "Word Problems",
+                    "Mental Math"
+                ],
+                "Chapter 3: Time and Money": [
+                    "Reading Clock",
+                    "Time Concepts",
+                    "Coins and Currency",
+                    "Making Change"
+                ]
+            },
+            "Science": {
+                "Chapter 1: Human Body": [
+                    "Body Parts",
+                    "Five Senses",
+                    "Healthy Habits",
+                    "Body Functions"
+                ],
+                "Chapter 2: Water": [
+                    "Sources of Water",
+                    "Uses of Water",
+                    "Clean and Dirty Water",
+                    "Saving Water"
+                ],
+                "Chapter 3: Materials": [
+                    "Natural Materials",
+                    "Man-made Materials",
+                    "Properties of Materials",
+                    "Uses of Materials"
+                ]
+            },
+            "Islamiyat": {
+                "Chapter 1: Five Pillars of Islam": [
+                    "Kalima (Declaration of Faith)",
+                    "Salah (Prayer)",
+                    "Zakat (Charity)",
+                    "Hajj and Fasting"
+                ],
+                "Chapter 2: Good Manners": [
+                    "Respect for Parents",
+                    "Kindness to Others",
+                    "Truthfulness",
+                    "Islamic Greetings"
+                ],
+                "Chapter 3: Islamic Festivals": [
+                    "Eid ul Fitr",
+                    "Eid ul Adha",
+                    "Islamic Calendar",
+                    "Festival Celebrations"
+                ]
+            }
+        },
+        "Grade 3": {
+            "English": {
+                "Chapter 1: Comprehension": [
+                    "Reading for Understanding",
+                    "Main Ideas",
+                    "Supporting Details",
+                    "Making Inferences"
+                ],
+                "Chapter 2: Grammar": [
+                    "Parts of Speech",
+                    "Sentence Types",
+                    "Punctuation",
+                    "Capitalization"
+                ],
+                "Chapter 3: Creative Writing": [
+                    "Paragraph Writing",
+                    "Descriptive Writing",
+                    "Story Elements",
+                    "Poetry Basics"
+                ]
+            },
+            "Math": {
+                "Chapter 1: Large Numbers": [
+                    "Numbers up to 1000",
+                    "Place Value (Hundreds)",
+                    "Number Comparison",
+                    "Rounding Numbers"
+                ],
+                "Chapter 2: Multiplication": [
+                    "Multiplication Concept",
+                    "Times Tables 2-10",
+                    "Multiplication Problems",
+                    "Arrays and Groups"
+                ],
+                "Chapter 3: Measurement": [
+                    "Length and Distance",
+                    "Weight and Mass",
+                    "Capacity and Volume",
+                    "Units of Measurement"
+                ]
+            },
+            "Science": {
+                "Chapter 1: Animals and Habitats": [
+                    "Animal Classifications",
+                    "Animal Habitats",
+                    "Animal Adaptations",
+                    "Food Chains"
+                ],
+                "Chapter 2: States of Matter": [
+                    "Solids, Liquids, Gases",
+                    "Properties of Matter",
+                    "Changing States",
+                    "Examples in Daily Life"
+                ],
+                "Chapter 3: Earth and Space": [
+                    "Day and Night",
+                    "Seasons",
+                    "Moon Phases",
+                    "Solar System Basics"
+                ]
+            },
+            "Islamiyat": {
+                "Chapter 1: Quran and Sunnah": [
+                    "What is the Quran?",
+                    "What is Sunnah?",
+                    "Following Quran and Sunnah",
+                    "Benefits of Reading Quran"
+                ],
+                "Chapter 2: Prophets of Allah": [
+                    "Prophet Adam (AS)",
+                    "Prophet Noah (AS)",
+                    "Prophet Ibrahim (AS)",
+                    "Lessons from Prophets"
+                ],
+                "Chapter 3: Islamic Values": [
+                    "Honesty and Truth",
+                    "Patience and Perseverance", 
+                    "Forgiveness",
+                    "Helping Others"
+                ]
+            }
+        },
+        "Grade 4": {
+            "English": {
+                "Chapter 1: Literature": [
+                    "Story Analysis",
+                    "Character Development",
+                    "Plot and Setting",
+                    "Theme Identification"
+                ],
+                "Chapter 2: Advanced Grammar": [
+                    "Tenses (Past, Present, Future)",
+                    "Subject-Verb Agreement",
+                    "Conjunctions",
+                    "Complex Sentences"
+                ],
+                "Chapter 3: Research Skills": [
+                    "Information Gathering",
+                    "Note Taking",
+                    "Report Writing",
+                    "Presentation Skills"
+                ]
+            },
+            "Math": {
+                "Chapter 1: Division": [
+                    "Division Concept",
+                    "Long Division",
+                    "Division with Remainders",
+                    "Division Word Problems"
+                ],
+                "Chapter 2: Fractions": [
+                    "Understanding Fractions",
+                    "Equivalent Fractions",
+                    "Adding Fractions",
+                    "Comparing Fractions"
+                ],
+                "Chapter 3: Geometry": [
+                    "2D and 3D Shapes",
+                    "Angles and Lines",
+                    "Symmetry",
+                    "Area and Perimeter"
+                ]
+            },
+            "Science": {
+                "Chapter 1: Energy": [
+                    "Forms of Energy",
+                    "Energy Sources",
+                    "Energy Transfer",
+                    "Conservation of Energy"
+                ],
+                "Chapter 2: Plants and Photosynthesis": [
+                    "Plant Structure",
+                    "Photosynthesis Process",
+                    "Plant Reproduction",
+                    "Plant Adaptations"
+                ],
+                "Chapter 3: Simple Machines": [
+                    "Lever and Fulcrum",
+                    "Wheel and Axle",
+                    "Inclined Plane",
+                    "Machines in Daily Life"
+                ]
+            },
+            "Islamiyat": {
+                "Chapter 1: Worship in Islam": [
+                    "Importance of Salah",
+                    "Wudu (Ablution)",
+                    "Times of Prayer",
+                    "Masjid and Community"
+                ],
+                "Chapter 2: Islamic History": [
+                    "Life in Makkah",
+                    "Hijra to Madinah",
+                    "Early Muslim Community",
+                    "Lessons from History"
+                ],
+                "Chapter 3: Character Building": [
+                    "Responsibility",
+                    "Leadership Qualities",
+                    "Justice and Fairness",
+                    "Gratitude to Allah"
+                ]
+            }
+        },
+        "Grade 5": {
+            "English": {
+                "Chapter 1: Advanced Reading": [
+                    "Critical Reading",
+                    "Author's Purpose",
+                    "Fact vs Opinion",
+                    "Reading Strategies"
+                ],
+                "Chapter 2: Writing Mastery": [
+                    "Essay Writing",
+                    "Persuasive Writing", 
+                    "Research Papers",
+                    "Editing and Revision"
+                ],
+                "Chapter 3: Speaking and Listening": [
+                    "Public Speaking",
+                    "Debate Skills",
+                    "Active Listening",
+                    "Group Discussions"
+                ]
+            },
+            "Math": {
+                "Chapter 1: Decimals": [
+                    "Understanding Decimals",
+                    "Decimal Operations",
+                    "Decimal and Fraction Relationship",
+                    "Real-world Decimal Applications"
+                ],
+                "Chapter 2: Data and Statistics": [
+                    "Collecting Data",
+                    "Graphs and Charts",
+                    "Mean, Median, Mode",
+                    "Interpreting Data"
+                ],
+                "Chapter 3: Problem Solving": [
+                    "Multi-step Problems",
+                    "Logical Reasoning",
+                    "Pattern Recognition",
+                    "Mathematical Thinking"
+                ]
+            },
+            "Science": {
+                "Chapter 1: Human Systems": [
+                    "Circulatory System",
+                    "Respiratory System",
+                    "Digestive System",
+                    "Nervous System"
+                ],
+                "Chapter 2: Ecosystems": [
+                    "Food Webs",
+                    "Environmental Balance",
+                    "Biodiversity",
+                    "Conservation"
+                ],
+                "Chapter 3: Chemical Changes": [
+                    "Physical vs Chemical Changes",
+                    "Acids and Bases",
+                    "Chemical Reactions",
+                    "Safety in Science"
+                ]
+            },
+            "Islamiyat": {
+                "Chapter 1: Islamic Civilization": [
+                    "Golden Age of Islam",
+                    "Islamic Contributions to Science",
+                    "Islamic Architecture",
+                    "Scholars and Learning"
+                ],
+                "Chapter 2: Social Justice": [
+                    "Rights and Responsibilities",
+                    "Helping the Needy",
+                    "Environmental Care",
+                    "Community Service"
+                ],
+                "Chapter 3: Spiritual Development": [
+                    "Dhikr and Remembrance",
+                    "Self-reflection",
+                    "Seeking Knowledge",
+                    "Preparation for Adulthood"
+                ]
+            }
+        }
+    }
+
 def generate_assessment_response(assessment_type):
     """Generate assessment content for chatbot responses"""
     if assessment_type == 'qna':
@@ -429,6 +844,295 @@ A) 5  B) 6  C) 7  D) 8
         'show_menu': True
     })
 
+def generate_curriculum_lesson_plan(grade, subject, chapter, topic):
+    """Generate lesson plan for specific curriculum topic"""
+    return jsonify({
+        'message': f'''📝 **Lesson Plan Generated**
+
+**Grade:** {grade}
+**Subject:** {subject}  
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+## 🎯 **Learning Objectives:**
+• Students will understand the key concepts of {topic}
+• Students will be able to explain {topic} in their own words
+• Students will apply knowledge of {topic} to real-world examples
+
+## 📚 **Materials Needed:**
+• Whiteboard/markers
+• Student notebooks
+• Visual aids/pictures
+• Worksheets
+• Interactive materials
+
+## ⏰ **Lesson Duration:** 40 minutes
+
+## 📋 **Lesson Structure:**
+
+**Introduction (5 minutes):**
+• Warm-up activity related to {topic}
+• Ask students what they already know
+• Introduce today's learning goal
+
+**Main Teaching (25 minutes):**
+• Explain {topic} with clear examples
+• Use visual aids and interactive demonstrations
+• Ask questions to check understanding
+• Provide hands-on activities
+
+**Practice (7 minutes):**
+• Quick exercises for students to apply learning
+• Pair/group work activities
+• Individual practice time
+
+**Wrap-up (3 minutes):**
+• Summarize key points
+• Ask students to share one thing they learned
+• Preview next lesson
+
+## 📊 **Assessment:**
+• Observe student participation
+• Check understanding through questions
+• Review completed practice exercises
+
+## 🏠 **Homework/Extension:**
+• Simple practice worksheet
+• Real-world observation activity
+• Prepare for next lesson''',
+        'options': [
+            '📊 Create Assessment for this Topic',
+            '🎮 Suggest Fun Activities', 
+            '💡 Get Teaching Tips',
+            '🔄 Choose Different Topic',
+            '← Back to Menu'
+        ],
+        'show_menu': True
+    })
+
+def generate_curriculum_assessment(grade, subject, chapter, topic):
+    """Generate assessment questions for specific curriculum topic"""
+    return jsonify({
+        'message': f'''📊 **Assessment Questions Generated**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}  
+**Topic:** {topic}
+
+## ❓ **Quick Q&A Questions:**
+1. What is {topic}? Explain in your own words.
+2. Can you give an example of {topic}?
+3. Why is {topic} important?
+4. How does {topic} relate to what we learned before?
+
+## 🔤 **Multiple Choice Questions:**
+**Question 1:** Which of the following best describes {topic}?
+A) Option A   B) Option B   C) Option C   D) Option D
+
+**Question 2:** {topic} is most commonly found in:
+A) Option A   B) Option B   C) Option C   D) Option D
+
+## 📝 **True/False Statements:**
+1. {topic} is an important concept in {subject}. (True/False)
+2. Students should understand {topic} at {grade} level. (True/False)
+
+## ✏️ **Fill in the Blanks:**
+1. {topic} is related to _______ and _______.
+2. The main idea of {topic} is _______.
+
+## 👍👎 **Quick Assessment:**
+Have students show thumbs up/down for:
+- "I understand {topic}"
+- "I can explain {topic} to someone else"
+- "I need more practice with {topic}"
+
+## 🎫 **Exit Ticket:**
+Before leaving class, students complete:
+"Today I learned that {topic} is..."
+"One question I still have about {topic} is..."''',
+        'options': [
+            '📝 Generate Lesson Plan',
+            '🎮 Suggest Fun Activities',
+            '💡 Get Teaching Tips', 
+            '🔄 Choose Different Topic',
+            '← Back to Menu'
+        ],
+        'show_menu': True
+    })
+
+def generate_curriculum_activities(grade, subject, chapter, topic):
+    """Generate fun activities for specific curriculum topic"""
+    return jsonify({
+        'message': f'''🎮 **Fun Activities for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+## 🎨 **Creative Activities:**
+
+**Activity 1: {topic} Art Project**
+• Students create drawings/posters about {topic}
+• Use colors, symbols, and words to represent key concepts
+• Display student work around the classroom
+
+**Activity 2: {topic} Story Time**
+• Students write short stories incorporating {topic}
+• Share stories with the class
+• Vote on most creative story
+
+**Activity 3: {topic} Drama/Role Play**
+• Students act out scenarios related to {topic}
+• Use props and costumes
+• Perform for other classes
+
+## 🎯 **Interactive Games:**
+
+**Game 1: {topic} Bingo**
+• Create bingo cards with {topic}-related terms
+• Call out definitions, students mark answers
+• First to complete a line wins
+
+**Game 2: {topic} Memory Match**
+• Cards with {topic} terms and definitions
+• Students match pairs
+• Can be played individually or in groups
+
+**Game 3: {topic} Scavenger Hunt**
+• Hide clues around classroom/school
+• Each clue teaches something about {topic}
+• Teams work together to solve puzzles
+
+## 🔬 **Hands-On Experiments:**
+
+**Experiment 1: {topic} Investigation**
+• Simple, safe experiment related to {topic}
+• Students observe and record results
+• Discuss findings as a class
+
+**Experiment 2: {topic} Building Challenge**
+• Use everyday materials to demonstrate {topic}
+• Students work in teams
+• Present creations to class
+
+## 🎪 **Movement Activities:**
+
+**Activity 1: {topic} Actions**
+• Create movements that represent {topic}
+• Students perform actions while learning
+• Great for kinesthetic learners
+
+**Activity 2: {topic} Dance/Song**
+• Make up a simple song about {topic}
+• Include hand motions and rhythm
+• Perform for other classes''',
+        'options': [
+            '📝 Generate Lesson Plan',
+            '📊 Create Assessment Questions',
+            '💡 Get Teaching Tips',
+            '🔄 Choose Different Topic', 
+            '← Back to Menu'
+        ],
+        'show_menu': True
+    })
+
+def generate_curriculum_tips(grade, subject, chapter, topic):
+    """Generate teaching tips for specific curriculum topic"""
+    return jsonify({
+        'message': f'''💡 **Teaching Tips for {topic}**
+
+**Grade:** {grade}
+**Subject:** {subject}
+**Chapter:** {chapter}
+**Topic:** {topic}
+
+## 🎯 **Before Teaching:**
+
+**Preparation Tips:**
+• Review {topic} concepts thoroughly yourself
+• Gather visual aids, examples, and materials
+• Plan for different learning styles (visual, auditory, kinesthetic)
+• Prepare simple analogies students can relate to
+
+**Know Your Students:**
+• Assess prior knowledge about {topic}
+• Consider students' attention spans ({grade} level)
+• Plan for different ability levels in your class
+• Have extra activities ready for fast finishers
+
+## 🚀 **During Teaching:**
+
+**Engagement Strategies:**
+• Start with a question or surprising fact about {topic}
+• Use real-world examples students can connect to
+• Encourage student questions and discussions
+• Break content into small, manageable chunks
+
+**Clear Communication:**
+• Use simple, age-appropriate language
+• Repeat key concepts multiple times
+• Check for understanding frequently ("Show me thumbs up if...")
+• Use visual aids and gestures to support explanations
+
+## 🔄 **Making It Stick:**
+
+**Reinforcement Techniques:**
+• Connect {topic} to previous learning
+• Use storytelling to make concepts memorable
+• Provide multiple practice opportunities
+• Celebrate student success and progress
+
+**Assessment Strategies:**
+• Use quick formative assessments during lesson
+• Observe student work and participation
+• Ask students to explain concepts back to you
+• Use peer teaching opportunities
+
+## 🌟 **Differentiation Ideas:**
+
+**For Advanced Students:**
+• Provide extension questions about {topic}
+• Let them help teach other students
+• Give additional research projects
+• Connect to more complex concepts
+
+**For Struggling Students:**
+• Break {topic} into smaller steps
+• Provide additional visual supports
+• Use peer buddies for support
+• Give extra practice time
+
+**For English Language Learners:**
+• Use visual aids and gestures
+• Provide key vocabulary beforehand
+• Allow native language discussion
+• Use translation tools when needed
+
+## 💭 **Common Challenges:**
+
+**If Students Seem Confused:**
+• Slow down and re-explain using different words
+• Use more concrete examples
+• Ask students what specifically confuses them
+• Try a different teaching approach
+
+**If Students Seem Bored:**
+• Add more interactive elements
+• Connect to current events or popular culture
+• Use humor appropriately
+• Let students share their own examples''',
+        'options': [
+            '📝 Generate Lesson Plan',
+            '📊 Create Assessment Questions', 
+            '🎮 Suggest Fun Activities',
+            '🔄 Choose Different Topic',
+            '← Back to Menu'
+        ],
+        'show_menu': True
+    })
+
 def get_teaching_guidance_fallback(question):
     """Fallback teaching guidance when AI is not available"""
     question_lower = question.lower()
@@ -516,6 +1220,7 @@ def chat():
                 '💡 Teaching Tips & Advice',
                 '📚 Educational Resources',
                 '📊 Assessment',
+                '📖 Curriculum Navigator',
                 '💬 Free Chat'
             ],
             'show_menu': True
@@ -569,6 +1274,7 @@ def chat():
                 '💡 Teaching Tips & Advice',
                 '📚 Educational Resources',
                 '📊 Assessment',
+                '📖 Curriculum Navigator',
                 '💬 Free Chat'
             ],
             'show_menu': True
@@ -587,6 +1293,182 @@ def chat():
                 '🎫 Exit Tickets',
                 '← Back to Menu'
             ],
+            'show_menu': True
+        })
+    
+    # Handle Curriculum Navigator
+    if user_message.lower() in ['curriculum navigator', '📖 curriculum navigator', 'curriculum']:
+        return jsonify({
+            'message': '📖 **Curriculum Navigator** - Choose your grade level to explore subjects, chapters, and topics!',
+            'options': [
+                '1️⃣ Grade 1',
+                '2️⃣ Grade 2', 
+                '3️⃣ Grade 3',
+                '4️⃣ Grade 4',
+                '5️⃣ Grade 5',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    # Handle Grade selections
+    curriculum_data = generate_curriculum_data()
+    
+    # Store selection in session for navigation
+    if 'curriculum_selection' not in session:
+        session['curriculum_selection'] = {}
+    
+    # Grade 1-5 selections
+    for grade_num in range(1, 6):
+        grade_text = f'grade {grade_num}'
+        grade_emoji = f'{grade_num}️⃣ grade {grade_num}'
+        
+        if user_message.lower() in [grade_text, grade_emoji.lower()]:
+            session['curriculum_selection']['grade'] = f'Grade {grade_num}'
+            subjects = list(curriculum_data[f'Grade {grade_num}'].keys())
+            return jsonify({
+                'message': f'📚 **Grade {grade_num} Subjects** - Choose a subject to explore chapters and topics:',
+                'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
+                'show_menu': True
+            })
+    
+    # Handle Subject selections
+    if 'grade' in session.get('curriculum_selection', {}):
+        current_grade = session['curriculum_selection']['grade']
+        subjects = list(curriculum_data[current_grade].keys())
+        
+        for subject in subjects:
+            subject_text = subject.lower()
+            subject_emoji = f'📖 {subject}'.lower()
+            
+            if user_message.lower() in [subject_text, subject_emoji]:
+                session['curriculum_selection']['subject'] = subject
+                chapters = list(curriculum_data[current_grade][subject].keys())
+                return jsonify({
+                    'message': f'📑 **{current_grade} - {subject}** - Choose a chapter:',
+                    'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
+                    'show_menu': True
+                })
+    
+    # Handle Chapter selections  
+    if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}):
+        current_grade = session['curriculum_selection']['grade']
+        current_subject = session['curriculum_selection']['subject']
+        chapters = list(curriculum_data[current_grade][current_subject].keys())
+        
+        for chapter in chapters:
+            chapter_text = chapter.lower()
+            chapter_emoji = f'📄 {chapter}'.lower()
+            
+            if user_message.lower() in [chapter_text, chapter_emoji]:
+                session['curriculum_selection']['chapter'] = chapter
+                topics = curriculum_data[current_grade][current_subject][chapter]
+                return jsonify({
+                    'message': f'📝 **{current_grade} - {current_subject}** \n**{chapter}** - Choose a topic:',
+                    'options': [f'✏️ {topic}' for topic in topics] + ['🔄 Change Chapter', '← Back to Menu'],
+                    'show_menu': True
+                })
+    
+    # Handle Topic selections
+    if all(key in session.get('curriculum_selection', {}) for key in ['grade', 'subject', 'chapter']):
+        current_grade = session['curriculum_selection']['grade']
+        current_subject = session['curriculum_selection']['subject'] 
+        current_chapter = session['curriculum_selection']['chapter']
+        topics = curriculum_data[current_grade][current_subject][current_chapter]
+        
+        for topic in topics:
+            topic_text = topic.lower()
+            topic_emoji = f'✏️ {topic}'.lower()
+            
+            if user_message.lower() in [topic_text, topic_emoji]:
+                session['curriculum_selection']['topic'] = topic
+                return jsonify({
+                    'message': f'''🎯 **Selected Topic:**
+**Grade:** {current_grade}
+**Subject:** {current_subject}
+**Chapter:** {current_chapter}
+**Topic:** {topic}
+
+What would you like me to create for this topic?''',
+                    'options': [
+                        '📝 Generate Lesson Plan',
+                        '📊 Create Assessment Questions',
+                        '🎮 Suggest Fun Activities',
+                        '💡 Teaching Tips for this Topic',
+                        '🔄 Choose Different Topic',
+                        '← Back to Menu'
+                    ],
+                    'show_menu': True
+                })
+    
+    # Handle curriculum action selections
+    if 'topic' in session.get('curriculum_selection', {}):
+        current_grade = session['curriculum_selection']['grade']
+        current_subject = session['curriculum_selection']['subject']
+        current_chapter = session['curriculum_selection']['chapter']
+        current_topic = session['curriculum_selection']['topic']
+        
+        if user_message.lower() in ['generate lesson plan', '📝 generate lesson plan']:
+            return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, current_topic)
+        
+        elif user_message.lower() in ['create assessment questions', '📊 create assessment questions']:
+            return generate_curriculum_assessment(current_grade, current_subject, current_chapter, current_topic)
+        
+        elif user_message.lower() in ['suggest fun activities', '🎮 suggest fun activities']:
+            return generate_curriculum_activities(current_grade, current_subject, current_chapter, current_topic)
+        
+        elif user_message.lower() in ['teaching tips for this topic', '💡 teaching tips for this topic']:
+            return generate_curriculum_tips(current_grade, current_subject, current_chapter, current_topic)
+    
+    # Handle navigation options
+    if user_message.lower() in ['🔄 change grade', 'change grade']:
+        session['curriculum_selection'] = {}
+        return jsonify({
+            'message': '📖 **Curriculum Navigator** - Choose your grade level to explore subjects, chapters, and topics!',
+            'options': [
+                '1️⃣ Grade 1',
+                '2️⃣ Grade 2', 
+                '3️⃣ Grade 3',
+                '4️⃣ Grade 4',
+                '5️⃣ Grade 5',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    if user_message.lower() in ['🔄 change subject', 'change subject'] and 'grade' in session.get('curriculum_selection', {}):
+        # Keep grade, reset others
+        grade = session['curriculum_selection']['grade']
+        session['curriculum_selection'] = {'grade': grade}
+        subjects = list(curriculum_data[grade].keys())
+        return jsonify({
+            'message': f'📚 **{grade} Subjects** - Choose a subject to explore chapters and topics:',
+            'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    if user_message.lower() in ['🔄 change chapter', 'change chapter'] and 'subject' in session.get('curriculum_selection', {}):
+        # Keep grade and subject, reset others
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']
+        session['curriculum_selection'] = {'grade': grade, 'subject': subject}
+        chapters = list(curriculum_data[grade][subject].keys())
+        return jsonify({
+            'message': f'📑 **{grade} - {subject}** - Choose a chapter:',
+            'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Subject', '← Back to Menu'],
+            'show_menu': True
+        })
+    
+    if user_message.lower() in ['🔄 choose different topic', 'choose different topic'] and 'chapter' in session.get('curriculum_selection', {}):
+        # Keep grade, subject, and chapter, reset topic
+        grade = session['curriculum_selection']['grade']
+        subject = session['curriculum_selection']['subject']
+        chapter = session['curriculum_selection']['chapter']
+        session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'chapter': chapter}
+        topics = curriculum_data[grade][subject][chapter]
+        return jsonify({
+            'message': f'📝 **{grade} - {subject}** \n**{chapter}** - Choose a topic:',
+            'options': [f'✏️ {topic}' for topic in topics] + ['🔄 Change Chapter', '← Back to Menu'],
             'show_menu': True
         })
     
