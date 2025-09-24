@@ -3744,8 +3744,16 @@ What would you like me to create for this topic?''',
             chapter_exercises = book_content['chapters'][chapter]
             exercise_categories = list(chapter_exercises.keys())
             
+            # Add debug information if available
+            debug_display = ""
+            if 'debug_info' in book_content:
+                debug = book_content['debug_info']
+                debug_display = f"\n\n**🔧 PDF Status:** {debug['pdf_status']}\n**📊 Chapters Found:** {debug['chapters_found']}\n**💾 Source:** {debug['source']}"
+                if debug['content_preview'] and debug['content_preview'] != 'No content extracted':
+                    debug_display += f"\n**📝 Content Preview:** {debug['content_preview'][:50]}..."
+            
             return jsonify({
-                'message': f'**📖 {book}**\n**📄 {chapter}**\n\nSelect exercise category:',
+                'message': f'**📖 {book}**\n**📄 {chapter}**\n\nSelect exercise category:{debug_display}',
                 'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
                 'show_menu': True
             })
