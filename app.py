@@ -2897,26 +2897,77 @@ def get_pakistani_teacher_fallback(user_message, session_context=None):
     # Debug information (logged, not shown to user)
     print(f"Fallback triggered - Grade: {grade}, Subject: {subject}, Topic: {topic}, Activity: {activity_type}")
     
-    # Specific hardcoded responses for common topics
+    # Specific hardcoded responses for common topics with grade-based complexity
     if 'noun' in topic:
         if activity_type == 'pair_work':
-            return f"""👫 PAIR WORK - Nouns (Grade {grade} {subject})
+            if grade == 1:
+                return f"""👫 PAIR WORK - Nouns (Grade 1 English)
 
-Hello teacher! Grade {grade} ke bachon ke liye nouns bilkul easy hai!
+Hello teacher! Grade 1 ke liye simple activities:
 
-🌟 Classroom Ka Khazana:
-Partners ko classroom mein 5 cheezain dhundni hain
-Ek partner object dikhaega, doosra name bolega
-"Yeh chair hai" - "This is a chair"
+🌟 Point and Say:
+Ahmed chair dikhaega, Fatima 'chair' bolegi
+Phir Fatima table dikhaegi, Ahmed 'table' bolega
+Bilkul simple!
 
-🌟 My Things, Your Things:
-Ahmed aur Fatima ke saath practice karwayiye
-"Yeh meri book hai" - "This is my book"
-"Woh tumhari pen hai" - "That is your pen"
+🌟 Show Me Game:
+"Show me book" - partner book dikhaega
+"Show me bag" - partner bag dikhaega
+One word nouns only
 
-🌟 Pakistani Objects Game:
-Roti, chawal, cricket bat, dupatta ke pictures use kariye
-Partners turns lete kar English names bolenge
+🌟 Touch and Tell:
+Partners classroom mein cheez touch karenge
+"This is..." kehte jaenge
+Door, window, floor - basic words
+
+Grade 1 ke liye bilkul perfect level! Try kariye teacher! 😊"""
+
+            elif grade == 3:
+                return f"""👫 PAIR WORK - Nouns (Grade 3 English)
+
+Hello teacher! Grade 3 ke liye yeh activities:
+
+🌟 Noun Hunt:
+Partners classroom mein common aur proper nouns dhundenge
+Ahmed (proper), chair (common) - difference samjhayen
+
+🌟 Person Place Thing Sort:
+Cards banayiye: Ahmed (person), school (place), book (thing)
+Partners turns lete kar categories batayenge
+
+🌟 My Family Nouns:
+"My Abbu is a teacher" - family words practice
+Partners family members ke bare mein sentences banayenge
+
+Grade 3 ke liye perfect complexity! Kaisa laga teacher? 😊"""
+
+            elif grade >= 4:
+                return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
+
+Hello teacher! Grade {grade} ke liye challenging activities:
+
+🌟 Noun Analysis:
+Partners sentences mein subject aur object nouns identify karenge
+"Ahmed reads books" - Ahmed (subject), books (object)
+
+🌟 Noun Functions:
+Sentence building with different noun roles
+"The teacher gave Ahmed a book" - multiple noun analysis
+
+🌟 Abstract vs Concrete:
+Advanced categorization: happiness (abstract), table (concrete)
+Partners examples discuss karenge
+
+Grade {grade} ke liye challenging level! Kaisa laga teacher? 😊"""
+
+            else:
+                return f"""👫 PAIR WORK - Nouns (Grade {grade} {subject})
+
+Hello teacher! Grade {grade} ke bachon ke liye nouns activities:
+
+🌟 Classroom Objects:
+Partners object names practice karenge
+Simple pointing and naming exercise
 
 Kaisa laga teacher? Aur activities chahiye? 😊"""
         
@@ -3001,6 +3052,78 @@ Total kitne runs? 2 + 3 = 5
 Grade {grade} ke liye bilkul perfect level hai!
 Bachon ko bahut samajh aayega! 😊"""
     
+    # Assessment responses with grade-based complexity
+    elif 'assessment' in topic or session_context.get('assessment_type'):
+        assessment_type = session_context.get('assessment_type', 'general')
+        
+        if grade == 1:
+            return f"""📝 Assessment - {topic.title()} (Grade 1 {subject})
+
+Hello teacher! Grade 1 ke liye simple assessment:
+
+🌟 Point and Choose:
+Teacher picture dikhaega, bachon ko simple pointing
+"Point to the book" - basic recognition only
+
+🌟 Yes/No Questions:
+"Is this a chair?" - thumbs up/down
+Simple visual recognition
+
+🌟 Circle the Right One:
+Pictures mein se correct option circle karna
+Very basic multiple choice
+
+Grade 1 ke liye bilkul easy level! Samajh aayega teacher? 😊"""
+
+        elif grade == 3:
+            return f"""📝 Assessment - {topic.title()} (Grade 3 {subject})
+
+Hello teacher! Grade 3 ke liye medium assessment:
+
+🌟 Fill in the Blanks:
+"Ahmed is a ___" (boy/teacher/student)
+Simple sentence completion
+
+🌟 Match the Columns:
+Pictures ko words ke saath match karna
+Person-Place-Thing categories
+
+🌟 Short Answers:
+"Name 3 classroom objects" - listing practice
+Simple recall questions
+
+Grade 3 ke liye perfect difficulty! Try kariye teacher! 😊"""
+
+        elif grade >= 4:
+            return f"""📝 Assessment - {topic.title()} (Grade {grade} {subject})
+
+Hello teacher! Grade {grade} ke liye challenging assessment:
+
+🌟 Multiple Choice with Reasoning:
+"Which is the proper noun: a) book b) Ahmed c) happy"
+"Explain why you chose this answer"
+
+🌟 Sentence Analysis:
+"Identify subject and object nouns in: Ahmed reads books"
+Critical thinking required
+
+🌟 Creative Application:
+"Write 3 sentences using abstract and concrete nouns"
+Higher-order thinking skills
+
+Grade {grade} ke liye advanced level! Kaisa laga teacher? 😊"""
+
+        else:
+            return f"""📝 Assessment - {topic.title()} (Grade {grade} {subject})
+
+Hello teacher! {topic} ke assessment ideas:
+
+🌟 Basic Recognition
+🌟 Simple Questions  
+🌟 Easy Activities
+
+Kaisa laga teacher? 😊"""
+
     # General fallback for any topic
     else:
         content_type = "activities" if activity_type else selected_feature
@@ -3320,8 +3443,28 @@ def chat():
             'show_menu': True
         })
     
+    # Handle Assessments submenu
+    if user_message.lower() in ['📝 assessments', 'assessments']:
+        session['selected_feature'] = 'assessments'
+        session.modified = True
+        return jsonify({
+            'message': '📝 Hello teacher! Assessment ke liye kya banana hai?\n\nChoose Assessment Type:',
+            'options': [
+                '🔹 MCQs (Multiple Choice Questions)',
+                '🔹 Fill in the Blanks',
+                '🔹 Short Comprehension Questions',
+                '🔹 True/False Questions',
+                '🔹 Exit Tickets',
+                '🔹 Thumbs Up/Down',
+                '🔹 Stand or Clap Activities',
+                '🔹 Quick Quiz Games',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
     # Handle other main menu selections (go directly to grade selection)
-    if user_message.lower() in menu_options and user_message.lower() not in ['🎮 activities', 'activities']:
+    if user_message.lower() in menu_options and user_message.lower() not in ['🎮 activities', 'activities', '📝 assessments', 'assessments']:
         session['selected_feature'] = menu_options[user_message.lower()]
         session['selected_feature_display'] = user_message
         session.modified = True
@@ -3350,8 +3493,47 @@ def chat():
         'assignment/homework activities': 'homework'
     }
     
+    # Handle Assessment Type selections
+    assessment_types = {
+        '🔹 mcqs (multiple choice questions)': 'mcqs',
+        'mcqs (multiple choice questions)': 'mcqs',
+        'mcqs': 'mcqs',
+        '🔹 fill in the blanks': 'fill_blanks',
+        'fill in the blanks': 'fill_blanks',
+        '🔹 short comprehension questions': 'comprehension',
+        'short comprehension questions': 'comprehension',
+        '🔹 true/false questions': 'true_false',
+        'true/false questions': 'true_false',
+        '🔹 exit tickets': 'exit_tickets',
+        'exit tickets': 'exit_tickets',
+        '🔹 thumbs up/down': 'thumbs_up_down',
+        'thumbs up/down': 'thumbs_up_down',
+        '🔹 stand or clap activities': 'stand_clap',
+        'stand or clap activities': 'stand_clap',
+        '🔹 quick quiz games': 'quiz_games',
+        'quick quiz games': 'quiz_games'
+    }
+    
     if user_message.lower() in activity_types:
         session['activity_type'] = activity_types[user_message.lower()]
+        session['selected_feature_display'] = user_message
+        session.modified = True
+        return jsonify({
+            'message': f'You selected: **{user_message.upper()}**\n\nSelect Grade:',
+            'options': [
+                '🔹 Grade 1',
+                '🔹 Grade 2', 
+                '🔹 Grade 3',
+                '🔹 Grade 4',
+                '🔹 Grade 5',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    # Handle Assessment Type selections
+    if user_message.lower() in assessment_types:
+        session['assessment_type'] = assessment_types[user_message.lower()]
         session['selected_feature_display'] = user_message
         session.modified = True
         return jsonify({
