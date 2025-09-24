@@ -3185,6 +3185,20 @@ def normalize_phone_number(phone):
     # Return as-is if format doesn't match
     return phone
 
+@app.route('/yearly-planner')
+def yearly_planner():
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('yearly_planner.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/grading-buddy')
+def grading_buddy():
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    return render_template('grading_buddy.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
 @app.route('/chatbot')
 def chatbot():
     return render_template('chatbot.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yearly Planner - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">📅 Yearly Planner</h1>
+            <div class="nav-menu">
+                <a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a>
+                <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="planner-container">
+            <div class="welcome-section">
+                <h1>📅 Yearly Planner</h1>
+                <p class="welcome-subtitle">Plan your entire academic year with weekly schedules for Pakistani curriculum (grades 1-5)</p>
+            </div>
+            
+            <!-- Grade and Subject Selection -->
+            <div class="planning-controls">
+                <div class="control-group">
+                    <label for="grade-select">Select Grade:</label>
+                    <select id="grade-select" class="form-select">
+                        <option value="">Choose Grade...</option>
+                        <option value="1">Grade 1</option>
+                        <option value="2">Grade 2</option>
+                        <option value="3">Grade 3</option>
+                        <option value="4">Grade 4</option>
+                        <option value="5">Grade 5</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <label for="subject-select">Select Subject:</label>
+                    <select id="subject-select" class="form-select">
+                        <option value="">Choose Subject...</option>
+                        <option value="English">📚 English</option>
+                        <option value="Math">🔢 Mathematics</option>
+                        <option value="Urdu">🇵🇰 Urdu</option>
+                        <option value="Islamiyat">🕌 Islamiyat</option>
+                        <option value="Science">🔬 Science</option>
+                        <option value="Social Studies">📊 Social Studies</option>
+                        <option value="General Knowledge">🌍 General Knowledge</option>
+                    </select>
+                </div>
+                
+                <button id="generate-plan" class="btn btn-primary">📅 Generate Yearly Plan</button>
+            </div>
+
+            <!-- Planning Grid -->
+            <div id="planning-grid" class="planning-grid" style="display: none;">
+                <div class="grid-header">
+                    <h2 id="plan-title">Academic Year Plan</h2>
+                    <div class="plan-controls">
+                        <button id="save-plan" class="btn btn-success">💾 Save Plan</button>
+                        <button id="export-plan" class="btn btn-secondary">📄 Export PDF</button>
+                    </div>
+                </div>
+                
+                <!-- Weekly Schedule Template -->
+                <div class="schedule-container">
+                    <div class="month-grid" id="months-container">
+                        <!-- Months will be dynamically generated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Highlights -->
+            <div class="features-section">
+                <h2>🌟 Yearly Planner Features</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">📝</div>
+                        <h3>Weekly Templates</h3>
+                        <p>Pre-designed weekly schedules for all Pakistani curriculum subjects</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📊</div>
+                        <h3>Auto-Population</h3>
+                        <p>Automatically fill entire academic year with curriculum-based content</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✏️</div>
+                        <h3>Editable Entries</h3>
+                        <p>Customize and edit individual lessons and topics as needed</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📈</div>
+                        <h3>Progress Tracking</h3>
+                        <p>Monitor teaching progress and curriculum completion</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
+            box-shadow: var(--shadow-md);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .nav-welcome {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .welcome-section h1 {
+            color: var(--soft-blue-dark);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .welcome-subtitle {
+            color: var(--gray-600);
+            font-size: 1.2rem;
+            margin-bottom: 0;
+        }
+        
+        .planning-controls {
+            background: var(--warm-white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: end;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .planning-grid {
+            background: var(--warm-white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 30px;
+        }
+        
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .grid-header h2 {
+            color: var(--gray-700);
+            margin: 0;
+        }
+        
+        .plan-controls {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .features-section {
+            text-align: center;
+        }
+        
+        .features-section h2 {
+            color: var(--gray-700);
+            margin-bottom: 30px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+        }
+        
+        .feature-item {
+            background: var(--warm-white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .feature-item h3 {
+            color: var(--gray-700);
+            margin-bottom: 10px;
+        }
+        
+        .feature-item p {
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .planning-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .grid-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .plan-controls {
+                justify-content: center;
+            }
+        }
+    </style>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const gradeSelect = document.getElementById('grade-select');
+            const subjectSelect = document.getElementById('subject-select');
+            const generateBtn = document.getElementById('generate-plan');
+            const planningGrid = document.getElementById('planning-grid');
+            const planTitle = document.getElementById('plan-title');
+            
+            generateBtn.addEventListener('click', function() {
+                const grade = gradeSelect.value;
+                const subject = subjectSelect.value;
+                
+                if (!grade || !subject) {
+                    alert('Please select both grade and subject');
+                    return;
+                }
+                
+                planTitle.textContent = `Grade ${grade} ${subject} - Academic Year Plan`;
+                planningGrid.style.display = 'block';
+                planningGrid.scrollIntoView({ behavior: 'smooth' });
+                
+                generateYearlyPlan(grade, subject);
+            });
+            
+            function generateYearlyPlan(grade, subject) {
+                const monthsContainer = document.getElementById('months-container');
+                monthsContainer.innerHTML = '';
+                
+                const months = [
+                    'January', 'February', 'March', 'April', 'May', 'June',
+                    'July', 'August', 'September', 'October', 'November', 'December'
+                ];
+                
+                const academicMonths = [
+                    'August', 'September', 'October', 'November', 'December',
+                    'January', 'February', 'March', 'April', 'May'
+                ];
+                
+                academicMonths.forEach(month => {
+                    const monthDiv = document.createElement('div');
+                    monthDiv.className = 'month-section';
+                    monthDiv.innerHTML = `
+                        <h3>${month} 2024/2025</h3>
+                        <div class="weeks-grid">
+                            <div class="week-item">Week 1: Introduction to ${subject} concepts</div>
+                            <div class="week-item">Week 2: Basic ${subject} skills development</div>
+                            <div class="week-item">Week 3: Practice and application</div>
+                            <div class="week-item">Week 4: Assessment and review</div>
+                        </div>
+                    `;
+                    monthsContainer.appendChild(monthDiv);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
