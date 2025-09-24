@@ -439,7 +439,7 @@ def generate_conversational_content(topic, activity_type, subject, grade):
     }
     
     # Call existing fallback function
-    content = generate_fallback_response(grade, subject, topic, activity_type, session_context)
+    content = get_pakistani_teacher_fallback(topic, session_context)
     return content
 
 def extract_text_from_pdf(file_path):
@@ -3804,7 +3804,22 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
             session.modified = True
         
         if not ai_response:
-            ai_response = f"I'm ready to help with {feature_display} for Grade {grade} {subject} on '{topic}', but I'm having trouble connecting right now. Please try again!"
+            # Use Pakistani teacher fallback with clean parameters instead of technical prompt
+            session_context_clean = {
+                'grade': grade,
+                'subject': subject,
+                'activity_type': activity_type if 'activity_type' in session else content_type,
+                'selected_feature': content_type
+            }
+            ai_response = get_pakistani_teacher_fallback(topic, session_context_clean)
+            
+            # Store context even for fallback responses
+            session['last_topic'] = topic
+            session['last_activity_type'] = activity_type if 'activity_type' in session else content_type
+            session['last_subject'] = subject
+            session['last_grade'] = grade
+            session['last_feature'] = content_type
+            session.modified = True
         
         return jsonify({
             'message': ai_response,
