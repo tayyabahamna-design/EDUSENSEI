@@ -23,10 +23,12 @@ if not SESSION_SECRET:
 app.secret_key = SESSION_SECRET
 app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 
-# Security configurations (adjusted for development)
+# Session configuration for proper persistence
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
-app.config['SESSION_COOKIE_HTTPONLY'] = True  # No JavaScript access
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+
 
 # Initialize AI client - prefer OpenAI for reliability
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
@@ -2337,6 +2339,8 @@ def chat():
     file_ids = request.json.get('file_ids', [])
     audio_id = request.json.get('audio_id', None)
     
+    
+    
     # Handle Free Chat mode first - bypass all menu logic
     if session.get('selected_feature') == 'free_chat' and user_message.lower() not in ['menu', 'start', '← back to menu']:
         # Process uploaded files and generate AI response directly
@@ -2388,6 +2392,7 @@ def chat():
     # Handle Free Chat selection from menu
     if user_message.lower() in ['💬 free chat', 'free chat']:
         session['selected_feature'] = 'free_chat'
+        session.modified = True
         # Clear any curriculum selection to avoid conflicts
         if 'curriculum_selection' in session:
             del session['curriculum_selection']
@@ -2419,6 +2424,7 @@ def chat():
     
     if user_message.lower() in menu_options:
         session['selected_feature'] = menu_options[user_message.lower()]
+        session.modified = True
         return jsonify({
             'message': f'**{user_message}** 📖\n\nFirst, select your grade level:',
             'options': [
@@ -2721,6 +2727,7 @@ def chat():
     # Handle main menu options - start with curriculum selection
     if user_message.lower() in ['lesson planning help', '📝 lesson planning help']:
         session['selected_feature'] = 'lesson_planning'
+        session.modified = True
         return jsonify({
             'message': '📝 **Lesson Planning Help** - First, select your grade level:',
             'options': [
@@ -2736,6 +2743,7 @@ def chat():
     
     if user_message.lower() in ['fun classroom activities', '🎮 fun classroom activities']:
         session['selected_feature'] = 'activities'
+        session.modified = True
         return jsonify({
             'message': '🎮 **Fun Classroom Activities** - First, select your grade level:',
             'options': [
@@ -2751,6 +2759,7 @@ def chat():
     
     if user_message.lower() in ['teaching tips & advice', '💡 teaching tips & advice', 'teaching tips']:
         session['selected_feature'] = 'teaching_tips'
+        session.modified = True
         return jsonify({
             'message': '💡 **Teaching Tips & Advice** - First, select your grade level:',
             'options': [
@@ -2777,8 +2786,10 @@ def chat():
         for grade_num in range(1, 6):
             grade_text = f'grade {grade_num}'
             grade_emoji = f'{grade_num}️⃣ grade {grade_num}'
+            grade_emoji_capital = f'{grade_num}️⃣ Grade {grade_num}'
             
-            if user_message.lower() in [grade_text, grade_emoji.lower()]:
+            
+            if user_message.lower() in [grade_text, grade_emoji.lower(), grade_emoji_capital.lower()]:
                 curriculum_selection = session.get('curriculum_selection', {})
                 curriculum_selection['grade'] = f'Grade {grade_num}'
                 session['curriculum_selection'] = curriculum_selection
