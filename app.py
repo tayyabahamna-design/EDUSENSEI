@@ -399,18 +399,50 @@ def get_ai_response(user_message, conversation_type="general", session_context=N
         activity_type = session_context.get('activity_type', '')
         
         if grade and subject:
-            # Determine rigor level based on grade
-            rigor_key = "1-2" if grade in [1, 2] else "3" if grade == 3 else "4-5"
+            # Robust grade parsing - convert to integer and handle different formats
+            grade_num = None
+            try:
+                if isinstance(grade, int):
+                    grade_num = grade
+                elif isinstance(grade, str):
+                    # Extract digits from grade string (e.g., "Grade 1", "G1", "1")
+                    import re
+                    grade_match = re.search(r'(\d+)', str(grade))
+                    if grade_match:
+                        grade_num = int(grade_match.group(1))
+                
+                # Validate grade range (1-5 for Pakistani primary)
+                if grade_num and 1 <= grade_num <= 5:
+                    # Map to rigor levels
+                    rigor_key = "1-2" if grade_num in [1, 2] else "3" if grade_num == 3 else "4-5"
+                else:
+                    # Default to simplest rigor for safety and clamp grade_num
+                    rigor_key = "1-2"
+                    grade_num = 1  # Clamp to valid range for consistent prompts
+            except:
+                # Fallback to simplest rigor for safety
+                rigor_key = "1-2"
+                grade_num = 1
+            
+            # Subject normalization - handle common variants
+            subject_mapping = {
+                "Mathematics": "Math",
+                "General Science": "Science", 
+                "Social Science": "Social Studies",
+                "Islamic Studies": "Islamiyat"
+            }
+            normalized_subject = subject_mapping.get(subject, subject)
+            
             rigor_guidelines = GRADE_RIGOR_GUIDELINES.get(rigor_key, {})
-            subject_rigor = SUBJECT_SPECIFIC_RIGOR.get(subject, {}).get(rigor_key, '')
+            subject_rigor = SUBJECT_SPECIFIC_RIGOR.get(normalized_subject, {}).get(rigor_key, f'Age-appropriate {normalized_subject} concepts for Grade {grade_num}')
             
             context_info = f"""
 
 CURRENT EDUCATIONAL CONTEXT:
-- Grade: {grade}
-- Subject: {subject}
+- Grade: {grade_num}
+- Subject: {normalized_subject}
 - Content Type: {selected_feature or activity_type or 'General'}
-- Target Age: {rigor_guidelines.get('description', f'Grade {grade}')}
+- Target Age: {rigor_guidelines.get('description', f'Grade {grade_num}')}
 
 GRADE-APPROPRIATE RIGOR LEVEL ({rigor_key}):
 - Vocabulary Level: {rigor_guidelines.get('vocabulary_level', 'Age-appropriate')}
@@ -418,14 +450,14 @@ GRADE-APPROPRIATE RIGOR LEVEL ({rigor_key}):
 - Activity Style: {rigor_guidelines.get('activity_style', 'Engaging activities')}
 - Subject Focus: {subject_rigor}
 
-IMPORTANT: Match content complexity to Grade {grade} Pakistani ESL students. Use {rigor_guidelines.get('vocabulary_level', 'age-appropriate')} vocabulary and {rigor_guidelines.get('cognitive_complexity', 'appropriate')} thinking skills."""
+IMPORTANT: Match content complexity to Grade {grade_num} Pakistani ESL students. Use {rigor_guidelines.get('vocabulary_level', 'age-appropriate')} vocabulary and {rigor_guidelines.get('cognitive_complexity', 'appropriate')} thinking skills."""
             
             # Build detailed rigor characteristics
             characteristics = rigor_guidelines.get('characteristics', [])
             if characteristics:
                 grade_rigor_info = f"""
 
-GRADE {grade} RIGOR REQUIREMENTS:
+GRADE {grade_num} RIGOR REQUIREMENTS:
 """ + "\n".join([f"- {char}" for char in characteristics])
     
     # Create system prompt based on conversation type
