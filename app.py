@@ -3585,12 +3585,30 @@ def chat():
         session['curriculum_selection']['exercise'] = exercise_title
         session.modified = True
         
+        print(f"✅ Exercise Selected: {exercise_title}")
+        print(f"🎯 Feature Type: {session.get('selected_feature', 'Unknown')}")
+        print(f"📚 Context: Grade {session['curriculum_selection'].get('grade')} {session['curriculum_selection'].get('subject')}")
+        
         # Generate AI content using the complete curriculum context
         curriculum_selection = session['curriculum_selection']
-        feature_type = session['selected_feature']
+        feature_type = session.get('selected_feature')
         
-        # Generate curriculum-specific content
+        # Ensure we have the required context
+        if not feature_type:
+            print("❌ ERROR: No selected_feature in session")
+            return jsonify({
+                'message': f"✅ **Exercise Selected: {exercise_title}**\n\n❌ Content generation failed - missing feature type. Please go back to menu and select a feature (Lesson Plans, Strategies, etc.)",
+                'options': ['← Back to Menu'],
+                'show_menu': True
+            })
+        
+        # Generate curriculum-specific content  
+        print(f"🔄 Generating {feature_type} content for exercise: {exercise_title}")
         ai_content = generate_udost_content(feature_type, curriculum_selection)
+        
+        if not ai_content or ai_content.strip() == "":
+            print("❌ ERROR: Empty content generated")
+            ai_content = f"✅ **Exercise Selected: {exercise_title}**\n\n🔄 **Generating content for your selected exercise...**\n\nPlease wait while I create {feature_type} content based on this exercise."
         
         return jsonify({
             'message': ai_content,
@@ -4422,6 +4440,29 @@ def generate_udost_content(feature_type, curriculum_selection, session_data=None
     book = curriculum_selection.get('book', 'textbook')
     chapter = curriculum_selection.get('chapter')
     skill_category = curriculum_selection.get('skill_category')
+    exercise = curriculum_selection.get('exercise', 'General Exercise')
+    
+    # Get actual exercise content from JSON (for Grade 4 English)
+    exercise_content = ""
+    if grade == 4 and subject and subject.lower() == 'english':
+        print(f"🔍 Fetching actual exercise content for: {exercise}")
+        book_content = get_auto_loaded_book_content(grade, subject)
+        if book_content and 'chapters' in book_content:
+            # Find the matching chapter key
+            matching_chapter = None
+            for chapter_key in book_content['chapters'].keys():
+                if chapter in chapter_key:
+                    matching_chapter = chapter_key
+                    break
+            
+            if matching_chapter and skill_category in book_content['chapters'][matching_chapter]:
+                exercises = book_content['chapters'][matching_chapter][skill_category]
+                # Find the specific exercise
+                for ex in exercises:
+                    if isinstance(ex, dict) and exercise in ex.get('title', ''):
+                        exercise_content = f"\n\nEXERCISE DETAILS:\nTitle: {ex.get('title')}\nType: {ex.get('type')}\nCategory: {skill_category}"
+                        print(f"✅ Found exercise content: {ex.get('title')}")
+                        break
     
     # Create context for AI with Pakistani Teaching Methodology
     context = f"""
@@ -4432,6 +4473,8 @@ def generate_udost_content(feature_type, curriculum_selection, session_data=None
     Book: {book}
     Chapter: {chapter}
     Skill Focus: {skill_category}
+    Selected Exercise: {exercise}
+    {exercise_content}
     
     IMPORTANT: You MUST follow this Pakistani Teaching Methodology:
     {UDOST_TEACHING_METHODOLOGY}
@@ -4654,29 +4697,20 @@ Make examples relatable and practice progressive from easy to challenging."""
     
     # Get AI response with session context
     try:
+        print(f"🤖 Calling AI with prompt for {feature_type}...")
         ai_response = get_ai_response(prompt, "teaching", session_data)
         
-        return jsonify({
-            'message': f"**📚 {feature_type.replace('_', ' ').title()} - Grade {grade} {subject}**\n\n" + ai_response,
-            'is_markdown': True,
-            'return_to_menu': True,
-            'breadcrumb': f"Grade {grade} › {subject} › {book} › Chapter {chapter} › {skill_category}",
-            'suggestions': [
-                '🔄 Generate More Content',
-                '📤 Save to Files', 
-                '🎯 Change Skill Category',
-                '📖 Change Chapter',
-                '← Back to Menu'
-            ]
-        })
+        if ai_response and ai_response.strip():
+            print(f"✅ AI generated content successfully ({len(ai_response)} characters)")
+            # Return formatted content string, not JSON
+            return f"✅ **Exercise Selected: {exercise}**\n\n**📚 {feature_type.replace('_', ' ').title()} - Grade {grade} {subject}**\n\n" + ai_response
+        else:
+            print("❌ AI returned empty response")
+            return f"✅ **Exercise Selected: {exercise}**\n\n❌ Content generation failed - AI returned empty response. Please try again."
         
     except Exception as e:
-        print(f"AI content generation error occurred")
-        return jsonify({
-            'message': '❌ Sorry, I encountered an error generating content. Please ensure AI services are properly configured with valid API keys.',
-            'options': ['🔄 Try Again', '← Back to Menu'],
-            'show_menu': True
-        })
+        print(f"❌ AI content generation error: {str(e)}")
+        return f"✅ **Exercise Selected: {exercise}**\n\n❌ Sorry, I encountered an error generating content. Please ensure AI services are properly configured with valid API keys."
 
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
