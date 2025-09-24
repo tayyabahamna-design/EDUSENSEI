@@ -2901,18 +2901,8 @@ What type of writing are you working on? I can provide more specific guidance on
 What specific math topic are you working with? I'll be able to provide more detailed help once my full capabilities are restored."""
     
     else:
-        # General helpful response
-        return f"""Thanks for your question! I'm currently experiencing some technical difficulties, but I'm designed to help with a wide variety of topics including:
-
-• Coding and programming
-• Writing and creative tasks
-• Math and analysis
-• General questions and research
-• Step-by-step problem solving
-
-I aim to be helpful, accurate, and conversational in my responses. Once my services are fully restored, I'll be able to provide more detailed assistance with "{question}" and any other questions you might have.
-
-Is there anything specific you'd like help with in the meantime?"""
+        # Pakistani-friendly short error message
+        return "Sorry dost, having connection issues. Please try again! 😊"
 
 @app.route('/')
 def index():
