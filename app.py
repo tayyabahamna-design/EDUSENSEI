@@ -12,6 +12,28 @@ from docx import Document
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import bcrypt
+import io
+import re
+import tempfile
+import PyPDF2
+from pdf2image import convert_from_bytes
+from googleapiclient.discovery import build
+from google.auth.exceptions import DefaultCredentialsError
+from google.oauth2 import service_account
+
+# Optional imports for enhanced processing
+try:
+    import pytesseract
+    TESSERACT_AVAILABLE = True
+except ImportError:
+    TESSERACT_AVAILABLE = False
+    
+try:
+    import cv2
+    import numpy as np
+    OPENCV_AVAILABLE = True
+except ImportError:
+    OPENCV_AVAILABLE = False
 
 app = Flask(__name__)
 
@@ -40,6 +62,27 @@ POSTHOG_HOST = os.environ.get('VITE_PUBLIC_POSTHOG_HOST', 'https://app.posthog.c
 
 # Database configuration
 DATABASE_URL = os.environ.get('DATABASE_URL')
+
+# Google Drive configuration
+GOOGLE_DRIVE_FOLDER_ID = '1H9oBsD-aRdrdIeg_7df5KBsGX7VXxyC2'  # Main folder ID from provided link
+GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON')
+
+# Initialize Google Drive service
+drive_service = None
+if GOOGLE_SERVICE_ACCOUNT_JSON:
+    try:
+        service_account_info = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
+        credentials = service_account.Credentials.from_service_account_info(
+            service_account_info, 
+            scopes=['https://www.googleapis.com/auth/drive.readonly']
+        )
+        drive_service = build('drive', 'v3', credentials=credentials)
+        print("Google Drive service initialized successfully")
+    except Exception as e:
+        print(f"Google Drive service initialization failed: {e}")
+        drive_service = None
+else:
+    print("Google Drive service account JSON not provided - using static textbook data")
 
 # Database connection helper
 def get_db_connection():
@@ -438,6 +481,361 @@ def get_predefined_books():
             'Islamiyat': {'Grade 5 Islamiat': 'IslGrade5Complete.pdf'}
         }
     }
+
+# ============= GOOGLE DRIVE INTEGRATION FUNCTIONS =============
+
+def scan_google_drive_folders():
+    """Scan Google Drive folders to build book structure automatically"""
+    if not drive_service:
+        return None
+    
+    try:
+        # Get all folders in the main directory
+        results = drive_service.files().list(
+            q=f"'{GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
+            fields="files(id, name)"
+        ).execute()
+        
+        books_structure = {}
+        grade_folders = results.get('files', [])
+        
+        for grade_folder in grade_folders:
+            grade_name = grade_folder['name']
+            grade_id = grade_folder['id']
+            
+            # Extract grade number from folder name (e.g., "GRADE 1" -> "Grade 1")
+            grade_match = re.search(r'(\d+)', grade_name)
+            if not grade_match:
+                continue
+                
+            grade_key = f"Grade {grade_match.group(1)}"
+            books_structure[grade_key] = {}
+            
+            # Get subject folders within this grade
+            subject_results = drive_service.files().list(
+                q=f"'{grade_id}' in parents and mimeType='application/vnd.google-apps.folder'",
+                fields="files(id, name)"
+            ).execute()
+            
+            subject_folders = subject_results.get('files', [])
+            
+            for subject_folder in subject_folders:
+                subject_name = subject_folder['name']
+                subject_id = subject_folder['id']
+                
+                # Get PDF files in this subject folder
+                pdf_results = drive_service.files().list(
+                    q=f"'{subject_id}' in parents and mimeType='application/pdf'",
+                    fields="files(id, name)"
+                ).execute()
+                
+                pdf_files = pdf_results.get('files', [])
+                
+                if pdf_files:
+                    books_structure[grade_key][subject_name] = {}
+                    for pdf_file in pdf_files:
+                        # Use filename without extension as book title
+                        book_title = pdf_file['name'].replace('.pdf', '')
+                        books_structure[grade_key][subject_name][book_title] = pdf_file['id']
+        
+        return books_structure
+        
+    except Exception as e:
+        print(f"Error scanning Google Drive folders: {e}")
+        return None
+
+def download_pdf_from_drive(file_id):
+    """Download PDF content from Google Drive"""
+    if not drive_service:
+        return None
+    
+    try:
+        # Download the file
+        request = drive_service.files().get_media(fileId=file_id)
+        file_content = io.BytesIO()
+        
+        import googleapiclient.http
+        downloader = googleapiclient.http.MediaIoBaseDownload(file_content, request)
+        
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+        
+        file_content.seek(0)
+        return file_content.getvalue()
+        
+    except Exception as e:
+        print(f"Error downloading PDF from Drive: {e}")
+        return None
+
+def extract_text_from_pdf_bytes(pdf_bytes):
+    """Extract text from PDF bytes using multiple methods"""
+    text_content = ""
+    
+    try:
+        # Method 1: Try PyPDF2 first
+        pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
+        for page in pdf_reader.pages:
+            page_text = page.extract_text()
+            if page_text.strip():
+                text_content += page_text + "\n"
+        
+        # If PyPDF2 didn't extract much text, try OCR
+        if len(text_content.strip()) < 100 and TESSERACT_AVAILABLE:
+            text_content = extract_text_with_ocr(pdf_bytes)
+            
+    except Exception as e:
+        print(f"Error extracting text from PDF: {e}")
+        if TESSERACT_AVAILABLE:
+            text_content = extract_text_with_ocr(pdf_bytes)
+    
+    return text_content
+
+def extract_text_with_ocr(pdf_bytes):
+    """Extract text using OCR from PDF bytes"""
+    if not TESSERACT_AVAILABLE:
+        return ""
+    
+    try:
+        # Convert PDF to images
+        images = convert_from_bytes(pdf_bytes, first_page=1, last_page=10)  # Limit to first 10 pages
+        
+        extracted_text = ""
+        for i, image in enumerate(images):
+            # Convert PIL image to text
+            page_text = pytesseract.image_to_string(image)
+            extracted_text += f"\n--- Page {i+1} ---\n{page_text}\n"
+        
+        return extracted_text
+        
+    except Exception as e:
+        print(f"Error with OCR extraction: {e}")
+        return ""
+
+def categorize_text_into_chapters(text_content, grade, subject):
+    """Automatically categorize extracted text into chapters and exercises"""
+    
+    if not text_content:
+        return {}
+    
+    # Define patterns for Pakistani curriculum chapters
+    chapter_patterns = [
+        r'(?i)chapter\s+(\d+)[:\s]*([^\n]+)',
+        r'(?i)unit\s+(\d+)[:\s]*([^\n]+)', 
+        r'(?i)lesson\s+(\d+)[:\s]*([^\n]+)',
+        r'(?i)باب\s+(\d+)[:\s]*([^\n]+)',  # Urdu chapter
+    ]
+    
+    chapters = {}
+    current_chapter = None
+    current_content = []
+    
+    lines = text_content.split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Check if this line is a chapter heading
+        chapter_found = False
+        for pattern in chapter_patterns:
+            match = re.search(pattern, line)
+            if match:
+                # Save previous chapter if exists
+                if current_chapter and current_content:
+                    chapters[current_chapter] = categorize_chapter_content('\n'.join(current_content))
+                
+                # Start new chapter
+                chapter_num = match.group(1)
+                chapter_title = match.group(2).strip() if len(match.groups()) > 1 else f"Chapter {chapter_num}"
+                current_chapter = f"Chapter {chapter_num}: {chapter_title}"
+                current_content = []
+                chapter_found = True
+                break
+        
+        if not chapter_found and current_chapter:
+            current_content.append(line)
+    
+    # Save last chapter
+    if current_chapter and current_content:
+        chapters[current_chapter] = categorize_chapter_content('\n'.join(current_content))
+    
+    # If no chapters found, create a default structure
+    if not chapters:
+        chapters = create_default_chapter_structure(grade, subject, text_content)
+    
+    return chapters
+
+def categorize_chapter_content(content):
+    """Categorize content within a chapter into exercises by type"""
+    
+    exercises = {
+        "Reading": [],
+        "Writing": [], 
+        "Grammar": [],
+        "Activities": []
+    }
+    
+    # Define exercise patterns for different types
+    reading_patterns = [
+        r'(?i)read(?:ing)?\s+(?:the\s+)?(?:story|text|passage)',
+        r'(?i)comprehension',
+        r'(?i)understand(?:ing)?',
+        r'(?i)meaning',
+    ]
+    
+    writing_patterns = [
+        r'(?i)writ(?:e|ing)',
+        r'(?i)compose',
+        r'(?i)essay',
+        r'(?i)paragraph',
+    ]
+    
+    grammar_patterns = [
+        r'(?i)grammar',
+        r'(?i)noun|verb|adjective',
+        r'(?i)sentence',
+        r'(?i)punctuation',
+    ]
+    
+    activity_patterns = [
+        r'(?i)activit(?:y|ies)',
+        r'(?i)exercise',
+        r'(?i)practice',
+        r'(?i)drill',
+    ]
+    
+    # Split content into potential exercises
+    lines = content.split('\n')
+    current_exercise = []
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        # Check patterns and categorize
+        exercise_type = "Activities"  # Default
+        
+        for pattern in reading_patterns:
+            if re.search(pattern, line):
+                exercise_type = "Reading"
+                break
+        
+        if exercise_type == "Activities":  # Still default, check others
+            for pattern in writing_patterns:
+                if re.search(pattern, line):
+                    exercise_type = "Writing"
+                    break
+                    
+        if exercise_type == "Activities":  # Still default, check grammar
+            for pattern in grammar_patterns:
+                if re.search(pattern, line):
+                    exercise_type = "Grammar"
+                    break
+        
+        # Add exercise to appropriate category
+        if len(line) > 10:  # Only meaningful content
+            exercise_title = line[:100] + "..." if len(line) > 100 else line
+            exercises[exercise_type].append({
+                "title": exercise_title,
+                "type": exercise_type.lower()
+            })
+    
+    # Ensure each category has at least some exercises
+    for category in exercises:
+        if not exercises[category]:
+            exercises[category] = [
+                {"title": f"Practice {category}", "type": category.lower()},
+                {"title": f"{category} Exercise", "type": category.lower()}
+            ]
+    
+    return exercises
+
+def create_default_chapter_structure(grade, subject, content):
+    """Create default chapter structure when automatic detection fails"""
+    
+    # Create 3-5 chapters based on content length
+    content_length = len(content)
+    num_chapters = min(5, max(3, content_length // 1000))
+    
+    chapters = {}
+    
+    for i in range(1, num_chapters + 1):
+        chapter_title = f"Chapter {i}: {subject} Fundamentals {i}"
+        chapters[chapter_title] = {
+            "Reading": [
+                {"title": f"Reading Comprehension {i}", "type": "reading"},
+                {"title": f"Vocabulary Building {i}", "type": "vocabulary"}
+            ],
+            "Writing": [
+                {"title": f"Writing Practice {i}", "type": "writing"},
+                {"title": f"Creative Expression {i}", "type": "creative"}
+            ],
+            "Grammar": [
+                {"title": f"Grammar Rules {i}", "type": "grammar"},
+                {"title": f"Sentence Structure {i}", "type": "structure"}
+            ],
+            "Activities": [
+                {"title": f"Practice Activities {i}", "type": "practice"},
+                {"title": f"Review Exercises {i}", "type": "review"}
+            ]
+        }
+    
+    return chapters
+
+def load_books_from_google_drive():
+    """Main function to load all books from Google Drive and process them"""
+    if not drive_service:
+        print("Google Drive service not available - using static books")
+        return get_predefined_books()
+    
+    try:
+        # Scan Google Drive folder structure
+        drive_books = scan_google_drive_folders()
+        
+        if not drive_books:
+            print("No books found in Google Drive - using static books")
+            return get_predefined_books()
+        
+        # Process each book and extract content
+        processed_books = {}
+        
+        for grade_key, subjects in drive_books.items():
+            processed_books[grade_key] = {}
+            
+            for subject_name, books in subjects.items():
+                processed_books[grade_key][subject_name] = {}
+                
+                for book_title, file_id in books.items():
+                    print(f"Processing {grade_key} - {subject_name} - {book_title}")
+                    
+                    # Download and process PDF
+                    pdf_bytes = download_pdf_from_drive(file_id)
+                    
+                    if pdf_bytes:
+                        # Extract text
+                        text_content = extract_text_from_pdf_bytes(pdf_bytes)
+                        
+                        # Categorize into chapters and exercises
+                        grade_num = int(re.search(r'(\d+)', grade_key).group(1))
+                        chapters = categorize_text_into_chapters(text_content, grade_num, subject_name)
+                        
+                        processed_books[grade_key][subject_name][book_title] = {
+                            'file_id': file_id,
+                            'chapters': chapters,
+                            'extracted_text': text_content[:1000] + "..." if len(text_content) > 1000 else text_content
+                        }
+                    else:
+                        print(f"Failed to download {book_title}")
+        
+        print(f"Successfully processed {len(processed_books)} grades from Google Drive")
+        return processed_books
+        
+    except Exception as e:
+        print(f"Error loading books from Google Drive: {e}")
+        return get_predefined_books()
 
 def get_auto_loaded_book_content(grade, subject):
     """Auto-load book content with chapters and exercises based on grade and subject"""
