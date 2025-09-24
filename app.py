@@ -476,13 +476,13 @@ CORE REQUIREMENTS:
 
 CONVERSATIONAL STYLE (CRITICAL):
 - Use natural Roman Urdu mixed with English (like Pakistani teachers speak)
-- Be friendly and conversational: "Arey teacher sahib! Bilkul easy hai!"
+- Be friendly and conversational: "Hello teacher! Bilkul easy hai!"
 - Think in Roman Urdu: "Grade 1 ke bachon ke liye simple rakhna padega..."
-- Use Roman Urdu words naturally: "bachon", "teacher sahib", "bilkul", "acha", "kaisa laga"
-- End with friendly questions: "Aur activities chahiye? Kaisa laga teacher sahib? 😊"
+- Use Roman Urdu words naturally: "bachon", "teacher", "bilkul", "acha", "kaisa laga"
+- End with friendly questions: "Aur activities chahiye? Kaisa laga teacher? 😊"
 
 EXAMPLES OF CORRECT STYLE:
-✅ "Arey teacher sahib! Grade 1 ke bachon ke liye nouns sikhana hai? Bilkul easy hai!"
+✅ "Hello teacher! Grade 1 ke bachon ke liye nouns sikhana hai? Bilkul easy hai!"
 ✅ "Classroom ka khazana game try kariye - bachon ko bahut maza aayega"  
 ✅ "Ahmed aur Fatima ke examples use karke family members sikhayen"
 ❌ NEVER use Arabic Urdu script: "ارے ٹیچر صاحب"
@@ -2902,7 +2902,7 @@ def get_pakistani_teacher_fallback(user_message, session_context=None):
         if activity_type == 'pair_work':
             return f"""👫 PAIR WORK - Nouns (Grade {grade} {subject})
 
-Arey teacher sahib! Grade {grade} ke bachon ke liye nouns bilkul easy hai!
+Hello teacher! Grade {grade} ke bachon ke liye nouns bilkul easy hai!
 
 🌟 Classroom Ka Khazana:
 Partners ko classroom mein 5 cheezain dhundni hain
@@ -2918,12 +2918,12 @@ Ahmed aur Fatima ke saath practice karwayiye
 Roti, chawal, cricket bat, dupatta ke pictures use kariye
 Partners turns lete kar English names bolenge
 
-Kaisa laga teacher sahib? Aur activities chahiye? 😊"""
+Kaisa laga teacher? Aur activities chahiye? 😊"""
         
         elif activity_type == 'group_work':
             return f"""👥 GROUP WORK - Nouns (Grade {grade} {subject})
 
-Arey teacher sahib! Groups mein nouns sikhana bahut maza aata hai!
+Hello teacher! Groups mein nouns sikhana bahut maza aata hai!
 
 🌟 Noun Detective Squad:
 4-5 bachon ka group banayiye
@@ -2939,12 +2939,12 @@ Har group apne food ke bare mein baat karega
 Ahmed, Fatima, Ali, Ayesha ke families banayiye
 "This is Ahmed's Abbu, This is Fatima's Ammi"
 
-Grade {grade} ke liye bilkul perfect hai! Try kariye teacher sahib! 😊"""
+Grade {grade} ke liye bilkul perfect hai! Try kariye teacher! 😊"""
             
         else:
             return f"""📚 Nouns Activities (Grade {grade} {subject})
 
-Hello teacher sahib! Main samajh gayi hun aap ko nouns ke activities chahiye.
+Hello teacher! Main samajh gayi hun aap ko nouns ke activities chahiye.
 Grade {grade} ke liye kuch ideas suggest kar rahi hun:
 
 🌟 Simple Noun Recognition:
@@ -2959,12 +2959,12 @@ Bachon ko examples dene ko kahiye
 Abbu, Ammi, bhai, behen, nano, nana
 English translation ke saath sikhayen
 
-Kaisa laga teacher sahib? Aur help chahiye? 😊"""
+Kaisa laga teacher? Aur help chahiye? 😊"""
     
     elif 'verb' in topic:
         return f"""🏃 Verbs Activities (Grade {grade} {subject})
 
-Arey teacher sahib! Verbs ke liye action games best hain!
+Hello teacher! Verbs ke liye action games best hain!
 
 🌟 Action Time:
 Jump, run, sit, stand - bachon ko action karwayiye
@@ -2979,12 +2979,12 @@ Read, write, listen, speak, think
 Simple actions jo har din karte hain
 
 Grade {grade} ke bachon ko movement activities bahut pasand aati hain!
-Try kariye teacher sahib! 😊"""
+Try kariye teacher! 😊"""
     
     elif 'addition' in topic or 'add' in topic:
         return f"""➕ Addition Activities (Grade {grade} Math)
 
-Arey teacher sahib! Addition ke liye practical examples use kariye!
+Hello teacher! Addition ke liye practical examples use kariye!
 
 🌟 Pakistani Objects Counting:
 Mangoes counting: 2 aam + 3 aam = 5 aam
@@ -3004,7 +3004,7 @@ Bachon ko bahut samajh aayega! 😊"""
     # General fallback for any topic
     else:
         content_type = "activities" if activity_type else selected_feature
-        return f"""Hello teacher sahib! Main samajh gayi hun aap ko "{topic}" ke {content_type} chahiye.
+        return f"""Hello teacher! Main samajh gayi hun aap ko "{topic}" ke {content_type} chahiye.
 
 Grade {grade} {subject} ke liye kuch general ideas:
 
@@ -3021,7 +3021,7 @@ Urdu support dein difficult words ke liye
 Step by step explain kariye
 
 Grade {grade} ke bachon ke liye perfect level main adjust kar deti hun!
-Kaisa laga teacher sahib? Aur specific help chahiye? 😊"""
+Kaisa laga teacher? Aur specific help chahiye? 😊"""
 
 @app.route('/')
 def index():
