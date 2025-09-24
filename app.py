@@ -651,58 +651,197 @@ def extract_text_with_ocr(pdf_bytes):
         print(f"Error with OCR extraction: {e}")
         return ""
 
+def is_title_candidate(line):
+    """Check if line could be a story title based on format rules"""
+    if not line or len(line) < 8 or len(line) > 60:
+        return False
+    
+    # Count words (2-8 words for titles)
+    words = line.split()
+    if len(words) < 2 or len(words) > 8:
+        return False
+    
+    # Must not start with digit or end with colon
+    if line[0].isdigit() or line.endswith(':'):
+        return False
+    
+    # Must not contain colon anywhere
+    if ':' in line:
+        return False
+    
+    # TOC filter: reject lines with dotted leaders and page numbers
+    if re.search(r'\.\.{2,}\s*\d+$', line) or re.search(r'\s+\d{1,3}$', line):
+        return False
+    
+    # Hard exclude prefixes/keywords (case-insensitive)
+    blacklist_prefixes = [
+        'activity', 'exercise', 'grammar', 'writing', 'reading', 'objectives',
+        'learning outcomes', 'vocabulary', 'step', 'project', 'tips',
+        'connect and create', 'choose your topic', 'state your opinion',
+        'answer key', 'comprehension', 'unit', 'lesson', 'chapter'
+    ]
+    
+    line_lower = line.lower()
+    for prefix in blacklist_prefixes:
+        if line_lower.startswith(prefix):
+            return False
+    
+    # Must be Title Case or contain apostrophes (for story titles)
+    has_title_case = any(word[0].isupper() for word in words if len(word) > 0)
+    has_apostrophe = "'" in line
+    
+    return has_title_case or has_apostrophe
+
+def is_heading_or_label(line):
+    """Check if line is a heading or label that marks end of story"""
+    if not line:
+        return False
+    
+    line_lower = line.lower()
+    
+    # Section endings
+    section_markers = [
+        'comprehension', 'grammar', 'writing', 'activity', 'project', 'tips',
+        'answer key', 'objectives', 'vocabulary', 'step', 'connect and create',
+        'choose your topic', 'state your opinion', 'diving deeper'
+    ]
+    
+    return any(marker in line_lower for marker in section_markers) or line.isupper()
+
+def build_paragraphs(lines, start_idx):
+    """Build paragraphs from lines starting at start_idx"""
+    paragraphs = []
+    current_paragraph = []
+    
+    for i in range(start_idx, len(lines)):
+        line = lines[i].strip()
+        
+        # Empty line or heading marks paragraph break
+        if not line or is_heading_or_label(line):
+            if current_paragraph:
+                paragraphs.append(' '.join(current_paragraph))
+                current_paragraph = []
+            if is_heading_or_label(line):
+                break
+        elif len(line) > 3:  # Ignore very short lines
+            current_paragraph.append(line)
+    
+    # Add remaining content
+    if current_paragraph:
+        paragraphs.append(' '.join(current_paragraph))
+    
+    return paragraphs
+
+def validate_narrative(paragraph):
+    """Check if paragraph contains narrative content"""
+    if not paragraph or len(paragraph) < 80:
+        return False
+    
+    words = paragraph.split()
+    if len(words) < 15:
+        return False
+    
+    # Count sentences (approximate)
+    sentence_markers = paragraph.count('.') + paragraph.count('!') + paragraph.count('?')
+    if sentence_markers < 3:
+        return False
+    
+    # Check average sentence length
+    avg_sentence_length = len(words) / max(sentence_markers, 1)
+    if avg_sentence_length < 8:
+        return False
+    
+    # Count pronouns
+    pronouns = ['he', 'she', 'they', 'i', 'we', 'his', 'her', 'their', 'him']
+    pronoun_count = sum(1 for word in words if word.lower() in pronouns)
+    if pronoun_count < 3:
+        return False
+    
+    # Count past-tense indicators
+    past_tense_words = ['was', 'were', 'had', 'went', 'said', 'came', 'made', 'took', 'gave']
+    past_tense_count = sum(1 for word in words if word.lower() in past_tense_words)
+    past_tense_count += sum(1 for word in words if word.lower().endswith('ed'))
+    
+    if past_tense_count < 3:
+        return False
+    
+    return True
+
+def find_story_end(lines, start_idx):
+    """Find where story content ends"""
+    for i in range(start_idx + 50, min(len(lines), start_idx + 300)):
+        line = lines[i].strip()
+        if is_heading_or_label(line):
+            return i
+    return min(len(lines), start_idx + 300)
+
 def categorize_text_into_chapters(text_content, grade, subject):
     """Automatically categorize extracted text into chapters and exercises"""
     
     if not text_content:
         return {}
     
-    # Define patterns for Pakistani curriculum chapters
-    chapter_patterns = [
-        r'(?i)chapter\s+(\d+)[:\s]*([^\n]+)',
-        r'(?i)unit\s+(\d+)[:\s]*([^\n]+)', 
-        r'(?i)lesson\s+(\d+)[:\s]*([^\n]+)',
-        r'(?i)باب\s+(\d+)[:\s]*([^\n]+)',  # Urdu chapter
-    ]
-    
-    chapters = {}
-    current_chapter = None
-    current_content = []
-    
     lines = text_content.split('\n')
+    story_chapters = []
     
-    for line in lines:
+    print(f"Analyzing {len(lines)} lines for story content...")
+    
+    for i, line in enumerate(lines):
         line = line.strip()
-        if not line:
-            continue
-            
-        # Check if this line is a chapter heading
-        chapter_found = False
-        for pattern in chapter_patterns:
-            match = re.search(pattern, line)
-            if match:
-                # Save previous chapter if exists
-                if current_chapter and current_content:
-                    chapters[current_chapter] = categorize_chapter_content('\n'.join(current_content))
-                
-                # Start new chapter
-                chapter_num = match.group(1)
-                chapter_title = match.group(2).strip() if len(match.groups()) > 1 else f"Chapter {chapter_num}"
-                current_chapter = f"Chapter {chapter_num}: {chapter_title}"
-                current_content = []
-                chapter_found = True
-                break
         
-        if not chapter_found and current_chapter:
-            current_content.append(line)
+        # Stage 1: Check if line could be a title
+        if not is_title_candidate(line):
+            continue
+        
+        # Stage 2: Look for narrative content after title
+        paragraphs = build_paragraphs(lines, i + 1)
+        
+        if not paragraphs:
+            continue
+        
+        # Validate first paragraph for narrative content
+        first_paragraph = paragraphs[0]
+        if not validate_narrative(first_paragraph):
+            continue
+        
+        # Found a valid story - extract full content
+        story_end = find_story_end(lines, i)
+        story_content = []
+        
+        for line_idx in range(i + 1, story_end):
+            if line_idx < len(lines):
+                content_line = lines[line_idx].strip()
+                if content_line and len(content_line) > 3:
+                    story_content.append(content_line)
+        
+        # Ensure substantial content
+        total_words = sum(len(line.split()) for line in story_content)
+        if total_words >= 200:
+            story_chapters.append({
+                'title': line,
+                'content': story_content,
+                'word_count': total_words
+            })
+            print(f"Found story: '{line}' ({total_words} words)")
     
-    # Save last chapter
-    if current_chapter and current_content:
-        chapters[current_chapter] = categorize_chapter_content('\n'.join(current_content))
+    # Remove duplicates and limit to top stories by content length
+    seen_titles = set()
+    unique_stories = []
     
-    # If no chapters found, create a default structure
-    if not chapters:
-        chapters = create_default_chapter_structure(grade, subject, text_content)
+    for story in sorted(story_chapters, key=lambda x: x['word_count'], reverse=True):
+        normalized_title = story['title'].lower().strip()
+        if normalized_title not in seen_titles:
+            seen_titles.add(normalized_title)
+            unique_stories.append(story)
+    
+    # Create chapters from found stories (limit to 20)
+    chapters = {}
+    for i, story in enumerate(unique_stories[:20]):
+        chapter_name = f"Chapter {i + 1}: {story['title']}"
+        chapter_content = '\n'.join(story['content'])
+        chapters[chapter_name] = categorize_chapter_content(chapter_content)
+    
+    print(f"Final result: {len(chapters)} chapters extracted")
     
     return chapters
 
