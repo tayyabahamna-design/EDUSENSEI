@@ -585,8 +585,8 @@ Remember: Speak like a friendly Pakistani teacher using natural Roman Urdu + Eng
             else:
                 print(f"Gemini API error: {type(e).__name__}")
     
-    # Final fallback
-    return get_general_guidance_fallback(user_message)
+    # Final fallback with Pakistani teacher responses
+    return get_pakistani_teacher_fallback(user_message, session_context)
 
 def transcribe_audio(audio_file_path):
     """Transcribe audio using OpenAI Whisper API with Urdu language support"""
@@ -2874,48 +2874,154 @@ def generate_curriculum_tips(grade, subject, chapter, topic):
         'show_menu': True
     })
 
-def get_general_guidance_fallback(question):
-    """Fallback guidance when AI services are not available"""
-    question_lower = question.lower()
+def get_pakistani_teacher_fallback(user_message, session_context=None):
+    """Robust fallback responses for Pakistani teachers when AI services fail"""
     
-    # Provide helpful responses for common topics
-    if any(word in question_lower for word in ['code', 'coding', 'programming', 'python', 'javascript', 'html', 'css']):
-        return """I'd be happy to help with coding questions! While I'm currently unable to access my full capabilities, here are some general programming tips:
-
-• Break down complex problems into smaller, manageable parts
-• Use clear, descriptive variable and function names
-• Comment your code to explain the "why," not just the "what"
-• Test your code frequently with small inputs
-• Don't be afraid to look up documentation and examples
-
-For specific coding help, I recommend checking Stack Overflow, official documentation, or online coding communities."""
+    # Get session data for context-aware responses
+    grade = session_context.get('grade', 1) if session_context else 1
+    subject = session_context.get('subject', 'English') if session_context else 'English'
+    activity_type = session_context.get('activity_type', 'activities') if session_context else 'activities'
+    selected_feature = session_context.get('selected_feature', 'lesson_plans') if session_context else 'lesson_plans'
     
-    elif any(word in question_lower for word in ['write', 'writing', 'essay', 'story', 'creative']):
-        return """I'd love to help with your writing! Here are some general writing tips:
-
-• Start with a clear outline or structure
-• Write a compelling opening that hooks your reader
-• Use specific details and examples to support your points
-• Keep your audience in mind throughout
-• Read your work aloud to catch awkward phrasing
-• Don't worry about perfection in your first draft - focus on getting ideas down
-
-What type of writing are you working on? I can provide more specific guidance once my services are fully available."""
+    # Convert grade to number if it's a string
+    try:
+        if isinstance(grade, str):
+            import re
+            grade_match = re.search(r'(\d+)', str(grade))
+            grade = int(grade_match.group(1)) if grade_match else 1
+    except:
+        grade = 1
     
-    elif any(word in question_lower for word in ['math', 'mathematics', 'calculate', 'equation', 'problem']):
-        return """I'm here to help with math! Some general problem-solving strategies:
-
-• Read the problem carefully and identify what you're looking for
-• Write down what information you have
-• Consider what formulas or concepts might apply
-• Work through simpler examples first
-• Check your answer by substituting back or using estimation
-
-What specific math topic are you working with? I'll be able to provide more detailed help once my full capabilities are restored."""
+    topic = user_message.lower().strip()
     
+    # Debug information (logged, not shown to user)
+    print(f"Fallback triggered - Grade: {grade}, Subject: {subject}, Topic: {topic}, Activity: {activity_type}")
+    
+    # Specific hardcoded responses for common topics
+    if 'noun' in topic:
+        if activity_type == 'pair_work':
+            return f"""👫 PAIR WORK - Nouns (Grade {grade} {subject})
+
+Arey teacher sahib! Grade {grade} ke bachon ke liye nouns bilkul easy hai!
+
+🌟 Classroom Ka Khazana:
+Partners ko classroom mein 5 cheezain dhundni hain
+Ek partner object dikhaega, doosra name bolega
+"Yeh chair hai" - "This is a chair"
+
+🌟 My Things, Your Things:
+Ahmed aur Fatima ke saath practice karwayiye
+"Yeh meri book hai" - "This is my book"
+"Woh tumhari pen hai" - "That is your pen"
+
+🌟 Pakistani Objects Game:
+Roti, chawal, cricket bat, dupatta ke pictures use kariye
+Partners turns lete kar English names bolenge
+
+Kaisa laga teacher sahib? Aur activities chahiye? 😊"""
+        
+        elif activity_type == 'group_work':
+            return f"""👥 GROUP WORK - Nouns (Grade {grade} {subject})
+
+Arey teacher sahib! Groups mein nouns sikhana bahut maza aata hai!
+
+🌟 Noun Detective Squad:
+4-5 bachon ka group banayiye
+Classroom mein noun hunt karte jayenge
+Jo group zyada nouns dhunde, woh jeet gaya!
+
+🌟 Pakistani Food Market:
+Groups ko different Pakistani foods assign kariye
+Biryani group, Karahi group, Haleem group
+Har group apne food ke bare mein baat karega
+
+🌟 Family Tree Activity:
+Ahmed, Fatima, Ali, Ayesha ke families banayiye
+"This is Ahmed's Abbu, This is Fatima's Ammi"
+
+Grade {grade} ke liye bilkul perfect hai! Try kariye teacher sahib! 😊"""
+            
+        else:
+            return f"""📚 Nouns Activities (Grade {grade} {subject})
+
+Hello teacher sahib! Main samajh gayi hun aap ko nouns ke activities chahiye.
+Grade {grade} ke liye kuch ideas suggest kar rahi hun:
+
+🌟 Simple Noun Recognition:
+Classroom objects dikhayen: chair, table, board, bag
+Pakistani items bhi include kariye: dupatta, shalwar, kameez
+
+🌟 Person, Place, Thing Categories:
+Ahmed (person), Lahore (place), cricket (thing)
+Bachon ko examples dene ko kahiye
+
+🌟 My Family Nouns:
+Abbu, Ammi, bhai, behen, nano, nana
+English translation ke saath sikhayen
+
+Kaisa laga teacher sahib? Aur help chahiye? 😊"""
+    
+    elif 'verb' in topic:
+        return f"""🏃 Verbs Activities (Grade {grade} {subject})
+
+Arey teacher sahib! Verbs ke liye action games best hain!
+
+🌟 Action Time:
+Jump, run, sit, stand - bachon ko action karwayiye
+"Ahmed is running, Fatima is jumping"
+
+🌟 Daily Activities:
+Brush teeth, eat breakfast, play cricket
+Pakistani bachon ke daily routine use kariye
+
+🌟 Classroom Verbs:
+Read, write, listen, speak, think
+Simple actions jo har din karte hain
+
+Grade {grade} ke bachon ko movement activities bahut pasand aati hain!
+Try kariye teacher sahib! 😊"""
+    
+    elif 'addition' in topic or 'add' in topic:
+        return f"""➕ Addition Activities (Grade {grade} Math)
+
+Arey teacher sahib! Addition ke liye practical examples use kariye!
+
+🌟 Pakistani Objects Counting:
+Mangoes counting: 2 aam + 3 aam = 5 aam
+Roti counting: 1 roti + 2 roti = 3 roti
+
+🌟 Money Addition:
+Pakistani rupees use kariye
+5 rupees + 3 rupees = 8 rupees
+
+🌟 Cricket Score:
+Ahmed ne 2 runs banaye, Ali ne 3 runs
+Total kitne runs? 2 + 3 = 5
+
+Grade {grade} ke liye bilkul perfect level hai!
+Bachon ko bahut samajh aayega! 😊"""
+    
+    # General fallback for any topic
     else:
-        # Pakistani-friendly short error message
-        return "Sorry dost, having connection issues. Please try again! 😊"
+        content_type = "activities" if activity_type else selected_feature
+        return f"""Hello teacher sahib! Main samajh gayi hun aap ko "{topic}" ke {content_type} chahiye.
+
+Grade {grade} {subject} ke liye kuch general ideas:
+
+🌟 Pakistani Context:
+Local examples use kariye - Ahmed, Fatima, Ali, Ayesha
+Familiar things: roti, chawal, cricket, Eid
+
+🌟 Interactive Methods:
+Pair work, group work, games aur movement
+Bachon ko engage rakhne ke liye hands-on activities
+
+🌟 Simple Language:
+Urdu support dein difficult words ke liye
+Step by step explain kariye
+
+Grade {grade} ke bachon ke liye perfect level main adjust kar deti hun!
+Kaisa laga teacher sahib? Aur specific help chahiye? 😊"""
 
 @app.route('/')
 def index():
