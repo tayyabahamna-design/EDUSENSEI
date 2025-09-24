@@ -880,8 +880,17 @@ def load_books_from_google_drive():
 def get_auto_loaded_book_content(grade, subject):
     """Auto-load book content with chapters and exercises based on grade and subject"""
     
+    debug_info = {
+        'drive_status': '❌ Not Connected',
+        'pdf_status': '❌ No PDF Found',
+        'chapters_found': 0,
+        'content_preview': 'No content extracted',
+        'source': 'unknown'
+    }
+    
     # Try Google Drive integration first
     if drive_service:
+        debug_info['drive_status'] = '✅ Connected'
         try:
             # Load books from Google Drive
             drive_books = load_books_from_google_drive()
@@ -895,6 +904,11 @@ def get_auto_loaded_book_content(grade, subject):
                     book_title = list(subject_books.keys())[0]
                     book_data = subject_books[book_title]
                     
+                    debug_info['pdf_status'] = '✅ Loaded from Google Drive'
+                    debug_info['chapters_found'] = len(book_data.get('chapters', {}))
+                    debug_info['content_preview'] = book_data.get('extracted_text', '')[:100]
+                    debug_info['source'] = 'google_drive'
+                    
                     return {
                         'title': book_title,
                         'filename': book_data.get('file_id', ''),
@@ -903,11 +917,62 @@ def get_auto_loaded_book_content(grade, subject):
                         'chapters': book_data.get('chapters', {}),
                         'total_chapters': len(book_data.get('chapters', {})),
                         'source': 'google_drive',
-                        'file_id': book_data.get('file_id')
+                        'file_id': book_data.get('file_id'),
+                        'debug_info': debug_info
                     }
         except Exception as e:
             # Sanitize error logging to prevent credential leakage
             print(f"Error loading from Google Drive, falling back to static books: {type(e).__name__}")
+    else:
+        debug_info['drive_status'] = '❌ Service Account Not Configured'
+    
+    # Try to find and read actual PDF files from attached_assets
+    try:
+        import os
+        pdf_dir = 'attached_assets'
+        if os.path.exists(pdf_dir):
+            # Look for PDFs that match this grade/subject
+            grade_patterns = [f'grade {grade}', f'grade{grade}', f'g{grade}', str(grade)]
+            subject_patterns = [subject.lower(), subject[:4].lower()]
+            
+            for filename in os.listdir(pdf_dir):
+                if filename.lower().endswith('.pdf'):
+                    filename_lower = filename.lower()
+                    
+                    # Check if this PDF matches the grade/subject
+                    grade_match = any(pattern in filename_lower for pattern in grade_patterns)
+                    subject_match = any(pattern in filename_lower for pattern in subject_patterns)
+                    
+                    if grade_match or subject_match:
+                        pdf_path = os.path.join(pdf_dir, filename)
+                        
+                        # Extract actual text from the PDF
+                        extracted_text = extract_text_from_pdf(pdf_path)
+                        
+                        if extracted_text:
+                            # Extract real chapters from the PDF content
+                            real_chapters = categorize_text_into_chapters(extracted_text, grade, subject)
+                            
+                            debug_info['pdf_status'] = '✅ Loaded from Local PDF'
+                            debug_info['chapters_found'] = len(real_chapters) if real_chapters else 0
+                            debug_info['content_preview'] = extracted_text[:100] + "..."
+                            debug_info['source'] = 'local_pdf'
+                            
+                            if real_chapters:
+                                return {
+                                    'title': f'Grade {grade} {subject} Textbook',
+                                    'filename': filename,
+                                    'grade': grade,
+                                    'subject': subject,
+                                    'chapters': real_chapters,
+                                    'total_chapters': len(real_chapters),
+                                    'source': 'local_pdf',
+                                    'extracted_text': extracted_text[:1000] + "..." if len(extracted_text) > 1000 else extracted_text,
+                                    'debug_info': debug_info
+                                }
+                        break
+    except Exception as e:
+        print(f"Error reading local PDFs: {type(e).__name__}")
     
     # Fallback to predefined static books
     predefined_books = get_predefined_books()
@@ -915,10 +980,14 @@ def get_auto_loaded_book_content(grade, subject):
     # Get the appropriate book for this grade and subject
     grade_key = f'Grade {grade}'
     if grade_key not in predefined_books:
+        debug_info['pdf_status'] = '❌ No PDF Found - No Predefined Book'
+        debug_info['source'] = 'none'
         return None
         
     subject_books = predefined_books[grade_key].get(subject, {})
     if not subject_books:
+        debug_info['pdf_status'] = '❌ No PDF Found - No Subject Book'
+        debug_info['source'] = 'none'
         return None
     
     # Get the first (and usually only) book for this subject
@@ -928,6 +997,11 @@ def get_auto_loaded_book_content(grade, subject):
     # Generate structured content as if extracted via OCR
     book_content = generate_book_structure(grade, subject, book_title)
     
+    debug_info['pdf_status'] = '⚠️ Using Static/Fake Data'
+    debug_info['chapters_found'] = len(book_content['chapters'])
+    debug_info['content_preview'] = 'Generated fake content for testing'
+    debug_info['source'] = 'static'
+    
     return {
         'title': book_title,
         'filename': book_filename,
@@ -935,7 +1009,8 @@ def get_auto_loaded_book_content(grade, subject):
         'subject': subject,
         'chapters': book_content['chapters'],
         'total_chapters': len(book_content['chapters']),
-        'source': 'static'
+        'source': 'static',
+        'debug_info': debug_info
     }
 
 def generate_book_structure(grade, subject, book_title):
