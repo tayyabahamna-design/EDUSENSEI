@@ -1186,7 +1186,22 @@ def get_auto_loaded_book_content(grade, subject):
         'source': 'unknown'
     }
     
-    # Try Google Drive integration first
+    # Special handling for Grade 4 English - use JSON file
+    if grade == 4 and subject.lower() == 'english':
+        json_content = load_grade4_english_json()
+        if json_content:
+            debug_info['pdf_status'] = '✅ Loaded from JSON file'
+            debug_info['chapters_found'] = json_content.get('total_chapters', 0)
+            debug_info['content_preview'] = json_content.get('extracted_text', '')[:100]
+            debug_info['source'] = 'json_file'
+            
+            json_content['debug_info'] = debug_info
+            print(f"Successfully loaded Grade 4 English from JSON file with {json_content.get('total_chapters', 0)} chapters")
+            return json_content
+        else:
+            print("Failed to load Grade 4 English JSON file, falling back to other methods")
+    
+    # Try Google Drive integration first (for all other grades/subjects)
     if drive_service:
         debug_info['drive_status'] = '✅ Connected'
         try:
