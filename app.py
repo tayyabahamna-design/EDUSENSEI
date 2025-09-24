@@ -35,6 +35,70 @@ try:
 except ImportError:
     OPENCV_AVAILABLE = False
 
+# TEACHING METHODOLOGY GUIDE FOR U-DOST AI CHATBOT
+UDOST_TEACHING_METHODOLOGY = """
+## LESSON PLANNING STRUCTURE (6 Essential Steps):
+• **RECALL:** Quick review of previous learning/prerequisite knowledge
+• **HOOK:** Engaging activity to capture student interest and introduce topic  
+• **EXPLAIN:** Clear explanation using visual aids, examples, and demonstrations
+• **GUIDED PRACTICE:** Teacher-led practice with student participation
+• **INDEPENDENT PRACTICE:** Students work from textbook exercises independently
+• **QUICK CONCLUSION:** Brief summary and key takeaways
+
+## TEACHING STRATEGIES BY SKILL:
+
+### READING STRATEGIES:
+- Echo Reading, Choral Reading, Paired Reading
+- Picture Walk, Prediction, Think-Aloud
+- Phonics Blending, Sight Word Recognition
+- Reading Comprehension Questions
+
+### WRITING STRATEGIES:
+- Sentence Starters, Writing Frames
+- Guided Writing, Shared Writing
+- Grammar Integration, Vocabulary Building
+- Peer Editing, Self-Correction
+
+### ORAL COMMUNICATION STRATEGIES:
+- Show and Tell, Role Play, Storytelling
+- Question-Answer Sessions, Group Discussions
+- Pronunciation Practice, Vocabulary Games
+- Listen and Repeat Activities
+
+### COMPREHENSION STRATEGIES:
+- KWL Charts (Know-Want-Learn)
+- Story Mapping, Sequence Activities
+- Main Idea and Details, Cause and Effect
+- Making Connections, Inference Skills
+
+### GRAMMAR STRATEGIES:
+- Grammar Games, Pattern Practice
+- Sentence Building, Error Correction
+- Visual Grammar Charts, Examples and Non-examples
+- Contextual Grammar Teaching
+
+### VOCABULARY STRATEGIES:
+- Picture-Word Association, Word Maps
+- Synonym/Antonym Games, Context Clues
+- Word Families, Vocabulary Journals
+- Total Physical Response (TPR)
+
+## PAKISTANI ESL CONTEXT REQUIREMENTS:
+- All content must match the SPECIFIC EXERCISE from the selected chapter/book
+- Tailor difficulty to Pakistani ESL students (English as Second Language)
+- Consider age-appropriate rigor for grades 1-5
+- Use simple, clear Pakistani English context
+- Include Urdu translation support when needed
+- Reference local cultural examples and contexts (Pakistani names, foods, places)
+- Adjust complexity based on grade level
+- Ensure activities match the exact textbook content selected
+- Use familiar cultural references
+- Provide pronunciation guides for difficult English words
+- Include mother tongue support strategies
+- Consider limited English vocabulary of students
+- Focus on practical, communicative English skills
+"""
+
 app = Flask(__name__)
 
 # Require secure session secret in production
