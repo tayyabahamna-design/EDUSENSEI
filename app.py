@@ -127,26 +127,7 @@ POSTHOG_HOST = os.environ.get('VITE_PUBLIC_POSTHOG_HOST', 'https://app.posthog.c
 # Database configuration
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# Google Drive configuration
-GOOGLE_DRIVE_FOLDER_ID = os.environ.get('GOOGLE_DRIVE_FOLDER_ID', '1H9oBsD-aRdrdIeg_7df5KBsGX7VXxyC2')  # Configurable via env var
-GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON')
-
-# Initialize Google Drive service
-drive_service = None
-if GOOGLE_SERVICE_ACCOUNT_JSON:
-    try:
-        service_account_info = json.loads(GOOGLE_SERVICE_ACCOUNT_JSON)
-        credentials = service_account.Credentials.from_service_account_info(
-            service_account_info, 
-            scopes=['https://www.googleapis.com/auth/drive.readonly']
-        )
-        drive_service = build('drive', 'v3', credentials=credentials)
-        print("Google Drive service initialized successfully")
-    except Exception as e:
-        print(f"Google Drive service initialization failed: {e}")
-        drive_service = None
-else:
-    print("Google Drive service account JSON not provided - using static textbook data")
+# Removed Google Drive integration - using direct OpenAI responses
 
 # Database connection helper
 def get_db_connection():
@@ -252,102 +233,9 @@ def get_file_metadata(file_id):
             return json.load(f)
     return None
 
-def load_grade4_english_json():
-    """Load Grade 4 English content from JSON file"""
-    try:
-        json_file_path = os.path.join('attached_assets', 'G4_eng_1758690663284.json')
-        if os.path.exists(json_file_path):
-            with open(json_file_path, 'r', encoding='utf-8') as f:
-                json_data = json.load(f)
-            
-            # Extract and combine all text content
-            full_text = ""
-            chapters_info = {}
-            
-            for page_data in json_data:
-                if page_data.get('text'):
-                    text_content = page_data['text'].strip()
-                    if text_content:
-                        full_text += text_content + "\n"
-            
-            # Parse chapters from the combined text
-            chapters = parse_grade4_english_chapters(full_text)
-            
-            return {
-                'title': 'Grade 4 English - English Adventure: Learn, Express and Succeed!',
-                'filename': 'G4_eng_1758690663284.json',
-                'grade': 4,
-                'subject': 'English',
-                'chapters': chapters,
-                'total_chapters': len(chapters),
-                'source': 'json_file',
-                'extracted_text': full_text[:500] + "..." if len(full_text) > 500 else full_text
-            }
-        else:
-            print(f"JSON file not found: {json_file_path}")
-            return None
-    except Exception as e:
-        print(f"Error loading Grade 4 English JSON: {e}")
-        return None
+# Removed JSON loading function - using direct OpenAI responses
 
-def parse_grade4_english_chapters(text_content):
-    """Parse chapters from Grade 4 English JSON text content"""
-    chapters = {}
-    
-    # Define actual chapters from the Grade 4 English book
-    chapter_titles = [
-        "Pinky's Dental Dilemma",
-        "Food and Friends!",
-        "Pinky and Jojo Write a Story", 
-        "Heroes of History",
-        "Culture Craze with Pinky!",
-        "Tech Tales & Starry Sights",
-        "Pinky's Safety Squad!",
-        "Dream Town Builders!",
-        "Pinky's Personality Play",
-        "Wonders of the Wild",
-        "Sands, Secrets, and Schooltime Surprises",
-        "Sharing is Caring"
-    ]
-    
-    # Create exercise categories for each chapter
-    for i, title in enumerate(chapter_titles, 1):
-        chapter_key = f"Chapter {i}: {title}"
-        chapters[chapter_key] = {
-            "Reading": [
-                {"title": f"Journey through the text - {title}", "type": "reading_comprehension"},
-                {"title": "Memory Lane - New words to know", "type": "vocabulary_reading"},
-                {"title": "Character and story analysis", "type": "literary_analysis"}
-            ],
-            "Writing": [
-                {"title": "Express with Emotions - Creative writing", "type": "creative_writing"},
-                {"title": "Craft Sentences with SVO Patterns", "type": "sentence_structure"},
-                {"title": "Personal narrative writing", "type": "personal_narrative"}
-            ],
-            "Grammar": [
-                {"title": "Naming Words Adventure (Nouns)", "type": "noun_identification"},
-                {"title": "Action Words Detective (Verbs)", "type": "verb_identification"},
-                {"title": "Describe It (Adjectives)", "type": "adjective_practice"},
-                {"title": "Regular vs. Irregular Nouns", "type": "noun_plurals"}
-            ],
-            "Vocabulary": [
-                {"title": "New words and meanings", "type": "word_meanings"},
-                {"title": "Arrange Adventures - Dictionary skills", "type": "dictionary_practice"},
-                {"title": "Alphabetical ordering exercise", "type": "alphabetical_order"}
-            ],
-            "Comprehension": [
-                {"title": "Discovery Quiz - Reading comprehension", "type": "reading_comprehension"},
-                {"title": "Character analysis and emotions", "type": "character_analysis"},
-                {"title": "Story sequence and plot understanding", "type": "story_analysis"}
-            ],
-            "Oral Communication": [
-                {"title": "Sharing Strategies - Role-play activities", "type": "role_play"},
-                {"title": "Share and Sparkle - Group discussions", "type": "group_discussion"},
-                {"title": "Speaking practice activities", "type": "speaking_practice"}
-            ]
-        }
-    
-    return chapters
+# Removed chapter parsing function - using direct OpenAI responses
 
 def extract_text_from_pdf(file_path):
     """Extract text from PDF file"""
@@ -688,83 +576,7 @@ def list_drive_files_paginated(query, fields="files(id, name)", page_size=100):
         print(f"Error in paginated Drive listing: {type(e).__name__}")
         return []
 
-def scan_google_drive_folders():
-    """Scan Google Drive folders to build book structure automatically with pagination support"""
-    if not drive_service:
-        return None
-    
-    try:
-        # Get all grade folders in the main directory with pagination
-        grade_folders = list_drive_files_paginated(
-            f"'{GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'"
-        )
-        
-        books_structure = {}
-        
-        for grade_folder in grade_folders:
-            grade_name = grade_folder['name']
-            grade_id = grade_folder['id']
-            
-            # Extract grade number from folder name (e.g., "GRADE 1" -> "Grade 1")
-            grade_match = re.search(r'(\d+)', grade_name)
-            if not grade_match:
-                continue
-                
-            grade_key = f"Grade {grade_match.group(1)}"
-            books_structure[grade_key] = {}
-            
-            # Get subject folders within this grade with pagination
-            subject_folders = list_drive_files_paginated(
-                f"'{grade_id}' in parents and mimeType='application/vnd.google-apps.folder'"
-            )
-            
-            for subject_folder in subject_folders:
-                subject_name = subject_folder['name']
-                subject_id = subject_folder['id']
-                
-                # Get PDF files in this subject folder with pagination
-                pdf_files = list_drive_files_paginated(
-                    f"'{subject_id}' in parents and mimeType='application/pdf'"
-                )
-                
-                if pdf_files:
-                    books_structure[grade_key][subject_name] = {}
-                    for pdf_file in pdf_files:
-                        # Use filename without extension as book title
-                        book_title = pdf_file['name'].replace('.pdf', '')
-                        books_structure[grade_key][subject_name][book_title] = pdf_file['id']
-        
-        return books_structure
-        
-    except Exception as e:
-        # Sanitize error logging to prevent credential leakage
-        print(f"Error scanning Google Drive folders: {type(e).__name__}")
-        return None
-
-def download_pdf_from_drive(file_id):
-    """Download PDF content from Google Drive"""
-    if not drive_service:
-        return None
-    
-    try:
-        # Download the file
-        request = drive_service.files().get_media(fileId=file_id)
-        file_content = io.BytesIO()
-        
-        import googleapiclient.http
-        downloader = googleapiclient.http.MediaIoBaseDownload(file_content, request)
-        
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-        
-        file_content.seek(0)
-        return file_content.getvalue()
-        
-    except Exception as e:
-        # Sanitize error logging to prevent credential leakage
-        print(f"Error downloading PDF from Drive: {type(e).__name__}")
-        return None
+# Removed Google Drive functions - using direct OpenAI responses
 
 def extract_text_from_pdf_bytes(pdf_bytes):
     """Extract text from PDF bytes using multiple methods"""
@@ -3205,52 +3017,20 @@ def chatbot():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Handle chatbot messages with multimodal inputs"""
+    """Simplified chatbot with direct OpenAI responses"""
     # Guard against malformed requests
     if not request.json or 'message' not in request.json:
         return jsonify({'message': 'Invalid request format'})
     
     user_message = request.json.get('message', '').strip()
-    file_ids = request.json.get('file_ids', [])
-    audio_id = request.json.get('audio_id', None)
-    
-    
-    
     
     # Handle Free Chat mode first - bypass all menu logic
     if session.get('selected_feature') == 'free_chat' and user_message.lower() not in ['menu', 'start', '← back to menu']:
-        # Process uploaded files and generate AI response directly
-        full_text = user_message
-        
-        # Add audio transcript if available
-        if audio_id:
-            audio_metadata = get_file_metadata(audio_id)
-            if audio_metadata and 'extracted_text' in audio_metadata:
-                audio_text = audio_metadata['extracted_text']
-                if audio_text:
-                    full_text = f"[Voice Message]: {audio_text}\n{full_text}".strip()
-        
-        # Process uploaded files
-        for file_id in file_ids:
-            file_metadata = get_file_metadata(file_id)
-            if file_metadata:
-                file_type = file_metadata['type']
-                
-                if file_type == 'image':
-                    full_text = f"User uploaded an image. {full_text}".strip()
-                    
-                elif file_type == 'document' and 'extracted_text' in file_metadata:
-                    extracted_content = file_metadata['extracted_text']
-                    if extracted_content:
-                        full_text = f"[Document Content]: {extracted_content}\n\n{full_text}".strip()
-        
-        # Get AI response directly with session context
-        ai_response = get_ai_response(full_text, "general", session)
+        ai_response = get_ai_response(user_message, "general", session)
         return jsonify({'message': ai_response, 'is_markdown': True})
     
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
-        # Clear any previous session data for fresh start
         session.clear()
         session.modified = True
         return jsonify({
@@ -3268,20 +3048,16 @@ def chat():
             'show_menu': True
         })
     
-    # Handle Free Chat selection from menu
+    # Handle Free Chat selection
     if user_message.lower() in ['💬 free chat', 'free chat']:
         session['selected_feature'] = 'free_chat'
         session.modified = True
-        # Clear any curriculum selection to avoid conflicts
-        if 'curriculum_selection' in session:
-            del session['curriculum_selection']
-        session.modified = True
         return jsonify({
-            'message': '💬 **Free Chat Mode Activated!** \n\nI\'m ready to help you with anything! Ask me about coding, writing, analysis, creative tasks, or any questions you have. Let\'s have a natural conversation! 🚀',
+            'message': '💬 **Free Chat Mode Activated!** \n\nI\'m ready to help you with anything! Ask me questions about education, lesson planning, or any topic. Let\'s have a natural conversation! 🚀',
             'show_menu': False
         })
     
-    # Handle main menu options - all lead to grade selection
+    # Handle main menu options
     menu_options = {
         '📚 lesson plans': 'lesson_plans',
         'lesson plans': 'lesson_plans',
@@ -3291,19 +3067,36 @@ def chat():
         'activities': 'activities',
         '📖 definitions': 'definitions',
         'definitions': 'definitions',
-        '📝 assessments': 'assessment_tools',
-        'assessments': 'assessment_tools',
-        '🎲 hooks/games': 'educational_games',
-        'hooks/games': 'educational_games',
-        'hooks': 'educational_games',
-        'games': 'educational_games',
-        '💡 examples': 'examples_practice',
-        'examples': 'examples_practice'
+        '📝 assessments': 'assessments',
+        'assessments': 'assessments',
+        '🎲 hooks/games': 'hooks_games',
+        'hooks/games': 'hooks_games',
+        'hooks': 'hooks_games',
+        'games': 'hooks_games',
+        '💡 examples': 'examples',
+        'examples': 'examples'
     }
     
-    if user_message.lower() in menu_options:
+    # Handle Activities submenu
+    if user_message.lower() in ['🎮 activities', 'activities']:
+        session['selected_feature'] = 'activities'
+        session.modified = True
+        return jsonify({
+            'message': 'You selected: **ACTIVITIES**\n\nChoose Activity Type:',
+            'options': [
+                '👥 Group Work Activities',
+                '👫 Pair Work Activities', 
+                '👤 Independent Work Activities',
+                '📝 Assignment/Homework Activities',
+                '← Back to Menu'
+            ],
+            'show_menu': True
+        })
+    
+    # Handle other main menu selections (go directly to grade selection)
+    if user_message.lower() in menu_options and user_message.lower() not in ['🎮 activities', 'activities']:
         session['selected_feature'] = menu_options[user_message.lower()]
-        session['selected_feature_display'] = user_message  # Store display name
+        session['selected_feature_display'] = user_message
         session.modified = True
         return jsonify({
             'message': f'You selected: **{user_message.upper()}**\n\nSelect Grade:',
@@ -3318,85 +3111,50 @@ def chat():
             'show_menu': True
         })
     
-    # Handle "Specific Topic Assessment" option (legacy - for backward compatibility)
-    if user_message.lower() in ['specific topic assessment', '📋 specific topic assessment']:
-        # Redirect to new U-DOST flow
+    # Handle Activity Type selections
+    activity_types = {
+        '👥 group work activities': 'group_work',
+        'group work activities': 'group_work',
+        '👫 pair work activities': 'pair_work', 
+        'pair work activities': 'pair_work',
+        '👤 independent work activities': 'independent_work',
+        'independent work activities': 'independent_work',
+        '📝 assignment/homework activities': 'homework',
+        'assignment/homework activities': 'homework'
+    }
+    
+    if user_message.lower() in activity_types:
+        session['activity_type'] = activity_types[user_message.lower()]
+        session['selected_feature_display'] = user_message
+        session.modified = True
         return jsonify({
-            'message': 'Please use the new enhanced U-DOST system! Select from the main menu options.',
-            'options': ['← Back to Menu'],
+            'message': f'You selected: **{user_message.upper()}**\n\nSelect Grade:',
+            'options': [
+                '🔹 Grade 1',
+                '🔹 Grade 2', 
+                '🔹 Grade 3',
+                '🔹 Grade 4',
+                '🔹 Grade 5',
+                '← Back to Menu'
+            ],
             'show_menu': True
         })
-
-    # Handle individual assessment types - now with curriculum context
-    if 'curriculum_selection' in session and 'topic' in session['curriculum_selection']:
-        current_grade = session['curriculum_selection']['grade']
-        current_subject = session['curriculum_selection']['subject']
-        current_chapter = session['curriculum_selection'].get('chapter', 'Chapter 1')
-        current_topic = session['curriculum_selection']['topic']
-        
-        if user_message.lower() in ['quick q&a', '❓ quick q&a', 'qna']:
-            return generate_curriculum_specific_assessment('qna', current_grade, current_subject, current_chapter, current_topic)
-        
-        if user_message.lower() in ['multiple choice questions (mcq)', '🔤 multiple choice questions (mcq)', 'mcq', 'multiple choice']:
-            return generate_curriculum_specific_assessment('mcq', current_grade, current_subject, current_chapter, current_topic)
-        
-        if user_message.lower() in ['short comprehension questions', '📖 short comprehension questions', 'comprehension']:
-            return generate_curriculum_specific_assessment('comprehension', current_grade, current_subject, current_chapter, current_topic)
-        
-        if user_message.lower() in ['thumbs up/down', '👍👎 thumbs up/down', 'thumbs']:
-            return generate_curriculum_specific_assessment('thumbs', current_grade, current_subject, current_chapter, current_topic)
-        
-        if user_message.lower() in ['true/false statements', '📝 true/false statements', 'true false']:
-            return generate_curriculum_specific_assessment('statements', current_grade, current_subject, current_chapter, current_topic)
-        
-        if user_message.lower() in ['fill in the blanks', '✏️ fill in the blanks', 'fill blanks']:
-            return generate_curriculum_specific_assessment('fill-blanks', current_grade, current_subject, current_chapter, current_topic)
-        
-        if user_message.lower() in ['exit tickets', '🎫 exit tickets', 'exit ticket']:
-            return generate_curriculum_specific_assessment('exit-ticket', current_grade, current_subject, current_chapter, current_topic)
-    
-    # Fallback to generic assessment types if no curriculum context
-    if user_message.lower() in ['quick q&a', '❓ quick q&a', 'qna']:
-        return generate_assessment_response('qna')
-    
-    if user_message.lower() in ['multiple choice questions (mcq)', '🔤 multiple choice questions (mcq)', 'mcq', 'multiple choice']:
-        return generate_assessment_response('mcq')
-    
-    if user_message.lower() in ['short comprehension questions', '📖 short comprehension questions', 'comprehension']:
-        return generate_assessment_response('comprehension')
-    
-    if user_message.lower() in ['thumbs up/down', '👍👎 thumbs up/down', 'thumbs']:
-        return generate_assessment_response('thumbs')
-    
-    if user_message.lower() in ['true/false statements', '📝 true/false statements', 'true false']:
-        return generate_assessment_response('statements')
-    
-    if user_message.lower() in ['fill in the blanks', '✏️ fill in the blanks', 'fill blanks']:
-        return generate_assessment_response('fill-blanks')
-    
-    if user_message.lower() in ['exit tickets', '🎫 exit tickets', 'exit ticket']:
-        return generate_assessment_response('exit-ticket')
     
     # Handle grade selection  
     grade_options = {
-        '🔹 grade 1': 1, 'grade 1': 1, '🔹 Grade 1': 1,
-        '🔹 grade 2': 2, 'grade 2': 2, '🔹 Grade 2': 2,
-        '🔹 grade 3': 3, 'grade 3': 3, '🔹 Grade 3': 3,
-        '🔹 grade 4': 4, 'grade 4': 4, '🔹 Grade 4': 4,
-        '🔹 grade 5': 5, 'grade 5': 5, '🔹 Grade 5': 5
+        '🔹 grade 1': 1, 'grade 1': 1,
+        '🔹 grade 2': 2, 'grade 2': 2,
+        '🔹 grade 3': 3, 'grade 3': 3,
+        '🔹 grade 4': 4, 'grade 4': 4,
+        '🔹 grade 5': 5, 'grade 5': 5
     }
     
-    if user_message.lower() in grade_options and 'selected_feature' in session:
+    if user_message.lower() in grade_options and ('selected_feature' in session or 'activity_type' in session):
         grade = grade_options[user_message.lower()]
-        if 'curriculum_selection' not in session:
-            session['curriculum_selection'] = {}
-        session['curriculum_selection']['grade'] = grade
+        session['grade'] = grade
         session.modified = True
         
-        # Get the feature display name
         feature_display = session.get('selected_feature_display', 'Content')
-        
-        # Pakistani curriculum subjects for grades 1-5
         subjects = ['English', 'Math', 'Urdu', 'Islamiyat', 'General Knowledge', 'Social Studies', 'Science']
         
         return jsonify({
@@ -3411,862 +3169,115 @@ def chat():
             'show_menu': True
         })
     
-    # Handle subject selection with auto-loading book content
-    if 'curriculum_selection' in session and 'grade' in session['curriculum_selection'] and 'selected_feature' in session:
-        # Map emojis to subjects
-        subject_mapping = {
-            '📚 english': 'English', 'english': 'English',
-            '🔢 math': 'Math', 'math': 'Math',
-            '🇵🇰 urdu': 'Urdu', 'urdu': 'Urdu', 
-            '🕌 islamiyat': 'Islamiyat', 'islamiyat': 'Islamiyat',
-            '🌍 general knowledge': 'General Knowledge', 'general knowledge': 'General Knowledge',
-            '📊 social studies': 'Social Studies', 'social studies': 'Social Studies',
-            '🔬 science': 'Science', 'science': 'Science'
-        }
-        
-        subject_key = user_message.lower()
-        if subject_key in subject_mapping:
-            subject = subject_mapping[subject_key]
-            session['curriculum_selection']['subject'] = subject
-            session.modified = True
-            
-            grade = session['curriculum_selection']['grade']
-            feature_display = session.get('selected_feature_display', 'Content')
-            
-            print(f"📚 Loading content for Grade {grade} {subject}...")
-            
-            # AUTO-LOAD BOOK based on grade + subject
-            book_content = get_auto_loaded_book_content(grade, subject)
-            
-            if book_content:
-                # Store auto-loaded book info in session
-                session['curriculum_selection']['book'] = book_content['title']
-                session['curriculum_selection']['book_filename'] = book_content.get('filename', '')
-                session.modified = True
-                
-                # Display confirmation and available chapters
-                chapter_options = list(book_content['chapters'].keys())
-                
-                # Clean chapter names for display (remove "Chapter X:" prefix)
-                display_chapters = []
-                for chapter in chapter_options[:10]:
-                    if ':' in chapter:
-                        clean_name = chapter.split(':', 1)[1].strip()
-                        display_chapters.append(f'📖 Chapter {len(display_chapters)+1}: {clean_name}')
-                    else:
-                        display_chapters.append(f'📖 {chapter}')
-                
-                return jsonify({
-                    'message': f'You selected: **{feature_display} for Grade {grade} {subject}**\n\nAvailable Chapters:',
-                    'options': display_chapters + (['📚 Show More Chapters'] if len(chapter_options) > 10 else []) + ['🔄 Change Subject', '← Back to Menu'],
-                    'show_menu': True
-                })
-            else:
-                # Fallback if no predefined book found
-                return jsonify({
-                    'message': f'**Grade {grade} - {subject}** 📚\n\nNo curriculum book available for this combination. Please try a different subject.',
-                    'options': ['🔄 Change Subject', '🔄 Change Grade', '← Back to Menu'],
-                    'show_menu': True
-                })
+    # Handle subject selection
+    subject_mapping = {
+        '📚 english': 'English', 'english': 'English',
+        '🔢 math': 'Math', 'math': 'Math',
+        '🇵🇰 urdu': 'Urdu', 'urdu': 'Urdu', 
+        '🕌 islamiyat': 'Islamiyat', 'islamiyat': 'Islamiyat',
+        '🌍 general knowledge': 'General Knowledge', 'general knowledge': 'General Knowledge',
+        '📊 social studies': 'Social Studies', 'social studies': 'Social Studies',
+        '🔬 science': 'Science', 'science': 'Science'
+    }
     
-    # Handle chapter selection (from auto-loaded book)
-    if ('curriculum_selection' in session and 'book' in session['curriculum_selection'] 
-        and 'selected_feature' in session and user_message.lower().startswith('📄 ')):
-        
-        chapter_title = user_message[3:].strip()  # Remove emoji
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']
-        
-        print(f"🔍 Chapter Selected: {chapter_title}")
-        print(f"📚 Loading exercises from this chapter...")
-        
-        # Get auto-loaded book content again for chapter details
-        book_content = get_auto_loaded_book_content(grade, subject)
-        
-        # DEBUG: Show available chapter keys
-        if book_content:
-            available_chapters = list(book_content['chapters'].keys())
-            print(f"📋 Available chapter keys: {available_chapters[:3]}...")  # Show first 3
-            
-            # Find matching chapter key (handle both exact match and "Chapter X:" prefix)
-            matching_chapter_key = None
-            
-            # Try exact match first
-            if chapter_title in book_content['chapters']:
-                matching_chapter_key = chapter_title
-                print(f"✅ Exact match found: {matching_chapter_key}")
-            else:
-                # Try finding chapter with "Chapter X:" prefix
-                for chapter_key in available_chapters:
-                    if chapter_title in chapter_key:  # Check if selected title is contained in the full key
-                        matching_chapter_key = chapter_key
-                        print(f"✅ Prefix match found: {matching_chapter_key}")
-                        break
-        
-        if book_content and matching_chapter_key:
-            # Store chapter selection (use the original title for display)
-            session['curriculum_selection']['chapter'] = chapter_title
-            session.modified = True
-            
-            # Get exercises for this chapter using the matching key
-            chapter_exercises = book_content['chapters'][matching_chapter_key]
-            print(f"📝 Found {len(chapter_exercises)} exercise categories in this chapter")
-            
-            # Category mapping with emojis
-            category_emojis = {
-                'Reading': '📖 READING',
-                'Writing': '✍️ WRITING', 
-                'Oral Communication': '🗣️ ORAL COMMUNICATION',
-                'Comprehension': '🧠 COMPREHENSION',
-                'Grammar': '📝 GRAMMAR',
-                'Vocabulary': '📚 VOCABULARY'
-            }
-            
-            # Get feature display name for context
-            feature_display = session.get('selected_feature_display', 'Content')
-            
-            # Build exercise display message with proper confirmation format
-            exercise_display = f"You selected: **{feature_display} for Grade {grade} {subject}**\n\n**Available Exercises:**\n\n"
-            exercise_options = []
-            total_exercises = 0
-            
-            # Display exercises by category in the requested format
-            for category, exercises in chapter_exercises.items():
-                emoji_category = category_emojis.get(category, f'📋 {category.upper()}')
-                
-                if exercises and len(exercises) > 0:
-                    # Show first few exercise titles
-                    exercise_titles = [ex.get('title', f'Exercise {i+1}') if isinstance(ex, dict) else str(ex) for i, ex in enumerate(exercises[:2])]
-                    exercise_list = ', '.join(exercise_titles)
-                    if len(exercises) > 2:
-                        exercise_list += f", Exercise {len(exercises)-1}"
-                    
-                    exercise_display += f"{emoji_category}: {exercise_list}\n"
-                    total_exercises += len(exercises)
-                    
-                    # Add category as selectable option
-                    exercise_options.append(f'🎯 {category}')
-            
-            print(f"📊 Exercises found: {total_exercises} total across {len(exercise_options)} categories")
-            
-            if not exercise_options:
-                exercise_display += "\n📝 No exercises found in this chapter."
-                exercise_options = ['🔄 Refresh Exercises']
-            
-            return jsonify({
-                'message': exercise_display,
-                'options': exercise_options + ['🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-        else:
-            # Better error handling with debugging info
-            if not book_content:
-                error_msg = "❌ **Chapter Loading Failed**\n\nBook content not available. This might be a loading issue."
-                print(f"❌ ERROR: book_content is None for Grade {grade} {subject}")
-            else:
-                available_chapters = list(book_content['chapters'].keys())
-                error_msg = f"❌ **Chapter Not Found: '{chapter_title}'**\n\nAvailable chapters ({len(available_chapters)}):\n"
-                for i, ch in enumerate(available_chapters[:5], 1):
-                    short_title = ch.replace("Chapter ", "").split(":")[1].strip() if ":" in ch else ch
-                    error_msg += f"{i}. {short_title}\n"
-                if len(available_chapters) > 5:
-                    error_msg += f"... and {len(available_chapters)-5} more\n"
-                print(f"❌ ERROR: Chapter '{chapter_title}' not found in {len(available_chapters)} available chapters")
-                print(f"📋 Available: {[ch for ch in available_chapters[:3]]}")
-                
-            return jsonify({
-                'message': error_msg,
-                'options': ['🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-    
-    # Handle exercise category selection
-    if ('curriculum_selection' in session and 'chapter' in session['curriculum_selection'] 
-        and 'selected_feature' in session and user_message.lower().startswith('🎯 ')):
-        
-        category_with_count = user_message[3:].strip()  # Remove emoji
-        # Extract category name (before the count in parentheses)
-        category = category_with_count.split(' (')[0]
-        
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']
-        chapter = session['curriculum_selection']['chapter']
-        
-        # Store exercise category selection
-        session['curriculum_selection']['skill_category'] = category
+    if user_message.lower() in subject_mapping and 'grade' in session:
+        subject = subject_mapping[user_message.lower()]
+        session['subject'] = subject
         session.modified = True
         
-        # Get specific exercises for this category
-        book_content = get_auto_loaded_book_content(grade, subject)
-        if book_content and chapter in book_content['chapters']:
-            exercises = book_content['chapters'][chapter].get(category, [])
-            
-            if exercises:
-                # Display individual exercises
-                exercise_options = [f'✏️ {exercise["title"]}' for exercise in exercises[:8]]  # Limit to 8 exercises
-                
-                return jsonify({
-                    'message': f'**📖 {book_content["title"]}**\n**📄 {chapter}**\n**🎯 {category} Exercises**\n\nSelect an exercise to generate content:',
-                    'options': exercise_options + (['📝 Show More Exercises'] if len(exercises) > 8 else []) + [f'🎯 Generate All {category} Content', '🔄 Change Category', '← Back to Menu'],
-                    'show_menu': True
-                })
-            else:
-                return jsonify({
-                    'message': f'No {category} exercises found for this chapter.',
-                    'options': ['🔄 Change Category', '🔄 Change Chapter', '← Back to Menu'],
-                    'show_menu': True
-                })
-        else:
-            return jsonify({
-                'message': 'Chapter content not found.',
-                'options': ['🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-    
-    # Handle individual exercise selection and content generation
-    if ('curriculum_selection' in session and 'skill_category' in session['curriculum_selection'] 
-        and 'selected_feature' in session and user_message.lower().startswith('✏️ ')):
-        
-        exercise_title = user_message[3:].strip()  # Remove emoji
-        
-        # Store exercise selection
-        session['curriculum_selection']['exercise'] = exercise_title
-        session.modified = True
-        
-        print(f"✅ Exercise Selected: {exercise_title}")
-        print(f"🎯 Feature Type: {session.get('selected_feature', 'Unknown')}")
-        print(f"📚 Context: Grade {session['curriculum_selection'].get('grade')} {session['curriculum_selection'].get('subject')}")
-        
-        # Generate AI content using the complete curriculum context
-        curriculum_selection = session['curriculum_selection']
-        feature_type = session.get('selected_feature')
-        
-        # Ensure we have the required context
-        if not feature_type:
-            print("❌ ERROR: No selected_feature in session")
-            return jsonify({
-                'message': f"✅ **Exercise Selected: {exercise_title}**\n\n❌ Content generation failed - missing feature type. Please go back to menu and select a feature (Lesson Plans, Strategies, etc.)",
-                'options': ['← Back to Menu'],
-                'show_menu': True
-            })
-        
-        # Generate curriculum-specific content  
-        print(f"🔄 Generating {feature_type} content for exercise: {exercise_title}")
-        ai_content = generate_udost_content(feature_type, curriculum_selection)
-        
-        if not ai_content or ai_content.strip() == "":
-            print("❌ ERROR: Empty content generated")
-            ai_content = f"✅ **Exercise Selected: {exercise_title}**\n\n🔄 **Generating content for your selected exercise...**\n\nPlease wait while I create {feature_type} content based on this exercise."
+        grade = session['grade']
+        feature_display = session.get('selected_feature_display', 'Content')
         
         return jsonify({
-            'message': ai_content,
+            'message': f'You selected: **{feature_display} for Grade {grade} {subject}**\n\n📝 Please enter the topic you want to teach:',
+            'show_menu': False,
+            'show_input': True,
+            'input_placeholder': 'Enter topic (e.g., "Past Tense Verbs", "Addition and Subtraction", "Types of Animals")'
+        })
+    
+    # Handle topic input and generate content
+    if ('grade' in session and 'subject' in session and 
+        ('selected_feature' in session or 'activity_type' in session) and 
+        not user_message.lower().startswith(('🔹', '📚', '🔢', '🇵🇰', '🕌', '🌍', '📊', '🔬', '👥', '👫', '👤', '📝', '🎮', '← back', 'menu'))):
+        
+        topic = user_message.strip()
+        grade = session['grade']
+        subject = session['subject']
+        
+        # Determine content type
+        if 'activity_type' in session:
+            activity_type = session['activity_type']
+            content_type = f"{activity_type}_activities"
+            feature_display = session.get('selected_feature_display', 'Activities')
+        else:
+            content_type = session.get('selected_feature', 'lesson_plans')
+            feature_display = session.get('selected_feature_display', 'Content')
+        
+        # Create context for AI generation
+        prompt = f"""Create {feature_display} for Grade {grade} {subject} on the topic: "{topic}"
+
+Grade: {grade}
+Subject: {subject}
+Topic: {topic}
+Content Type: {content_type}
+
+IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate content specifically for Pakistani ESL students with:
+- Pakistani cultural examples and contexts (Pakistani names like Ahmed, Fatima, Ali, Ayesha)
+- Local examples (biryani, cricket, Eid celebrations, etc.)
+- Urdu translation support for difficult English words
+- Content appropriate for Pakistani classroom settings
+- Islamic values and Pakistani customs where relevant"""
+
+        # Add specific instructions based on content type
+        if 'group_work' in content_type:
+            prompt += "\n\nGenerate GROUP WORK ACTIVITIES with 3-4 collaborative exercises that work well in Pakistani classrooms."
+        elif 'pair_work' in content_type:
+            prompt += "\n\nGenerate PAIR WORK ACTIVITIES with 3-4 partner-based exercises suitable for Grade {grade} students."
+        elif 'independent_work' in content_type:
+            prompt += "\n\nGenerate INDEPENDENT WORK ACTIVITIES with 3-4 self-directed exercises for individual practice."
+        elif 'homework' in content_type:
+            prompt += "\n\nGenerate ASSIGNMENT/HOMEWORK ACTIVITIES with 3-4 take-home exercises for reinforcement."
+        elif content_type == 'lesson_plans':
+            prompt += f"\n\n{UDOST_TEACHING_METHODOLOGY}"
+        
+        # Generate AI response
+        ai_response = get_ai_response(prompt, "teaching", session)
+        
+        if not ai_response:
+            ai_response = f"I'm ready to help with {feature_display} for Grade {grade} {subject} on '{topic}', but I'm having trouble connecting right now. Please try again!"
+        
+        return jsonify({
+            'message': ai_response,
             'is_markdown': True,
-            'options': ['🔄 Try Different Exercise', '🎯 Change Category', '📄 Change Chapter', '← Back to Menu'],
+            'options': ['🔄 Try Different Topic', '🔄 Change Subject', '🔄 Change Grade', '← Back to Menu'],
             'show_menu': True
         })
     
-    # Handle "Generate All Category Content" option
-    if ('curriculum_selection' in session and 'skill_category' in session['curriculum_selection'] 
-        and user_message.lower().startswith('🎯 generate all ')):
-        
-        curriculum_selection = session['curriculum_selection']
-        feature_type = session['selected_feature']
-        category = curriculum_selection['skill_category']
-        
-        # Generate comprehensive content for the entire category
-        curriculum_selection['exercise'] = f'All {category} exercises'
-        ai_content = generate_udost_content(feature_type, curriculum_selection)
-        
-        return jsonify({
-            'message': ai_content,
-            'is_markdown': True,
-            'options': ['🎯 Try Different Category', '📄 Change Chapter', '🔄 Change Subject', '← Back to Menu'],
-            'show_menu': True
-        })
-        
-    # Legacy skill category selection handler (keeping for backward compatibility)
-    if ('curriculum_selection' in session and 'chapter_number' in session['curriculum_selection']
-        and 'selected_feature' in session and user_message.lower().startswith('🎯 ')):
-        
-        skill_category = user_message[3:].strip()  # Remove emoji
-        session['curriculum_selection']['skill_category'] = skill_category
-        session.modified = True
-        
-        # Generate content based on selected feature and curriculum context
-        return generate_udost_content(session['selected_feature'], session['curriculum_selection'], session)
-    
+    # Handle back to menu
     if user_message.lower() in ['← back to menu', 'back to menu', 'menu']:
-        # Clear all session data when returning to main menu
-        session.pop('curriculum_selection', None)
-        session.pop('selected_feature', None)
+        session.clear()
+        session.modified = True
         return jsonify({
-            'message': '🌟 **السلام علیکم! Hello!** 🌟\n\nI\'m **U-DOST** 🤖✨ - Your friendly Pakistani teacher assistant! Ready to help you with curriculum-based educational content for grades 1-5.\n\n**Choose how I can help:**',
+            'message': 'Welcome to U-Dost! What do you need help with?',
             'options': [
                 '📚 Lesson Plans',
                 '🎯 Teaching Strategies', 
-                '🎲 Activities',
+                '🎮 Activities',
                 '📖 Definitions',
-                '📊 Assessment Tools',
-                '🎮 Educational Games/Hooks',
-                '📝 Examples & Practice',
+                '📝 Assessments',
+                '🎲 Hooks/Games',
+                '💡 Examples',
                 '💬 Free Chat'
             ],
             'show_menu': True
         })
     
-    if user_message.lower() in ['📊 more assessment types', 'more assessment types']:
-        return jsonify({
-            'message': '📊 Choose your assessment type! Pick the perfect question format for your classroom:',
-            'options': [
-                '❓ Quick Q&A',
-                '🔤 Multiple Choice Questions (MCQ)',
-                '📖 Short Comprehension Questions', 
-                '👍👎 Thumbs Up/Down',
-                '📝 True/False Statements',
-                '✏️ Fill in the Blanks',
-                '🎫 Exit Tickets',
-                '← Back to Menu'
-            ],
-            'show_menu': True
-        })
-    
-    # Handle main menu options - start with curriculum selection
-    if user_message.lower() in ['lesson planning help', '📝 lesson planning help']:
-        session['selected_feature'] = 'lesson_planning'
-        session.modified = True
-        return jsonify({
-            'message': '📝 **Lesson Planning Help** - First, select your grade level:',
-            'options': [
-                '1️⃣ Grade 1',
-                '2️⃣ Grade 2', 
-                '3️⃣ Grade 3',
-                '4️⃣ Grade 4',
-                '5️⃣ Grade 5',
-                '← Back to Menu'
-            ],
-            'show_menu': True
-        })
-    
-    if user_message.lower() in ['fun classroom activities', '🎮 fun classroom activities']:
-        session['selected_feature'] = 'activities'
-        session.modified = True
-        return jsonify({
-            'message': '🎮 **Fun Classroom Activities** - First, select your grade level:',
-            'options': [
-                '1️⃣ Grade 1',
-                '2️⃣ Grade 2', 
-                '3️⃣ Grade 3',
-                '4️⃣ Grade 4',
-                '5️⃣ Grade 5',
-                '← Back to Menu'
-            ],
-            'show_menu': True
-        })
-    
-    if user_message.lower() in ['teaching tips & advice', '💡 teaching tips & advice', 'teaching tips']:
-        session['selected_feature'] = 'teaching_tips'
-        session.modified = True
-        return jsonify({
-            'message': '💡 **Teaching Tips & Advice** - First, select your grade level:',
-            'options': [
-                '1️⃣ Grade 1',
-                '2️⃣ Grade 2', 
-                '3️⃣ Grade 3',
-                '4️⃣ Grade 4',
-                '5️⃣ Grade 5',
-                '← Back to Menu'
-            ],
-            'show_menu': True
-        })
-    
-    # Handle curriculum navigation - only if a feature is selected
-    if 'selected_feature' in session:
-        curriculum_data = generate_curriculum_data()
-        
-        # Store selection in session for navigation with proper persistence
-        if 'curriculum_selection' not in session:
-            session['curriculum_selection'] = {}
-            session.modified = True
-        
-        # Grade 1-5 selections
-        for grade_num in range(1, 6):
-            grade_text = f'grade {grade_num}'
-            grade_emoji = f'{grade_num}️⃣ grade {grade_num}'
-            grade_emoji_capital = f'{grade_num}️⃣ Grade {grade_num}'
-            
-            
-            if user_message.lower() in [grade_text, grade_emoji.lower(), grade_emoji_capital.lower()]:
-                curriculum_selection = session.get('curriculum_selection', {})
-                curriculum_selection['grade'] = f'Grade {grade_num}'
-                session['curriculum_selection'] = curriculum_selection
-                session.modified = True
-                subjects = list(curriculum_data[f'Grade {grade_num}'].keys())
-                feature_name = {
-                    'lesson_planning': 'Lesson Planning Help',
-                    'assessment': 'Assessment',
-                    'activities': 'Fun Classroom Activities',
-                    'teaching_tips': 'Teaching Tips & Advice'
-                }.get(session['selected_feature'], 'Selected Feature')
-                
-                return jsonify({
-                    'message': f'📚 **{feature_name} - Grade {grade_num} Subjects** - Choose a subject:',
-                    'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
-                    'show_menu': True
-                })
-        
-        # LEGACY HANDLER - DISABLED - Now using auto-loading system
-        # Handle Subject selections
-        if False and 'grade' in session.get('curriculum_selection', {}):
-            current_grade = session['curriculum_selection']['grade']
-            subjects = list(curriculum_data[current_grade].keys())
-            
-            for subject in subjects:
-                subject_text = subject.lower()
-                subject_emoji = f'📖 {subject}'.lower()
-                
-                if user_message.lower() in [subject_text, subject_emoji.lower()]:
-                    curriculum_selection = session.get('curriculum_selection', {})
-                    curriculum_selection['subject'] = subject
-                    session['curriculum_selection'] = curriculum_selection
-                    session.modified = True
-                    chapters = list(curriculum_data[current_grade][subject].keys())
-                    feature_name = {
-                        'lesson_planning': 'Lesson Planning Help',
-                        'assessment': 'Assessment',
-                        'activities': 'Fun Classroom Activities',
-                        'teaching_tips': 'Teaching Tips & Advice'
-                    }.get(session['selected_feature'], 'Selected Feature')
-                    
-                    # For Assessment feature, show assessment types directly after subject selection
-                    if session.get('selected_feature') == 'assessment':
-                        # Set generic values for quick assessment
-                        chapters = list(curriculum_data[current_grade][subject].keys())
-                        curriculum_selection['chapter'] = chapters[0] if chapters else 'Chapter 1'
-                        curriculum_selection['topic'] = f'All {subject} Topics'
-                        session['curriculum_selection'] = curriculum_selection
-                        session.modified = True
-                        
-                        return jsonify({
-                            'message': f'📊 **Assessment Types for {current_grade} - {subject}**\n\nChoose your assessment type:',
-                            'options': [
-                                '❓ Quick Q&A',
-                                '🔤 Multiple Choice Questions (MCQ)',
-                                '📖 Short Comprehension Questions',
-                                '👍👎 Thumbs Up/Down',
-                                '📝 True/False Statements',
-                                '✏️ Fill in the Blanks',
-                                '🎫 Exit Tickets',
-                                '📋 Specific Topic Assessment',
-                                '🔄 Change Subject',
-                                '← Back to Menu'
-                            ],
-                            'show_menu': True
-                        })
-                    else:
-                        # Get predefined books for this grade and subject
-                        predefined_books = get_predefined_books()
-                        available_books = predefined_books.get(current_grade, {}).get(subject, {})
-                        
-                        if available_books:
-                            return jsonify({
-                                'message': f'📚 **{feature_name} - {current_grade} - {subject}** - Choose a textbook:',
-                                'options': [f'📖 {book}' for book in available_books.keys()] + ['🔄 Change Subject', '← Back to Menu'],
-                                'show_menu': True
-                            })
-                        else:
-                            # Fallback if no books available for this subject
-                            return jsonify({
-                                'message': f'📚 **{current_grade} - {subject}** - No textbooks available yet for this subject.',
-                                'options': ['🔄 Change Subject', '← Back to Menu'],
-                                'show_menu': True
-                            })
-        
-        # Handle Book selections
-        if 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}):
-            current_grade = session['curriculum_selection']['grade']
-            current_subject = session['curriculum_selection']['subject']
-            predefined_books = get_predefined_books()
-            available_books = predefined_books.get(current_grade, {}).get(current_subject, {})
-            
-            for book_title in available_books.keys():
-                book_text = book_title.lower()
-                book_emoji = f'📖 {book_title}'.lower()
-                
-                if user_message.lower() in [book_text, book_emoji.lower()]:
-                    curriculum_selection = session.get('curriculum_selection', {})
-                    curriculum_selection['book'] = book_title
-                    session['curriculum_selection'] = curriculum_selection
-                    session.modified = True
-                    
-                    # DISABLED - Now using auto-loading system
-                    # chapters = list(curriculum_data[current_grade][current_subject].keys())
-                    feature_name = {
-                        'lesson_planning': 'Lesson Planning Help',
-                        'assessment': 'Assessment',
-                        'activities': 'Fun Classroom Activities',
-                        'teaching_tips': 'Teaching Tips & Advice'
-                    }.get(session['selected_feature'], 'Selected Feature')
-                    
-                    return jsonify({
-                        'message': f'📖 **{feature_name} - {book_title}** - Choose a chapter:',
-                        'options': [f'📄 {chapter}' for chapter in chapters] + ['🔄 Change Book', '← Back to Menu'],
-                        'show_menu': True
-                    })
-
-        # LEGACY HANDLER - DISABLED - Now using auto-loading system
-        # Handle Chapter selections  
-        if False and 'grade' in session.get('curriculum_selection', {}) and 'subject' in session.get('curriculum_selection', {}) and 'book' in session.get('curriculum_selection', {}):
-            current_grade = session['curriculum_selection']['grade']
-            current_subject = session['curriculum_selection']['subject']
-            chapters = list(curriculum_data[current_grade][current_subject].keys())
-            
-            for chapter in chapters:
-                chapter_text = chapter.lower()
-                chapter_emoji = f'📄 {chapter}'.lower()
-                
-                if user_message.lower() in [chapter_text, chapter_emoji.lower()]:
-                    curriculum_selection = session.get('curriculum_selection', {})
-                    curriculum_selection['chapter'] = chapter
-                    session['curriculum_selection'] = curriculum_selection
-                    session.modified = True
-                    # DISABLED - using auto-loading system
-                    # topics = curriculum_data[current_grade][current_subject][chapter]
-                    feature_name = {
-                        'lesson_planning': 'Lesson Planning Help',
-                        'assessment': 'Assessment',
-                        'activities': 'Fun Classroom Activities',
-                        'teaching_tips': 'Teaching Tips & Advice'
-                    }.get(session['selected_feature'], 'Selected Feature')
-                    
-                    return jsonify({
-                        'message': f'📝 **{feature_name} - {current_grade} - {current_subject}** \n**{chapter}** - Choose a topic:',
-                        'options': [f'✏️ {topic}' for topic in topics] + ['🔄 Change Chapter', '← Back to Menu'],
-                        'show_menu': True
-                    })
-        
-        # LEGACY HANDLER - DISABLED - Now using auto-loading system
-        # Handle Topic selections
-        if False and all(key in session.get('curriculum_selection', {}) for key in ['grade', 'subject', 'chapter']):
-            current_grade = session['curriculum_selection']['grade']
-            current_subject = session['curriculum_selection']['subject'] 
-            current_chapter = session['curriculum_selection']['chapter']
-            # topics = curriculum_data[current_grade][current_subject][current_chapter]
-            
-            for topic in topics:
-                topic_text = topic.lower()
-                topic_emoji = f'✏️ {topic}'.lower()
-                
-                if user_message.lower() in [topic_text, topic_emoji]:
-                    curriculum_selection = session.get('curriculum_selection', {})
-                    curriculum_selection['topic'] = topic
-                    session['curriculum_selection'] = curriculum_selection
-                    session.modified = True
-                    # Directly proceed to the selected feature instead of showing action menu
-                    selected_feature = session.get('selected_feature')
-                    
-                    if selected_feature == 'lesson_planning':
-                        return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, topic)
-                    elif selected_feature == 'assessment':
-                        return generate_curriculum_assessment_types(current_grade, current_subject, current_chapter, topic)
-                    elif selected_feature == 'activities':
-                        return generate_curriculum_activities(current_grade, current_subject, current_chapter, topic)
-                    elif selected_feature == 'teaching_tips':
-                        return generate_curriculum_tips(current_grade, current_subject, current_chapter, topic)
-                    else:
-                        # Fallback to action menu if no feature selected
-                        return jsonify({
-                            'message': f'''🎯 **Selected Topic:**
-**Grade:** {current_grade}
-**Subject:** {current_subject}
-**Chapter:** {current_chapter}
-**Topic:** {topic}
-
-What would you like me to create for this topic?''',
-                            'options': [
-                                '📝 Generate Lesson Plan',
-                                '📊 Create Assessment Questions',
-                                '🎮 Suggest Fun Activities',
-                                '💡 Teaching Tips for this Topic',
-                                '🔄 Choose Different Topic',
-                                '← Back to Menu'
-                            ],
-                            'show_menu': True
-                        })
-    
-    # Handle curriculum action selections based on selected feature (legacy fallback)
-    if 'topic' in session.get('curriculum_selection', {}) and 'selected_feature' in session:
-        current_grade = session['curriculum_selection']['grade']
-        current_subject = session['curriculum_selection']['subject']
-        current_chapter = session['curriculum_selection']['chapter']
-        current_topic = session['curriculum_selection']['topic']
-        selected_feature = session['selected_feature']
-        
-        if selected_feature == 'lesson_planning':
-            return generate_curriculum_lesson_plan(current_grade, current_subject, current_chapter, current_topic)
-        
-        elif selected_feature == 'assessment':
-            return generate_curriculum_assessment_types(current_grade, current_subject, current_chapter, current_topic)
-        
-        elif selected_feature == 'activities':
-            return generate_curriculum_activities(current_grade, current_subject, current_chapter, current_topic)
-        
-        elif selected_feature == 'teaching_tips':
-            return generate_curriculum_tips(current_grade, current_subject, current_chapter, current_topic)
-    
-    # Handle navigation options
-    if user_message.lower() in ['🔄 change grade', 'change grade']:
-        session['curriculum_selection'] = {}
-        return jsonify({
-            'message': '📖 **Curriculum Navigator** - Choose your grade level to explore subjects, chapters, and topics!',
-            'options': [
-                '1️⃣ Grade 1',
-                '2️⃣ Grade 2', 
-                '3️⃣ Grade 3',
-                '4️⃣ Grade 4',
-                '5️⃣ Grade 5',
-                '← Back to Menu'
-            ],
-            'show_menu': True
-        })
-    
-    if user_message.lower() in ['🔄 change subject', 'change subject'] and 'grade' in session.get('curriculum_selection', {}):
-        # Keep grade, reset others
-        grade = session['curriculum_selection']['grade']
-        session['curriculum_selection'] = {'grade': grade}
-        subjects = list(curriculum_data[grade].keys())
-        return jsonify({
-            'message': f'📚 **{grade} Subjects** - Choose a subject to explore chapters and topics:',
-            'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
-            'show_menu': True
-        })
-    
-    if user_message.lower() in ['🔄 change book', 'change book'] and 'subject' in session.get('curriculum_selection', {}):
-        # Keep grade and subject, reset book and others
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']
-        session['curriculum_selection'] = {'grade': grade, 'subject': subject}
-        
-        # Get predefined books for this grade and subject
-        predefined_books = get_predefined_books()
-        available_books = predefined_books.get(grade, {}).get(subject, {})
-        
-        feature_name = {
-            'lesson_planning': 'Lesson Planning Help',
-            'assessment': 'Assessment', 
-            'activities': 'Fun Classroom Activities',
-            'teaching_tips': 'Teaching Tips & Advice'
-        }.get(session['selected_feature'], 'Selected Feature')
-        
-        if available_books:
-            return jsonify({
-                'message': f'📚 **{feature_name} - {grade} - {subject}** - Choose a textbook:',
-                'options': [f'📖 {book}' for book in available_books.keys()] + ['🔄 Change Subject', '← Back to Menu'],
-                'show_menu': True
-            })
-        else:
-            return jsonify({
-                'message': f'📚 **{grade} - {subject}** - No textbooks available yet for this subject.',
-                'options': ['🔄 Change Subject', '← Back to Menu'],
-                'show_menu': True
-            })
-    
-    if user_message.lower() in ['🔄 change chapter', 'change chapter'] and 'book' in session.get('curriculum_selection', {}):
-        # Keep grade, subject, and book, reset chapter and others
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']  
-        book = session['curriculum_selection']['book']
-        session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'book': book}
-        session.modified = True
-        
-        # Get chapters from auto-loaded book
-        book_content = get_auto_loaded_book_content(grade, subject)
-        if book_content:
-            chapters = list(book_content['chapters'].keys())
-            feature_name = {
-                'lesson_planning': 'Lesson Planning Help',
-                'assessment': 'Assessment',
-                'activities': 'Fun Classroom Activities',
-                'teaching_tips': 'Teaching Tips & Advice'
-            }.get(session['selected_feature'], 'Selected Feature')
-            
-            return jsonify({
-                'message': f'📖 **{feature_name} - {book}** - Choose a chapter:',
-                'options': [f'📄 {chapter}' for chapter in chapters[:10]] + (['📚 Show More Chapters'] if len(chapters) > 10 else []) + ['🔄 Change Subject', '← Back to Menu'],
-                'show_menu': True
-            })
-        else:
-            return jsonify({
-                'message': 'Book content not found.',
-                'options': ['🔄 Change Subject', '← Back to Menu'],
-                'show_menu': True
-            })
-    
-    if user_message.lower() in ['🔄 change category', 'change category', '🎯 try different category', 'try different category'] and 'chapter' in session.get('curriculum_selection', {}):
-        # Keep grade, subject, book and chapter, reset skill category
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']
-        book = session['curriculum_selection']['book']
-        chapter = session['curriculum_selection']['chapter']
-        session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'book': book, 'chapter': chapter}
-        session.modified = True
-        
-        # Get exercise categories for this chapter
-        book_content = get_auto_loaded_book_content(grade, subject)
-        if book_content and chapter in book_content['chapters']:
-            chapter_exercises = book_content['chapters'][chapter]
-            exercise_categories = list(chapter_exercises.keys())
-            
-            return jsonify({
-                'message': f'**📖 {book}**\n**📄 {chapter}**\n\nSelect exercise category:',
-                'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-        else:
-            return jsonify({
-                'message': 'Chapter content not found.',
-                'options': ['🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-    
-    # Show All Exercises handler
-    if user_message.lower() in ['📚 show all exercises', 'show all exercises'] and 'chapter' in session.get('curriculum_selection', {}):
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject'] 
-        chapter = session['curriculum_selection']['chapter']
-        
-        book_content = get_auto_loaded_book_content(grade, subject)
-        if book_content and chapter in book_content['chapters']:
-            all_exercises = book_content['chapters'][chapter]
-            
-            # Create a comprehensive overview of all exercises
-            exercise_overview = f'**📖 {book_content["title"]}**\n**📄 {chapter}**\n\n**All Available Exercises:**\n\n'
-            
-            for category, exercises in all_exercises.items():
-                exercise_overview += f'**🎯 {category}** ({len(exercises)} exercises)\n'
-                for i, exercise in enumerate(exercises[:3], 1):  # Show first 3 per category
-                    exercise_overview += f'{i}. {exercise["title"]}\n'
-                if len(exercises) > 3:
-                    exercise_overview += f'   ... and {len(exercises) - 3} more\n'
-                exercise_overview += '\n'
-            
-            return jsonify({
-                'message': exercise_overview,
-                'is_markdown': True,
-                'options': ['🎯 Select Category', '📄 Change Chapter', '🔄 Change Subject', '← Back to Menu'],
-                'show_menu': True
-            })
-        else:
-            return jsonify({
-                'message': 'Chapter content not found.',
-                'options': ['📄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-            
-    # Select Category handler (from Show All Exercises view)
-    if user_message.lower() in ['🎯 select category', 'select category'] and 'chapter' in session.get('curriculum_selection', {}):
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']
-        book = session['curriculum_selection']['book']
-        chapter = session['curriculum_selection']['chapter']
-        
-        # Get exercise categories for this chapter
-        book_content = get_auto_loaded_book_content(grade, subject)
-        if book_content and chapter in book_content['chapters']:
-            chapter_exercises = book_content['chapters'][chapter]
-            exercise_categories = list(chapter_exercises.keys())
-            
-            # Add debug information if available
-            debug_display = ""
-            if 'debug_info' in book_content:
-                debug = book_content['debug_info']
-                debug_display = f"\n\n**🔧 PDF Status:** {debug['pdf_status']}\n**📊 Chapters Found:** {debug['chapters_found']}\n**💾 Source:** {debug['source']}"
-                if debug['content_preview'] and debug['content_preview'] != 'No content extracted':
-                    debug_display += f"\n**📝 Content Preview:** {debug['content_preview'][:50]}..."
-            
-            return jsonify({
-                'message': f'**📖 {book}**\n**📄 {chapter}**\n\nSelect exercise category:{debug_display}',
-                'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-        else:
-            return jsonify({
-                'message': 'Chapter content not found.',
-                'options': ['🔄 Change Chapter', '← Back to Menu'],
-                'show_menu': True
-            })
-            
-    # Legacy topic selection handler (keeping for backward compatibility)
-    if user_message.lower() in ['🔄 choose different topic', 'choose different topic'] and 'chapter' in session.get('curriculum_selection', {}):
-        # Keep grade, subject, and chapter, reset topic
-        grade = session['curriculum_selection']['grade']
-        subject = session['curriculum_selection']['subject']
-        chapter = session['curriculum_selection']['chapter']
-        session['curriculum_selection'] = {'grade': grade, 'subject': subject, 'chapter': chapter}
-        topics = curriculum_data[grade][subject][chapter]
-        return jsonify({
-            'message': f'📝 **{grade} - {subject}** \n**{chapter}** - Choose a topic:',
-            'options': [f'✏️ {topic}' for topic in topics] + ['🔄 Change Chapter', '← Back to Menu'],
-            'show_menu': True
-        })
-    
-    # Handle multimodal content
-    content_parts = []
-    full_text = user_message
-    
-    # Add audio transcript if available
-    if audio_id:
-        audio_metadata = get_file_metadata(audio_id)
-        if audio_metadata and 'extracted_text' in audio_metadata:
-            audio_text = audio_metadata['extracted_text']
-            if audio_text:
-                full_text = f"[Voice Message]: {audio_text}\n{full_text}".strip()
-    
-    # Process uploaded files
-    for file_id in file_ids:
-        file_metadata = get_file_metadata(file_id)
-        if file_metadata:
-            file_type = file_metadata['type']
-            if file_type == 'image':
-                # Add image to content parts for Gemini
-                image_extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
-                for ext in image_extensions:
-                    image_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
-                    if os.path.exists(image_path):
-                        try:
-                            if gemini_model:  # Only for Gemini
-                                image = Image.open(image_path)
-                                content_parts.append(image)
-                            full_text += f"\n[Image attached: {file_metadata['original_name']}]"
-                            break
-                        except Exception as e:
-                            print(f"Error loading image {file_id}: {e}")
-            
-            elif file_type == 'document':
-                # Add document text
-                if 'extracted_text' in file_metadata:
-                    doc_text = file_metadata['extracted_text']
-                    if doc_text:
-                        full_text += f"\n[Document: {file_metadata['original_name']}]\n{doc_text}"
-    
-    if not full_text and not content_parts:
-        return jsonify({'message': 'Please provide a message or upload a file to chat with me!'})
-    
-    # Generate AI response
-    try:
-        if content_parts and gemini_model:
-            # Multimodal content with images (Gemini only)
-            response = gemini_model.generate_content([full_text] + content_parts)
-            ai_response = response.text
-        else:
-            # Text-only content (works with OpenAI or Gemini) with session context
-            # Use teaching mode if curriculum context is available
-            conversation_mode = "teaching" if session.get('curriculum_selection') else "general"
-            ai_response = get_ai_response(full_text, conversation_mode, session)
-    except Exception as e:
-        print(f"Error generating AI response: {e}")
-        ai_response = "I'm sorry, I encountered an error processing your request. Please try again."
-    
-    return jsonify({'message': ai_response})
+    # Default fallback
+    return jsonify({
+        'message': 'I didn\'t understand that. Please use the menu options to get started!',
+        'options': ['← Back to Menu'],
+        'show_menu': True
+    })
 
 @app.route('/upload_file', methods=['POST'])
 def upload_file():
