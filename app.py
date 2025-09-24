@@ -64,7 +64,7 @@ POSTHOG_HOST = os.environ.get('VITE_PUBLIC_POSTHOG_HOST', 'https://app.posthog.c
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 # Google Drive configuration
-GOOGLE_DRIVE_FOLDER_ID = '1H9oBsD-aRdrdIeg_7df5KBsGX7VXxyC2'  # Main folder ID from provided link
+GOOGLE_DRIVE_FOLDER_ID = os.environ.get('GOOGLE_DRIVE_FOLDER_ID', '1H9oBsD-aRdrdIeg_7df5KBsGX7VXxyC2')  # Configurable via env var
 GOOGLE_SERVICE_ACCOUNT_JSON = os.environ.get('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON')
 
 # Initialize Google Drive service
