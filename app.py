@@ -3429,16 +3429,40 @@ def chat():
         grade = session['curriculum_selection']['grade']
         subject = session['curriculum_selection']['subject']
         
+        print(f"🔍 Chapter Selected: {chapter_title}")
+        print(f"📚 Loading exercises from this chapter...")
+        
         # Get auto-loaded book content again for chapter details
         book_content = get_auto_loaded_book_content(grade, subject)
         
-        if book_content and chapter_title in book_content['chapters']:
-            # Store chapter selection
+        # DEBUG: Show available chapter keys
+        if book_content:
+            available_chapters = list(book_content['chapters'].keys())
+            print(f"📋 Available chapter keys: {available_chapters[:3]}...")  # Show first 3
+            
+            # Find matching chapter key (handle both exact match and "Chapter X:" prefix)
+            matching_chapter_key = None
+            
+            # Try exact match first
+            if chapter_title in book_content['chapters']:
+                matching_chapter_key = chapter_title
+                print(f"✅ Exact match found: {matching_chapter_key}")
+            else:
+                # Try finding chapter with "Chapter X:" prefix
+                for chapter_key in available_chapters:
+                    if chapter_title in chapter_key:  # Check if selected title is contained in the full key
+                        matching_chapter_key = chapter_key
+                        print(f"✅ Prefix match found: {matching_chapter_key}")
+                        break
+        
+        if book_content and matching_chapter_key:
+            # Store chapter selection (use the original title for display)
             session['curriculum_selection']['chapter'] = chapter_title
             session.modified = True
             
-            # Get exercises for this chapter, categorized by skill type
-            chapter_exercises = book_content['chapters'][chapter_title]
+            # Get exercises for this chapter using the matching key
+            chapter_exercises = book_content['chapters'][matching_chapter_key]
+            print(f"📝 Found {len(chapter_exercises)} exercise categories in this chapter")
             
             # Category mapping with emojis
             category_emojis = {
@@ -3450,26 +3474,36 @@ def chat():
                 'Vocabulary': '📚 VOCABULARY'
             }
             
-            # Build exercise display message
-            exercise_display = f"**{chapter_title} Selected** 📄\n\n**Available Exercises:**\n\n"
+            # Build exercise display message  
+            exercise_display = f"✅ **Chapter Selected: {chapter_title}** 📄\n\n**Available Exercises:**\n\n"
             exercise_options = []
+            total_exercises = 0
             
             # Display exercises by category
             for category, exercises in chapter_exercises.items():
-                if exercises:  # Only show categories with exercises
-                    emoji_category = category_emojis.get(category, f'📋 {category.upper()}')
+                emoji_category = category_emojis.get(category, f'📋 {category.upper()}')
+                
+                if exercises and len(exercises) > 0:  # Show categories with exercises
                     exercise_titles = [ex.get('title', f'Exercise {i+1}') if isinstance(ex, dict) else str(ex) for i, ex in enumerate(exercises[:3])]
                     exercise_list = ', '.join(exercise_titles)
                     if len(exercises) > 3:
                         exercise_list += f" (+{len(exercises)-3} more)"
                     exercise_display += f"{emoji_category}: {exercise_list}\n\n"
+                    total_exercises += len(exercises)
                     
-                    # Add category as selectable option
-                    exercise_options.append(f'🎯 {category}')
+                    # Add category as selectable option with count
+                    exercise_options.append(f'🎯 {category} ({len(exercises)} exercises)')
+                else:
+                    # Show empty categories too for transparency
+                    exercise_display += f"{emoji_category}: (No exercises)\n\n"
+            
+            print(f"📊 Exercises found: {total_exercises} total across {len(exercise_options)} categories")
             
             if not exercise_options:
-                exercise_display += "Exercises loading from textbook..."
+                exercise_display += "📝 No exercises found in this chapter.\n\nThis might be a loading issue."
                 exercise_options = ['🔄 Refresh Exercises']
+            else:
+                exercise_display += f"**Total: {total_exercises} exercises found** ✨"
             
             return jsonify({
                 'message': exercise_display,
@@ -3477,8 +3511,23 @@ def chat():
                 'show_menu': True
             })
         else:
+            # Better error handling with debugging info
+            if not book_content:
+                error_msg = "❌ **Chapter Loading Failed**\n\nBook content not available. This might be a loading issue."
+                print(f"❌ ERROR: book_content is None for Grade {grade} {subject}")
+            else:
+                available_chapters = list(book_content['chapters'].keys())
+                error_msg = f"❌ **Chapter Not Found: '{chapter_title}'**\n\nAvailable chapters ({len(available_chapters)}):\n"
+                for i, ch in enumerate(available_chapters[:5], 1):
+                    short_title = ch.replace("Chapter ", "").split(":")[1].strip() if ":" in ch else ch
+                    error_msg += f"{i}. {short_title}\n"
+                if len(available_chapters) > 5:
+                    error_msg += f"... and {len(available_chapters)-5} more\n"
+                print(f"❌ ERROR: Chapter '{chapter_title}' not found in {len(available_chapters)} available chapters")
+                print(f"📋 Available: {[ch for ch in available_chapters[:3]]}")
+                
             return jsonify({
-                'message': 'Chapter not found. Please select a valid chapter.',
+                'message': error_msg,
                 'options': ['🔄 Change Chapter', '← Back to Menu'],
                 'show_menu': True
             })
