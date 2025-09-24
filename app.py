@@ -1178,6 +1178,24 @@ def load_books_from_google_drive():
 def get_auto_loaded_book_content(grade, subject):
     """Auto-load book content with chapters and exercises based on grade and subject"""
     
+    # PRIORITY: Special handling for Grade 4 English - use JSON file FIRST
+    if str(grade) == "4" and subject and subject.lower() == "english":
+        json_content = load_grade4_english_json()
+        if json_content:
+            debug_info = {
+                'drive_status': '❌ Not Connected (JSON prioritized)',
+                'pdf_status': '✅ Loaded from JSON file',
+                'chapters_found': json_content.get('total_chapters', 0),
+                'content_preview': json_content.get('extracted_text', '')[:100],
+                'source': 'json_file'
+            }
+            json_content['debug_info'] = debug_info
+            print(f"🎯 PRIORITY: Successfully loaded Grade 4 English from JSON file with {json_content.get('total_chapters', 0)} chapters")
+            return json_content
+        else:
+            print("⚠️ Failed to load Grade 4 English JSON file, falling back to other methods")
+    
+    # Standard debug info for all other cases
     debug_info = {
         'drive_status': '❌ Not Connected',
         'pdf_status': '❌ No PDF Found',
@@ -1186,22 +1204,7 @@ def get_auto_loaded_book_content(grade, subject):
         'source': 'unknown'
     }
     
-    # Special handling for Grade 4 English - use JSON file
-    if grade == 4 and subject.lower() == 'english':
-        json_content = load_grade4_english_json()
-        if json_content:
-            debug_info['pdf_status'] = '✅ Loaded from JSON file'
-            debug_info['chapters_found'] = json_content.get('total_chapters', 0)
-            debug_info['content_preview'] = json_content.get('extracted_text', '')[:100]
-            debug_info['source'] = 'json_file'
-            
-            json_content['debug_info'] = debug_info
-            print(f"Successfully loaded Grade 4 English from JSON file with {json_content.get('total_chapters', 0)} chapters")
-            return json_content
-        else:
-            print("Failed to load Grade 4 English JSON file, falling back to other methods")
-    
-    # Try Google Drive integration first (for all other grades/subjects)
+    # Try Google Drive integration (for all other grades/subjects or if JSON fails)
     if drive_service:
         debug_info['drive_status'] = '✅ Connected'
         try:
