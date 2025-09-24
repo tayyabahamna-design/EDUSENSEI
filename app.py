@@ -3026,14 +3026,18 @@ def get_pakistani_teacher_fallback(user_message, session_context=None):
         if isinstance(grade, str):
             import re
             grade_match = re.search(r'(\d+)', str(grade))
-            grade = int(grade_match.group(1)) if grade_match else 1
+            grade = int(grade_match.group(1)) if grade_match else grade  # Keep original grade if regex fails
+        # Ensure grade is valid integer (1-5)
+        if not isinstance(grade, int) or grade < 1 or grade > 5:
+            grade = 1  # Only default to 1 if truly invalid
     except:
-        grade = 1
+        pass  # Keep original grade value, don't default to 1
     
     topic = user_message.lower().strip()
     
     # Debug information (logged, not shown to user)
     print(f"Fallback triggered - Grade: {grade}, Subject: {subject}, Topic: {topic}, Activity: {activity_type}")
+    print(f"Session context grade: {session_context.get('grade') if session_context else 'No session context'}")
     
     # Specific hardcoded responses for common topics with grade-based complexity
     if 'noun' in topic:
@@ -3872,7 +3876,7 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
         if not ai_response:
             # Use Pakistani teacher fallback with clean parameters instead of technical prompt
             session_context_clean = {
-                'grade': grade,
+                'grade': session.get('grade', grade),  # Use session grade directly, fallback to grade variable
                 'subject': subject,
                 'activity_type': activity_type if 'activity_type' in session else content_type,
                 'selected_feature': content_type
