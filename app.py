@@ -385,29 +385,48 @@ def cleanup_old_files():
         print(f"Error during cleanup: {e}")
 
 def get_ai_response(user_message, conversation_type="general", session_context=None):
-    """Get AI-powered response using OpenAI or Gemini with book-specific context"""
+    """Get AI-powered response using OpenAI or Gemini with grade-appropriate rigor levels"""
     
-    # Build contextual information from session
+    # Build contextual information from session (new simplified context)
     context_info = ""
-    if session_context and session_context.get('curriculum_selection'):
-        selection = session_context['curriculum_selection']
-        grade = selection.get('grade', '')
-        subject = selection.get('subject', '')
-        book = selection.get('book', '')
-        chapter = selection.get('chapter', '')
-        topic = selection.get('topic', '')
+    grade_rigor_info = ""
+    
+    if session_context:
+        # Get current session data (from simplified chatbot flow)
+        grade = session_context.get('grade', '')
+        subject = session_context.get('subject', '')
+        selected_feature = session_context.get('selected_feature', '')
+        activity_type = session_context.get('activity_type', '')
         
-        if book:
+        if grade and subject:
+            # Determine rigor level based on grade
+            rigor_key = "1-2" if grade in [1, 2] else "3" if grade == 3 else "4-5"
+            rigor_guidelines = GRADE_RIGOR_GUIDELINES.get(rigor_key, {})
+            subject_rigor = SUBJECT_SPECIFIC_RIGOR.get(subject, {}).get(rigor_key, '')
+            
             context_info = f"""
 
 CURRENT EDUCATIONAL CONTEXT:
 - Grade: {grade}
 - Subject: {subject}
-- Textbook: {book}
-- Chapter: {chapter if chapter else 'Not specified'}
-- Topic: {topic if topic else 'Not specified'}
+- Content Type: {selected_feature or activity_type or 'General'}
+- Target Age: {rigor_guidelines.get('description', f'Grade {grade}')}
 
-IMPORTANT: Base all educational content generation on this specific textbook and context. When creating lesson plans, activities, assessments, or other educational materials, reference this specific book and make the content appropriate for {grade} students studying {subject} from "{book}". If asked to create examples or definitions, make them relevant to the current chapter and topic context."""
+GRADE-APPROPRIATE RIGOR LEVEL ({rigor_key}):
+- Vocabulary Level: {rigor_guidelines.get('vocabulary_level', 'Age-appropriate')}
+- Cognitive Complexity: {rigor_guidelines.get('cognitive_complexity', 'Grade-appropriate')}
+- Activity Style: {rigor_guidelines.get('activity_style', 'Engaging activities')}
+- Subject Focus: {subject_rigor}
+
+IMPORTANT: Match content complexity to Grade {grade} Pakistani ESL students. Use {rigor_guidelines.get('vocabulary_level', 'age-appropriate')} vocabulary and {rigor_guidelines.get('cognitive_complexity', 'appropriate')} thinking skills."""
+            
+            # Build detailed rigor characteristics
+            characteristics = rigor_guidelines.get('characteristics', [])
+            if characteristics:
+                grade_rigor_info = f"""
+
+GRADE {grade} RIGOR REQUIREMENTS:
+""" + "\n".join([f"- {char}" for char in characteristics])
     
     # Create system prompt based on conversation type
     if conversation_type == "teaching":
@@ -437,7 +456,7 @@ WHEN CREATING EDUCATIONAL CONTENT:
 - Assessments: Make them engaging and culturally appropriate
 - Definitions: Include Urdu translations and local examples
 
-Remember: You are serving Pakistani teachers and students. Everything must be culturally appropriate, educationally sound, and aligned with Pakistani ESL needs.""" + context_info
+Remember: You are serving Pakistani teachers and students. Everything must be culturally appropriate, educationally sound, and aligned with Pakistani ESL needs.""" + context_info + grade_rigor_info
     else:
         system_prompt = """You are a helpful, knowledgeable, and conversational AI assistant. Be friendly, professional, and approachable. Match the user's communication style, be concise but thorough, and help with any questions or tasks they have. Your goal is to be genuinely helpful while maintaining a natural, conversational tone.""" + context_info
     
