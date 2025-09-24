@@ -3304,33 +3304,152 @@ Hello teacher! {topic} ke assessment ideas:
 
 Kaisa laga teacher? 😊"""
 
-    # Specific response for definitions - show all grades together
-    elif selected_feature == 'definitions' or 'definition' in topic:
-        return f"""📖 DEFINITIONS - {topic.title()} (All Grade Levels)
+    # Specific response for definitions - topic-specific and subject-appropriate
+    elif selected_feature == 'definitions' or (topic and 'definition' in topic.lower()):
+        definition_length = session_context.get('definition_length', 'one_line')
+        
+        # Normalize topic for better matching
+        normalized_topic = topic.lower().strip() if topic else ""
+        # Remove common punctuation and extra spaces
+        import re
+        normalized_topic = re.sub(r'[^\w\s]', '', normalized_topic)
+        normalized_topic = re.sub(r'\s+', ' ', normalized_topic)
+        
+        # Auto-detect subject based on topic and override if needed
+        inferred_subject = subject  # Start with selected subject
+        if any(name in normalized_topic for name in ['allama iqbal', 'quaid e azam', 'muhammad ali jinnah']):
+            inferred_subject = 'Social Studies'
+        elif any(term in normalized_topic for term in ['photosynthesis', 'respiration', 'digestion', 'circulation']):
+            inferred_subject = 'Science'
+        elif any(name in normalized_topic for name in ['prophet muhammad', 'hazrat muhammad', 'muhammad saw', 'muhammad pbuh', 'rasool', 'nabi']):
+            inferred_subject = 'Islamiyat'
+        elif any(term in normalized_topic for term in ['addition', 'subtraction', 'multiplication', 'division']):
+            inferred_subject = 'Math'
+        
+        # Generate topic-specific definitions based on normalized topic
+        if any(name in normalized_topic for name in ['allama iqbal']):
+            if definition_length == 'one_line':
+                return f"""📖 DEFINITIONS - Allama Iqbal (Grade {grade} {inferred_subject})
 
-Hello teacher! Har grade ke liye definition ready hai:
+🔹 ONE LINE:
+English: Allama Iqbal was a great poet and thinker of Pakistan.
+Roman Urdu: Allama Iqbal Pakistan ke azeem shair aur sochne wale thay.
 
-🔹 ONE LINE DEFINITIONS:
+Aur detail chahiye teacher? 😊"""
+            elif definition_length == 'two_line':
+                return f"""📖 DEFINITIONS - Allama Iqbal (Grade {grade} {inferred_subject})
 
-**Grade 1-2:** 
-English: A {topic} is a name of a person, place, or thing.
-Roman Urdu: {topic.title()} kisi shakhs, jagah ya cheez ka naam hai.
+🔹 TWO LINE:
+English: Allama Iqbal was a great poet and thinker. He gave the idea of Pakistan.
+Roman Urdu: Allama Iqbal azeem shair aur sochne wale thay. Unhone Pakistan ka idea diya.
 
-**Grade 3:**
-English: A {topic} is a word that names a person, place, animal, or thing.
-Roman Urdu: {topic.title()} aik word hai jo kisi shakhs, jagah, janwar ya cheez ka naam batata hai.
+Perfect level hai teacher? 😊"""
+            else:  # three_line
+                return f"""📖 DEFINITIONS - Allama Iqbal (Grade {grade} {inferred_subject})
 
-**Grade 4-5:**
-English: A {topic} is a word that identifies people, places, things, or ideas and can function as subjects or objects in sentences.
-Roman Urdu: {topic.title()} aik word hai jo logo, jagahon, cheezon ya khayalon ko identify karta hai aur sentences mein subject ya object ka kaam karta hai.
+🔹 THREE LINE:
+English: Allama Iqbal was a great poet, philosopher and thinker. He wrote beautiful poems about Islam and gave the idea of Pakistan. We call him our national poet.
+Roman Urdu: Allama Iqbal azeem shair, philosopher aur sochne wale thay. Unhone Islam ke bare mein khoobsurat nazmen likhin aur Pakistan ka idea diya. Hum unhe apna national poet kehte hain.
 
-🔹 WITH EXAMPLES:
+Kaisa laga teacher? 😊"""
+        
+        elif any(term in normalized_topic for term in ['photosynthesis']):
+            if definition_length == 'one_line':
+                return f"""📖 DEFINITIONS - Photosynthesis (Grade {grade} {inferred_subject})
 
-**Grade 1-2:** Ahmed (person), school (place), book (thing)
-**Grade 3:** Common: boy, school, cat | Proper: Ahmed, Karachi, Pakistan  
-**Grade 4-5:** Subject noun: "Ahmad plays" | Object noun: "reads book"
+🔹 ONE LINE:
+English: Photosynthesis is how plants make their own food using sunlight.
+Roman Urdu: Photosynthesis se plants sunlight use kar ke apna khana banate hain.
 
-Koi specific grade chahiye ya sab theek hai teacher? 😊"""
+Samajh gaya teacher? 😊"""
+            elif definition_length == 'two_line':
+                return f"""📖 DEFINITIONS - Photosynthesis (Grade {grade} {inferred_subject})
+
+🔹 TWO LINE:
+English: Photosynthesis is how plants make their own food using sunlight. Plants take in carbon dioxide and water to make glucose.
+Roman Urdu: Photosynthesis se plants sunlight use kar ke apna khana banate hain. Plants carbon dioxide aur paani leke glucose banate hain.
+
+Clear hai teacher? 😊"""
+            else:  # three_line
+                return f"""📖 DEFINITIONS - Photosynthesis (Grade {grade} {inferred_subject})
+
+🔹 THREE LINE:
+English: Photosynthesis is the process by which plants make their own food using sunlight. Plants take in carbon dioxide from air and water from roots to make glucose (sugar). This process also releases oxygen that we breathe.
+Roman Urdu: Photosynthesis wo process hai jis se plants sunlight use kar ke apna khana banate hain. Plants hawa se carbon dioxide aur roots se paani leke glucose (cheeni) banate hain. Is process se oxygen bhi nikalta hai jo hum saans lete hain.
+
+Perfect explanation hai teacher? 😊"""
+        
+        elif any(name in normalized_topic for name in ['prophet muhammad', 'hazrat muhammad', 'muhammad saw', 'muhammad pbuh', 'rasool', 'nabi']):
+            if definition_length == 'one_line':
+                return f"""📖 DEFINITIONS - Prophet Muhammad (Grade {grade} {inferred_subject})
+
+🔹 ONE LINE:
+English: Prophet Muhammad (PBUH) was the last messenger of Allah.
+Roman Urdu: Hazrat Muhammad (SAW) Allah ke aakhri rasool thay.
+
+Aur batayein teacher? 😊"""
+            elif definition_length == 'two_line':
+                return f"""📖 DEFINITIONS - Prophet Muhammad (Grade {grade} {inferred_subject})
+
+🔹 TWO LINE:
+English: Prophet Muhammad (PBUH) was the last messenger of Allah. He taught us about Islam and how to live a good life.
+Roman Urdu: Hazrat Muhammad (SAW) Allah ke aakhri rasool thay. Unhone humein Islam aur achhi zindagi guzarne ka tareeqa sikhaya.
+
+Theek hai teacher? 😊"""
+            else:  # three_line
+                return f"""📖 DEFINITIONS - Prophet Muhammad (Grade {grade} {inferred_subject})
+
+🔹 THREE LINE:
+English: Prophet Muhammad (PBUH) was the last messenger of Allah sent to guide all humanity. He taught us about Islam, showed us how to pray, be kind to others, and live peacefully. He is our beloved Prophet and the best example for all Muslims.
+Roman Urdu: Hazrat Muhammad (SAW) Allah ke aakhri rasool thay jo tamam insaniyat ki hidayat ke liye bheje gaye. Unhone humein Islam sikhaya, namaz parhna, doosron se meharbani karna aur sukoon se rehna sikhaya. Wo hamare pyare Nabi hain aur tamam Muslmanon ke liye behترین misal hain.
+
+Mashallah! Kaisa laga teacher? 😊"""
+        
+        # Generic definition for other topics - subject-specific fallback
+        else:
+            # Subject-specific generic definitions based on definition length
+            if inferred_subject == 'Science':
+                concept_desc = "scientific concept" if definition_length == 'one_line' else "important scientific process or concept"
+                urdu_desc = "science ka concept" if definition_length == 'one_line' else "science ka important process ya concept"
+            elif inferred_subject == 'Social Studies':
+                concept_desc = "historical or social concept" if definition_length == 'one_line' else "important historical event or social concept"  
+                urdu_desc = "history ya social studies ka concept" if definition_length == 'one_line' else "history ya social studies ka important event ya concept"
+            elif inferred_subject == 'Islamiyat':
+                concept_desc = "Islamic concept" if definition_length == 'one_line' else "important Islamic teaching or concept"
+                urdu_desc = "Islam ka concept" if definition_length == 'one_line' else "Islam ka important teaching ya concept"
+            elif inferred_subject == 'Math':
+                concept_desc = "mathematical concept" if definition_length == 'one_line' else "important mathematical operation or concept"
+                urdu_desc = "math ka concept" if definition_length == 'one_line' else "math ka important operation ya concept"
+            else:
+                concept_desc = "important concept" if definition_length == 'one_line' else "important educational concept"
+                urdu_desc = "ahem concept" if definition_length == 'one_line' else "ahem educational concept"
+            
+            if definition_length == 'one_line':
+                return f"""📖 DEFINITIONS - {topic.title()} (Grade {grade} {inferred_subject})
+
+🔹 ONE LINE:
+English: {topic.title()} is a {concept_desc} in Grade {grade} {inferred_subject}.
+Roman Urdu: {topic.title()} Grade {grade} {inferred_subject} ka {urdu_desc} hai.
+
+Aur detail chahiye teacher? 😊"""
+            
+            elif definition_length == 'two_line':
+                return f"""📖 DEFINITIONS - {topic.title()} (Grade {grade} {inferred_subject})
+
+🔹 TWO LINE:
+English: {topic.title()} is a {concept_desc} in Grade {grade} {inferred_subject}. Students learn about this topic to understand {inferred_subject} better.
+Roman Urdu: {topic.title()} Grade {grade} {inferred_subject} ka {urdu_desc} hai. Bachay is topic ke bare mein seekh kar {inferred_subject} ko behtar samajh sakte hain.
+
+Theek hai teacher? 😊"""
+            
+            else:  # three_line
+                return f"""📖 DEFINITIONS - {topic.title()} (Grade {grade} {inferred_subject})
+
+🔹 THREE LINE:
+English: {topic.title()} is a {concept_desc} taught in Grade {grade} {inferred_subject}. Students learn about this topic through Pakistani examples and real-life situations. Understanding {topic.title()} helps students build a strong foundation in {inferred_subject}.
+Roman Urdu: {topic.title()} Grade {grade} {inferred_subject} mein sikhaya jane wala {urdu_desc} hai. Bachay is topic ko Pakistani examples aur real-life situations ke zariye seekhte hain. {topic.title()} ko samjhna bachon ko {inferred_subject} mein mazboot bunyad banane mein madad karta hai.
+
+Perfect explanation hai teacher? 😊"""
 
     # General fallback for any topic
     else:
@@ -3920,7 +4039,8 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
                 'grade': session.get('grade', grade),  # Use session grade directly, fallback to grade variable
                 'subject': subject,
                 'activity_type': activity_type if 'activity_type' in session else content_type,
-                'selected_feature': content_type
+                'selected_feature': content_type,
+                'definition_length': session.get('definition_length', 'one_line')  # Ensure definition length is passed
             }
             ai_response = get_pakistani_teacher_fallback(topic, session_context_clean)
             
