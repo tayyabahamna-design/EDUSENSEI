@@ -4029,7 +4029,9 @@ What would you like me to create for this topic?''',
             ai_response = response.text
         else:
             # Text-only content (works with OpenAI or Gemini) with session context
-            ai_response = get_ai_response(full_text, "general", session)
+            # Use teaching mode if curriculum context is available
+            conversation_mode = "teaching" if session.get('curriculum_selection') else "general"
+            ai_response = get_ai_response(full_text, conversation_mode, session)
     except Exception as e:
         print(f"Error generating AI response: {e}")
         ai_response = "I'm sorry, I encountered an error processing your request. Please try again."
@@ -4488,7 +4490,7 @@ Make examples relatable and practice progressive from easy to challenging."""
     
     # Get AI response with session context
     try:
-        ai_response = get_ai_response(prompt, "educational_content", session_data)
+        ai_response = get_ai_response(prompt, "teaching", session_data)
         
         return jsonify({
             'message': f"**📚 {feature_type.replace('_', ' ').title()} - Grade {grade} {subject}**\n\n" + ai_response,
