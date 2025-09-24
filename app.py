@@ -839,6 +839,36 @@ def load_books_from_google_drive():
 
 def get_auto_loaded_book_content(grade, subject):
     """Auto-load book content with chapters and exercises based on grade and subject"""
+    
+    # Try Google Drive integration first
+    if drive_service:
+        try:
+            # Load books from Google Drive
+            drive_books = load_books_from_google_drive()
+            
+            grade_key = f'Grade {grade}'
+            if grade_key in drive_books and subject in drive_books[grade_key]:
+                subject_books = drive_books[grade_key][subject]
+                
+                if subject_books:
+                    # Get the first book for this subject
+                    book_title = list(subject_books.keys())[0]
+                    book_data = subject_books[book_title]
+                    
+                    return {
+                        'title': book_title,
+                        'filename': book_data.get('file_id', ''),
+                        'grade': grade,
+                        'subject': subject,
+                        'chapters': book_data.get('chapters', {}),
+                        'total_chapters': len(book_data.get('chapters', {})),
+                        'source': 'google_drive',
+                        'file_id': book_data.get('file_id')
+                    }
+        except Exception as e:
+            print(f"Error loading from Google Drive, falling back to static books: {e}")
+    
+    # Fallback to predefined static books
     predefined_books = get_predefined_books()
     
     # Get the appropriate book for this grade and subject
@@ -863,7 +893,8 @@ def get_auto_loaded_book_content(grade, subject):
         'grade': grade,
         'subject': subject,
         'chapters': book_content['chapters'],
-        'total_chapters': len(book_content['chapters'])
+        'total_chapters': len(book_content['chapters']),
+        'source': 'static'
     }
 
 def generate_book_structure(grade, subject, book_title):
