@@ -4259,7 +4259,7 @@ def generate_udost_content(feature_type, curriculum_selection, session_data=None
     chapter = curriculum_selection.get('chapter')
     skill_category = curriculum_selection.get('skill_category')
     
-    # Create context for AI
+    # Create context for AI with Pakistani Teaching Methodology
     context = f"""
     You are U-DOST, a friendly Pakistani teacher assistant. Generate content for:
     
@@ -4269,37 +4269,111 @@ def generate_udost_content(feature_type, curriculum_selection, session_data=None
     Chapter: {chapter}
     Skill Focus: {skill_category}
     
-    Pakistani Education Context: This is for Pakistani primary education (grades 1-5) following the local curriculum.
-    Language: Provide content in English but include Urdu terms where appropriate for Pakistani context.
+    IMPORTANT: You MUST follow this Pakistani Teaching Methodology:
+    {UDOST_TEACHING_METHODOLOGY}
+    
+    Remember: All content must match the SPECIFIC EXERCISE from the selected chapter/book, be tailored for Pakistani ESL students, and use local cultural examples.
     """
     
     content_prompts = {
         'lesson_plans': f"""Create a detailed lesson plan for Grade {grade} {subject}, Chapter {chapter}, focusing on {skill_category}.
 
-Include:
-1. **Learning Objectives** (Clear, measurable goals)
-2. **Materials Needed** (Textbook, whiteboard, etc.)
-3. **Introduction** (5-10 minutes warm-up activity)
-4. **Main Activity** (20-25 minutes structured learning)
-5. **Practice Session** (10-15 minutes hands-on work)
-6. **Assessment** (How to check understanding)
-7. **Homework/Extension** (Optional follow-up activities)
-8. **Pakistani Context** (Local examples, cultural references)
+MANDATORY: Follow the 6-step lesson structure exactly:
 
-Make it engaging and age-appropriate for Grade {grade} students in Pakistan.""",
+## 📝 **LESSON PLAN**
 
-        'teaching_strategies': f"""Suggest 5-7 effective teaching strategies for Grade {grade} {subject}, Chapter {chapter}, {skill_category} focus.
+### **Learning Objectives:**
+- Clear, measurable goals appropriate for Grade {grade}
 
-Include:
-1. **Interactive Methods** (Group work, pair activities)
-2. **Visual Aids** (Charts, pictures, demonstrations) 
-3. **Local Examples** (Pakistani context, familiar scenarios)
-4. **Differentiated Approaches** (For different learning styles)
-5. **Assessment Techniques** (Quick checks, formative assessment)
-6. **Classroom Management Tips** (Keeping students engaged)
-7. **Cultural Sensitivity** (Islamic values, Pakistani customs)
+### **Materials Needed:**
+- List required materials (textbook, whiteboard, charts, etc.)
 
-Make strategies practical and easy to implement.""",
+### **Lesson Duration:** 40 minutes
+
+### **LESSON STRUCTURE (6 Essential Steps):**
+
+**1. RECALL (5 minutes):**
+- Quick review of previous learning/prerequisite knowledge
+- Connect to what students already know
+
+**2. HOOK (5 minutes):**
+- Engaging activity to capture student interest and introduce topic
+- Make it exciting and relevant to Pakistani children
+
+**3. EXPLAIN (15 minutes):**
+- Clear explanation using visual aids, examples, and demonstrations
+- Use simple Pakistani English with cultural examples
+
+**4. GUIDED PRACTICE (10 minutes):**
+- Teacher-led practice with student participation
+- Interactive exercises together
+
+**5. INDEPENDENT PRACTICE (3 minutes):**
+- Students work from textbook exercises independently
+- Individual application of learning
+
+**6. QUICK CONCLUSION (2 minutes):**
+- Brief summary and key takeaways
+- What did we learn today?
+
+### **Pakistani ESL Considerations:**
+- Use Pakistani names (Ahmed, Fatima, Ali, Ayesha)
+- Include local examples (biryani, cricket, Eid, etc.)
+- Provide Urdu translations for difficult words
+- Consider limited English vocabulary
+
+Make it practical and ready to use in Pakistani classrooms.""",
+
+        'teaching_strategies': f"""Provide effective teaching strategies for Grade {grade} {subject}, Chapter {chapter}, focusing on {skill_category}.
+
+## 🎯 **SKILL-SPECIFIC STRATEGIES**
+
+### **For {skill_category} Skills, use these proven methods:**
+
+**If focusing on READING:**
+- Echo Reading, Choral Reading, Paired Reading
+- Picture Walk, Prediction, Think-Aloud
+- Phonics Blending, Sight Word Recognition
+- Reading Comprehension Questions
+
+**If focusing on WRITING:**
+- Sentence Starters, Writing Frames
+- Guided Writing, Shared Writing
+- Grammar Integration, Vocabulary Building
+- Peer Editing, Self-Correction
+
+**If focusing on ORAL COMMUNICATION:**
+- Show and Tell, Role Play, Storytelling
+- Question-Answer Sessions, Group Discussions
+- Pronunciation Practice, Vocabulary Games
+- Listen and Repeat Activities
+
+**If focusing on COMPREHENSION:**
+- KWL Charts (Know-Want-Learn)
+- Story Mapping, Sequence Activities
+- Main Idea and Details, Cause and Effect
+- Making Connections, Inference Skills
+
+**If focusing on GRAMMAR:**
+- Grammar Games, Pattern Practice
+- Sentence Building, Error Correction
+- Visual Grammar Charts, Examples and Non-examples
+- Contextual Grammar Teaching
+
+**If focusing on VOCABULARY:**
+- Picture-Word Association, Word Maps
+- Synonym/Antonym Games, Context Clues
+- Word Families, Vocabulary Journals
+- Total Physical Response (TPR)
+
+### **Pakistani ESL Adaptations:**
+- Use familiar cultural references (Pakistani foods, festivals, places)
+- Provide pronunciation guides for difficult English words
+- Include mother tongue support strategies
+- Consider limited English vocabulary of students
+- Focus on practical, communicative English skills
+
+Make strategies practical and ready to implement in Pakistani classrooms.""",
 
         'activities': f"""Design 6 engaging activities for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
