@@ -35,6 +35,73 @@ try:
 except ImportError:
     OPENCV_AVAILABLE = False
 
+# Grade-Appropriate Rigor Level Guidelines for Pakistani ESL Students
+GRADE_RIGOR_GUIDELINES = {
+    "1-2": {
+        "description": "Lower Primary (Ages 6-8)",
+        "characteristics": [
+            "Very simple vocabulary and concepts",
+            "Short, clear instructions",
+            "Concrete, hands-on activities", 
+            "Basic foundational skills",
+            "Heavy use of visuals and games",
+            "Simple Pakistani cultural examples (family, home, friends)"
+        ],
+        "vocabulary_level": "Basic everyday words in both English and Urdu",
+        "cognitive_complexity": "Recognition, recall, simple identification",
+        "activity_style": "Play-based, movement activities, show-and-tell, pointing games"
+    },
+    "3": {
+        "description": "Mid Primary (Age 9)",
+        "characteristics": [
+            "Building vocabulary with more detailed words",
+            "Simple categorization and sorting",
+            "Beginning analysis skills",
+            "Mix of concrete and abstract concepts",
+            "Introduction to simple rules and patterns"
+        ],
+        "vocabulary_level": "Expanded vocabulary with simple academic terms",
+        "cognitive_complexity": "Understanding, simple analysis, basic categorization",
+        "activity_style": "Group sorting, simple problem-solving, basic research"
+    },
+    "4-5": {
+        "description": "Upper Primary (Ages 10-11)",
+        "characteristics": [
+            "More complex vocabulary and academic terms",
+            "Abstract thinking and analysis",
+            "Application and synthesis of concepts",
+            "Critical thinking activities",
+            "Independent research and exploration"
+        ],
+        "vocabulary_level": "Academic vocabulary with technical terms",
+        "cognitive_complexity": "Analysis, synthesis, evaluation, application",
+        "activity_style": "Research projects, debates, creative writing, complex problem-solving"
+    }
+}
+
+SUBJECT_SPECIFIC_RIGOR = {
+    "English": {
+        "1-2": "Focus on basic phonics, simple words, listening skills",
+        "3": "Simple grammar rules, reading comprehension, basic writing",
+        "4-5": "Complex grammar, literature analysis, essay writing"
+    },
+    "Math": {
+        "1-2": "Numbers 1-100, basic addition/subtraction, shapes",
+        "3": "Multiplication tables, fractions, measurement",
+        "4-5": "Advanced operations, problem-solving, geometry"
+    },
+    "Urdu": {
+        "1-2": "Basic Urdu letters and sounds, simple words",
+        "3": "Reading simple Urdu sentences, basic writing",
+        "4-5": "Urdu literature, complex sentence structure, poetry"
+    },
+    "Science": {
+        "1-2": "Observations about nature, five senses, basic animals/plants",
+        "3": "Simple experiments, life cycles, weather",
+        "4-5": "Scientific method, ecosystems, physical/chemical changes"
+    }
+}
+
 # TEACHING METHODOLOGY GUIDE FOR U-DOST AI CHATBOT
 UDOST_TEACHING_METHODOLOGY = """
 ## LESSON PLANNING STRUCTURE (6 Essential Steps):
