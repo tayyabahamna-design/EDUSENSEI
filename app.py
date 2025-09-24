@@ -3300,6 +3300,34 @@ Hello teacher! {topic} ke assessment ideas:
 
 Kaisa laga teacher? 😊"""
 
+    # Specific response for definitions - show all grades together
+    elif selected_feature == 'definitions' or 'definition' in topic:
+        return f"""📖 DEFINITIONS - {topic.title()} (All Grade Levels)
+
+Hello teacher! Har grade ke liye definition ready hai:
+
+🔹 ONE LINE DEFINITIONS:
+
+**Grade 1-2:** 
+English: A {topic} is a name of a person, place, or thing.
+Roman Urdu: {topic.title()} kisi shakhs, jagah ya cheez ka naam hai.
+
+**Grade 3:**
+English: A {topic} is a word that names a person, place, animal, or thing.
+Roman Urdu: {topic.title()} aik word hai jo kisi shakhs, jagah, janwar ya cheez ka naam batata hai.
+
+**Grade 4-5:**
+English: A {topic} is a word that identifies people, places, things, or ideas and can function as subjects or objects in sentences.
+Roman Urdu: {topic.title()} aik word hai jo logo, jagahon, cheezon ya khayalon ko identify karta hai aur sentences mein subject ya object ka kaam karta hai.
+
+🔹 WITH EXAMPLES:
+
+**Grade 1-2:** Ahmed (person), school (place), book (thing)
+**Grade 3:** Common: boy, school, cat | Proper: Ahmed, Karachi, Pakistan  
+**Grade 4-5:** Subject noun: "Ahmad plays" | Object noun: "reads book"
+
+Koi specific grade chahiye ya sab theek hai teacher? 😊"""
+
     # General fallback for any topic
     else:
         content_type = "activities" if activity_type else selected_feature
