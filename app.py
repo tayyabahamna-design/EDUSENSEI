@@ -3808,12 +3808,53 @@ def chat():
         
         grade = session['grade']
         feature_display = session.get('selected_feature_display', 'Content')
+        selected_feature = session.get('selected_feature', '')
+        
+        # Special handling for definitions - show length options
+        if selected_feature == 'definitions':
+            return jsonify({
+                'message': f'📖 **DEFINITIONS for Grade {grade} {subject}**\n\nHow detailed do you want the definition?',
+                'options': [
+                    '🔹 One Line Definition (Quick & Simple)',
+                    '🔹 Two Line Definition (with example)',
+                    '🔹 Three Line Definition (detailed with examples)',
+                    '🔄 Change Subject',
+                    '← Back to Menu'
+                ],
+                'show_menu': True
+            })
         
         return jsonify({
             'message': f'You selected: **{feature_display} for Grade {grade} {subject}**\n\n📝 Please enter the topic you want to teach:',
             'show_menu': False,
             'show_input': True,
             'input_placeholder': 'Enter topic (e.g., "Past Tense Verbs", "Addition and Subtraction", "Types of Animals")'
+        })
+    
+    # Handle definition length selection
+    definition_length_options = {
+        '🔹 one line definition (quick & simple)': 'one_line',
+        'one line definition (quick & simple)': 'one_line',
+        '🔹 two line definition (with example)': 'two_line', 
+        'two line definition (with example)': 'two_line',
+        '🔹 three line definition (detailed with examples)': 'three_line',
+        'three line definition (detailed with examples)': 'three_line'
+    }
+    
+    if user_message.lower() in definition_length_options and session.get('selected_feature') == 'definitions':
+        definition_length = definition_length_options[user_message.lower()]
+        session['definition_length'] = definition_length
+        session.modified = True
+        
+        grade = session['grade']
+        subject = session['subject']
+        length_display = user_message.replace('🔹 ', '').title()
+        
+        return jsonify({
+            'message': f'📖 **{length_display} for Grade {grade} {subject}**\n\n📝 Please enter the topic you want to learn about:',
+            'show_menu': False,
+            'show_input': True,
+            'input_placeholder': 'Enter topic (e.g., "Allama Iqbal", "Photosynthesis", "Addition", "Prophet Muhammad")'
         })
     
     # Handle topic input and generate content
