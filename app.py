@@ -4377,20 +4377,51 @@ Make strategies practical and ready to implement in Pakistani classrooms.""",
 
         'activities': f"""Design 6 engaging activities for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
-Provide activities for:
-1. **Independent Work** (Individual practice)
-2. **Group Activity** (Collaborative learning) 
-3. **Assignment/Homework** (Take-home practice)
-4. **Pair Work** (Partner activities)
-5. **Creative Activity** (Arts, crafts, creative expression)
-6. **Assessment Activity** (Fun way to check learning)
+## 🎨 **CULTURALLY-ADAPTED ACTIVITIES**
 
-Each activity should include:
-- Clear instructions
-- Time required
-- Materials needed
-- Learning outcomes
-- Pakistani cultural context where relevant""",
+### **Activity 1: Independent Work**
+- Individual practice that matches exact textbook content
+- Use Pakistani names (Ahmed, Fatima, Ali, Ayesha)
+- Include familiar objects (rickshaw, chapati, mangoes)
+
+### **Activity 2: Group Activity** 
+- Collaborative learning with Islamic values emphasis
+- Reference Pakistani festivals (Eid, Independence Day, Jashn-e-Baharan)
+- Use cricket or other familiar sports as examples
+
+### **Activity 3: Assignment/Homework**
+- Take-home practice involving family members
+- Connect to home life in Pakistani context
+- Include respect for elders and family values
+
+### **Activity 4: Pair Work**
+- Partner activities promoting cooperation
+- Use local Pakistani contexts (bazaar, masjid, school)
+- Include helping and sharing concepts
+
+### **Activity 5: Creative Activity**
+- Arts, crafts using Pakistani cultural elements
+- Traditional patterns, local animals, or foods
+- Express creativity while staying culturally appropriate
+
+### **Activity 6: Assessment Activity**
+- Fun way to check learning through games
+- Use Pakistani context (cricket scoring, counting rotis)
+- Make assessment enjoyable and stress-free
+
+### **Each Activity Includes:**
+- **Clear Instructions:** Step-by-step in simple English
+- **Time Required:** Realistic timing for Pakistani classrooms
+- **Materials Needed:** Available local materials
+- **Learning Outcomes:** What students will achieve
+- **Urdu Support:** Translation hints for difficult words
+- **Cultural Connection:** How it relates to students' lives
+
+**Pakistani ESL Adaptations:**
+- Use simple vocabulary appropriate for Grade {grade}
+- Include pronunciation guides for difficult English words
+- Connect activities to real Pakistani student experiences
+- Ensure activities work in typical Pakistani classroom settings""",
 
         'definitions': f"""Provide clear, age-appropriate definitions and explanations for key concepts in Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
