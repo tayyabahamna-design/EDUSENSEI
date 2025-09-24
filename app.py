@@ -3049,12 +3049,40 @@ def chat():
             # Get exercises for this chapter, categorized by skill type
             chapter_exercises = book_content['chapters'][chapter_title]
             
-            # Display exercise categories
-            exercise_categories = list(chapter_exercises.keys())
+            # Category mapping with emojis
+            category_emojis = {
+                'Reading': '📖 READING',
+                'Writing': '✍️ WRITING', 
+                'Oral Communication': '🗣️ ORAL COMMUNICATION',
+                'Comprehension': '🧠 COMPREHENSION',
+                'Grammar': '📝 GRAMMAR',
+                'Vocabulary': '📚 VOCABULARY'
+            }
+            
+            # Build exercise display message
+            exercise_display = f"**{chapter_title} Selected** 📄\n\n**Available Exercises:**\n\n"
+            exercise_options = []
+            
+            # Display exercises by category
+            for category, exercises in chapter_exercises.items():
+                if exercises:  # Only show categories with exercises
+                    emoji_category = category_emojis.get(category, f'📋 {category.upper()}')
+                    exercise_titles = [ex.get('title', f'Exercise {i+1}') if isinstance(ex, dict) else str(ex) for i, ex in enumerate(exercises[:3])]
+                    exercise_list = ', '.join(exercise_titles)
+                    if len(exercises) > 3:
+                        exercise_list += f" (+{len(exercises)-3} more)"
+                    exercise_display += f"{emoji_category}: {exercise_list}\n\n"
+                    
+                    # Add category as selectable option
+                    exercise_options.append(f'🎯 {category}')
+            
+            if not exercise_options:
+                exercise_display += "Exercises loading from textbook..."
+                exercise_options = ['🔄 Refresh Exercises']
             
             return jsonify({
-                'message': f'**📖 {book_content["title"]}**\n**📄 {chapter_title}**\n\nSelect exercise category:',
-                'options': [f'🎯 {category} ({len(chapter_exercises[category])} exercises)' for category in exercise_categories] + ['📚 Show All Exercises', '🔄 Change Chapter', '← Back to Menu'],
+                'message': exercise_display,
+                'options': exercise_options + ['🔄 Change Chapter', '← Back to Menu'],
                 'show_menu': True
             })
         else:
