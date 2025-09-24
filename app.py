@@ -363,7 +363,12 @@ Remember: Your goal is to be genuinely helpful while maintaining a natural, conv
             return assistant_response
             
         except Exception as e:
-            print(f"OpenAI API error: {e}")
+            # Sanitize error logging to prevent API key leakage
+            error_msg = str(e)
+            if 'api key' in error_msg.lower() or 'authentication' in error_msg.lower():
+                print("OpenAI API error: Authentication failed - please check API key configuration")
+            else:
+                print(f"OpenAI API error: {type(e).__name__}")
     
     # Fallback to Gemini with conversation history
     if gemini_model:
@@ -395,7 +400,12 @@ Remember: Your goal is to be genuinely helpful while maintaining a natural, conv
             return assistant_response
             
         except Exception as e:
-            print(f"Gemini API error: {e}")
+            # Sanitize error logging to prevent API key leakage
+            error_msg = str(e)
+            if 'api key' in error_msg.lower() or 'authentication' in error_msg.lower():
+                print("Gemini API error: Authentication failed - please check API key configuration")
+            else:
+                print(f"Gemini API error: {type(e).__name__}")
     
     # Final fallback
     return get_general_guidance_fallback(user_message)
@@ -541,7 +551,8 @@ def scan_google_drive_folders():
         return books_structure
         
     except Exception as e:
-        print(f"Error scanning Google Drive folders: {e}")
+        # Sanitize error logging to prevent credential leakage
+        print(f"Error scanning Google Drive folders: {type(e).__name__}")
         return None
 
 def download_pdf_from_drive(file_id):
@@ -565,7 +576,8 @@ def download_pdf_from_drive(file_id):
         return file_content.getvalue()
         
     except Exception as e:
-        print(f"Error downloading PDF from Drive: {e}")
+        # Sanitize error logging to prevent credential leakage
+        print(f"Error downloading PDF from Drive: {type(e).__name__}")
         return None
 
 def extract_text_from_pdf_bytes(pdf_bytes):
@@ -834,7 +846,8 @@ def load_books_from_google_drive():
         return processed_books
         
     except Exception as e:
-        print(f"Error loading books from Google Drive: {e}")
+        # Sanitize error logging to prevent credential leakage
+        print(f"Error loading books from Google Drive: {type(e).__name__}")
         return get_predefined_books()
 
 def get_auto_loaded_book_content(grade, subject):
@@ -866,7 +879,8 @@ def get_auto_loaded_book_content(grade, subject):
                         'file_id': book_data.get('file_id')
                     }
         except Exception as e:
-            print(f"Error loading from Google Drive, falling back to static books: {e}")
+            # Sanitize error logging to prevent credential leakage
+            print(f"Error loading from Google Drive, falling back to static books: {type(e).__name__}")
     
     # Fallback to predefined static books
     predefined_books = get_predefined_books()
