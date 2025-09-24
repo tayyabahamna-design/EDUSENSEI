@@ -304,6 +304,144 @@ def get_file_metadata(file_id):
 
 # Removed chapter parsing function - using direct OpenAI responses
 
+def detect_conversational_input(user_message, session):
+    """Detect if user is continuing a conversation naturally"""
+    # Check if we have previous context
+    has_context = any([
+        session.get('last_topic'),
+        session.get('last_activity_type'),
+        session.get('last_subject'),
+        session.get('last_grade')
+    ])
+    
+    if not has_context:
+        return False
+    
+    msg_lower = user_message.lower()
+    
+    # Grade change patterns
+    grade_patterns = [
+        'make it for grade', 'now grade', 'what about grade', 'try grade',
+        'grade 1', 'grade 2', 'grade 3', 'grade 4', 'grade 5'
+    ]
+    
+    # Difficulty change patterns  
+    difficulty_patterns = [
+        'make it easier', 'make it harder', 'more challenging', 'simpler',
+        'too hard', 'too easy', 'difficult', 'challenge'
+    ]
+    
+    # Content type change patterns
+    content_patterns = [
+        'assessment', 'activities', 'lesson plan', 'examples',
+        'games', 'hooks', 'strategies'
+    ]
+    
+    # General continuation patterns
+    continuation_patterns = [
+        'now', 'what about', 'can you', 'try', 'make', 'add', 'create'
+    ]
+    
+    return any([
+        any(pattern in msg_lower for pattern in grade_patterns),
+        any(pattern in msg_lower for pattern in difficulty_patterns),
+        any(pattern in msg_lower for pattern in content_patterns),
+        any(pattern in msg_lower for pattern in continuation_patterns)
+    ])
+
+def handle_conversational_input(user_message, session):
+    """Handle natural conversation continuation"""
+    msg_lower = user_message.lower()
+    
+    # Extract previous context
+    last_topic = session.get('last_topic', 'nouns')
+    last_activity = session.get('last_activity_type', 'pair_work')
+    last_subject = session.get('last_subject', 'English')
+    last_grade = session.get('last_grade', 2)
+    
+    # Detect grade changes
+    new_grade = extract_grade_from_message(msg_lower)
+    if new_grade:
+        # Natural grade change response
+        if new_grade > last_grade:
+            response_start = f"Acha! Grade {new_grade} ke liye thoda aur challenging kar deti hun:"
+        elif new_grade < last_grade:
+            response_start = f"Ji haan! Grade {new_grade} ke liye simple level kar deti hun:"
+        else:
+            response_start = f"Grade {new_grade} ke liye perfect level:"
+        
+        # Generate content with new grade but same topic/activity
+        content = generate_conversational_content(last_topic, last_activity, last_subject, new_grade)
+        
+        # Update session
+        session['last_grade'] = new_grade
+        session.modified = True
+        
+        return jsonify({
+            'message': f"{response_start}\n\n{content}",
+            'show_menu': False
+        })
+    
+    # Detect difficulty changes
+    if any(word in msg_lower for word in ['easier', 'simpler', 'too hard']):
+        target_grade = max(1, last_grade - 1)
+        content = generate_conversational_content(last_topic, last_activity, last_subject, target_grade)
+        
+        session['last_grade'] = target_grade
+        session.modified = True
+        
+        return jsonify({
+            'message': f"Bilkul! Thoda easy kar deti hun:\n\n{content}",
+            'show_menu': False
+        })
+    
+    if any(word in msg_lower for word in ['harder', 'challenging', 'too easy']):
+        target_grade = min(5, last_grade + 1)
+        content = generate_conversational_content(last_topic, last_activity, last_subject, target_grade)
+        
+        session['last_grade'] = target_grade
+        session.modified = True
+        
+        return jsonify({
+            'message': f"Challenge chahiye? Perfect! Aur advance kar deti hun:\n\n{content}",
+            'show_menu': False
+        })
+    
+    # Detect content type changes
+    if 'assessment' in msg_lower:
+        content = generate_conversational_content(last_topic, 'assessment', last_subject, last_grade)
+        return jsonify({
+            'message': f"Assessment chahiye? Koi baat nahi! Same topic '{last_topic}' ke liye assessment banati hun:\n\n{content}",
+            'show_menu': False
+        })
+    
+    # General conversational AI fallback
+    context_info = f"Previous context: Grade {last_grade} {last_subject} {last_topic} ({last_activity})"
+    ai_response = get_ai_response(f"{user_message}\n\nContext: {context_info}", "general", session)
+    return jsonify({'message': ai_response, 'is_markdown': True})
+
+def extract_grade_from_message(message):
+    """Extract grade number from user message"""
+    import re
+    grade_match = re.search(r'grade\s*(\d+)', message)
+    if grade_match:
+        grade = int(grade_match.group(1))
+        return grade if 1 <= grade <= 5 else None
+    return None
+
+def generate_conversational_content(topic, activity_type, subject, grade):
+    """Generate content using existing fallback system but with natural language"""
+    # Use the existing fallback system but make it conversational
+    session_context = {
+        'selected_feature': activity_type,
+        'activity_type': activity_type,
+        'assessment_type': activity_type if activity_type == 'assessment' else None
+    }
+    
+    # Call existing fallback function
+    content = generate_fallback_response(grade, subject, topic, activity_type, session_context)
+    return content
+
 def extract_text_from_pdf(file_path):
     """Extract text from PDF file"""
     try:
@@ -3367,7 +3505,7 @@ def chatbot():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Simplified chatbot with direct OpenAI responses"""
+    """Natural conversational chatbot with context memory"""
     # Guard against malformed requests
     if not request.json or 'message' not in request.json:
         return jsonify({'message': 'Invalid request format'})
@@ -3378,6 +3516,10 @@ def chat():
     if session.get('selected_feature') == 'free_chat' and user_message.lower() not in ['menu', 'start', '← back to menu']:
         ai_response = get_ai_response(user_message, "general", session)
         return jsonify({'message': ai_response, 'is_markdown': True})
+    
+    # NATURAL CONVERSATION MEMORY - Check for conversational context changes
+    if detect_conversational_input(user_message, session):
+        return handle_conversational_input(user_message, session)
     
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
@@ -3651,6 +3793,15 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
         
         # Generate AI response
         ai_response = get_ai_response(prompt, "teaching", session)
+        
+        # STORE CONVERSATION CONTEXT for natural conversation continuation
+        if ai_response:
+            session['last_topic'] = topic
+            session['last_activity_type'] = activity_type if 'activity_type' in session else content_type
+            session['last_subject'] = subject
+            session['last_grade'] = grade
+            session['last_feature'] = content_type
+            session.modified = True
         
         if not ai_response:
             ai_response = f"I'm ready to help with {feature_display} for Grade {grade} {subject} on '{topic}', but I'm having trouble connecting right now. Please try again!"
