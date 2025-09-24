@@ -252,6 +252,103 @@ def get_file_metadata(file_id):
             return json.load(f)
     return None
 
+def load_grade4_english_json():
+    """Load Grade 4 English content from JSON file"""
+    try:
+        json_file_path = os.path.join('attached_assets', 'G4_eng_1758690663284.json')
+        if os.path.exists(json_file_path):
+            with open(json_file_path, 'r', encoding='utf-8') as f:
+                json_data = json.load(f)
+            
+            # Extract and combine all text content
+            full_text = ""
+            chapters_info = {}
+            
+            for page_data in json_data:
+                if page_data.get('text'):
+                    text_content = page_data['text'].strip()
+                    if text_content:
+                        full_text += text_content + "\n"
+            
+            # Parse chapters from the combined text
+            chapters = parse_grade4_english_chapters(full_text)
+            
+            return {
+                'title': 'Grade 4 English - English Adventure: Learn, Express and Succeed!',
+                'filename': 'G4_eng_1758690663284.json',
+                'grade': 4,
+                'subject': 'English',
+                'chapters': chapters,
+                'total_chapters': len(chapters),
+                'source': 'json_file',
+                'extracted_text': full_text[:500] + "..." if len(full_text) > 500 else full_text
+            }
+        else:
+            print(f"JSON file not found: {json_file_path}")
+            return None
+    except Exception as e:
+        print(f"Error loading Grade 4 English JSON: {e}")
+        return None
+
+def parse_grade4_english_chapters(text_content):
+    """Parse chapters from Grade 4 English JSON text content"""
+    chapters = {}
+    
+    # Define actual chapters from the Grade 4 English book
+    chapter_titles = [
+        "Pinky's Dental Dilemma",
+        "Food and Friends!",
+        "Pinky and Jojo Write a Story", 
+        "Heroes of History",
+        "Culture Craze with Pinky!",
+        "Tech Tales & Starry Sights",
+        "Pinky's Safety Squad!",
+        "Dream Town Builders!",
+        "Pinky's Personality Play",
+        "Wonders of the Wild",
+        "Sands, Secrets, and Schooltime Surprises",
+        "Sharing is Caring"
+    ]
+    
+    # Create exercise categories for each chapter
+    for i, title in enumerate(chapter_titles, 1):
+        chapter_key = f"Chapter {i}: {title}"
+        chapters[chapter_key] = {
+            "Reading": [
+                {"title": f"Journey through the text - {title}", "type": "reading_comprehension"},
+                {"title": "Memory Lane - New words to know", "type": "vocabulary_reading"},
+                {"title": "Character and story analysis", "type": "literary_analysis"}
+            ],
+            "Writing": [
+                {"title": "Express with Emotions - Creative writing", "type": "creative_writing"},
+                {"title": "Craft Sentences with SVO Patterns", "type": "sentence_structure"},
+                {"title": "Personal narrative writing", "type": "personal_narrative"}
+            ],
+            "Grammar": [
+                {"title": "Naming Words Adventure (Nouns)", "type": "noun_identification"},
+                {"title": "Action Words Detective (Verbs)", "type": "verb_identification"},
+                {"title": "Describe It (Adjectives)", "type": "adjective_practice"},
+                {"title": "Regular vs. Irregular Nouns", "type": "noun_plurals"}
+            ],
+            "Vocabulary": [
+                {"title": "New words and meanings", "type": "word_meanings"},
+                {"title": "Arrange Adventures - Dictionary skills", "type": "dictionary_practice"},
+                {"title": "Alphabetical ordering exercise", "type": "alphabetical_order"}
+            ],
+            "Comprehension": [
+                {"title": "Discovery Quiz - Reading comprehension", "type": "reading_comprehension"},
+                {"title": "Character analysis and emotions", "type": "character_analysis"},
+                {"title": "Story sequence and plot understanding", "type": "story_analysis"}
+            ],
+            "Oral Communication": [
+                {"title": "Sharing Strategies - Role-play activities", "type": "role_play"},
+                {"title": "Share and Sparkle - Group discussions", "type": "group_discussion"},
+                {"title": "Speaking practice activities", "type": "speaking_practice"}
+            ]
+        }
+    
+    return chapters
+
 def extract_text_from_pdf(file_path):
     """Extract text from PDF file"""
     try:
