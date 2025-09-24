@@ -3236,16 +3236,19 @@ def chat():
     
     # Handle special greetings and commands
     if user_message.lower() in ['hi', 'hello', 'hey', 'menu', 'start']:
+        # Clear any previous session data for fresh start
+        session.clear()
+        session.modified = True
         return jsonify({
-            'message': '🌟 **السلام علیکم! Hello!** 🌟\n\nI\'m **U-DOST** 🤖✨ - Your friendly Pakistani teacher assistant! Ready to help you with curriculum-based educational content for grades 1-5.\n\n**Choose how I can help:**',
+            'message': 'Welcome to U-Dost! What do you need help with?',
             'options': [
                 '📚 Lesson Plans',
                 '🎯 Teaching Strategies', 
-                '🎲 Activities',
+                '🎮 Activities',
                 '📖 Definitions',
-                '📊 Assessment Tools',
-                '🎮 Educational Games/Hooks',
-                '📝 Examples & Practice',
+                '📝 Assessments',
+                '🎲 Hooks/Games',
+                '💡 Examples',
                 '💬 Free Chat'
             ],
             'show_menu': True
@@ -3270,31 +3273,32 @@ def chat():
         'lesson plans': 'lesson_plans',
         '🎯 teaching strategies': 'teaching_strategies', 
         'teaching strategies': 'teaching_strategies',
-        '🎲 activities': 'activities',
+        '🎮 activities': 'activities',
         'activities': 'activities',
         '📖 definitions': 'definitions',
         'definitions': 'definitions',
-        '📊 assessment tools': 'assessment_tools',
-        'assessment tools': 'assessment_tools',
-        '🎮 educational games/hooks': 'educational_games',
-        'educational games/hooks': 'educational_games',
-        'educational games': 'educational_games',
-        '📝 examples & practice': 'examples_practice',
-        'examples & practice': 'examples_practice',
-        'examples and practice': 'examples_practice'
+        '📝 assessments': 'assessment_tools',
+        'assessments': 'assessment_tools',
+        '🎲 hooks/games': 'educational_games',
+        'hooks/games': 'educational_games',
+        'hooks': 'educational_games',
+        'games': 'educational_games',
+        '💡 examples': 'examples_practice',
+        'examples': 'examples_practice'
     }
     
     if user_message.lower() in menu_options:
         session['selected_feature'] = menu_options[user_message.lower()]
+        session['selected_feature_display'] = user_message  # Store display name
         session.modified = True
         return jsonify({
-            'message': f'**{user_message}** 📖\n\nFirst, select your grade level:',
+            'message': f'You selected: **{user_message.upper()}**\n\nSelect Grade:',
             'options': [
-                '1️⃣ Grade 1',
-                '2️⃣ Grade 2', 
-                '3️⃣ Grade 3',
-                '4️⃣ Grade 4',
-                '5️⃣ Grade 5',
+                '🔹 Grade 1',
+                '🔹 Grade 2', 
+                '🔹 Grade 3',
+                '🔹 Grade 4',
+                '🔹 Grade 5',
                 '← Back to Menu'
             ],
             'show_menu': True
@@ -3361,13 +3365,12 @@ def chat():
     
     # Handle grade selection  
     grade_options = {
-        '1️⃣ grade 1': 1, 'grade 1': 1, '1️⃣ Grade 1': 1,
-        '2️⃣ grade 2': 2, 'grade 2': 2, '2️⃣ Grade 2': 2,
-        '3️⃣ grade 3': 3, 'grade 3': 3, '3️⃣ Grade 3': 3,
-        '4️⃣ grade 4': 4, 'grade 4': 4, '4️⃣ Grade 4': 4,
-        '5️⃣ grade 5': 5, 'grade 5': 5, '5️⃣ Grade 5': 5
+        '🔹 grade 1': 1, 'grade 1': 1, '🔹 Grade 1': 1,
+        '🔹 grade 2': 2, 'grade 2': 2, '🔹 Grade 2': 2,
+        '🔹 grade 3': 3, 'grade 3': 3, '🔹 Grade 3': 3,
+        '🔹 grade 4': 4, 'grade 4': 4, '🔹 Grade 4': 4,
+        '🔹 grade 5': 5, 'grade 5': 5, '🔹 Grade 5': 5
     }
-    
     
     if user_message.lower() in grade_options and 'selected_feature' in session:
         grade = grade_options[user_message.lower()]
@@ -3376,25 +3379,47 @@ def chat():
         session['curriculum_selection']['grade'] = grade
         session.modified = True
         
+        # Get the feature display name
+        feature_display = session.get('selected_feature_display', 'Content')
+        
         # Pakistani curriculum subjects for grades 1-5
-        subjects = ['English', 'Urdu', 'Mathematics', 'Science', 'Islamiyat', 'Social Studies', 'General Knowledge']
+        subjects = ['English', 'Math', 'Urdu', 'Islamiyat', 'General Knowledge', 'Social Studies', 'Science']
         
         return jsonify({
-            'message': f'**Grade {grade}** 📚\n\nSelect your subject:',
-            'options': [f'📖 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
+            'message': f'You selected: **{feature_display} for Grade {grade}**\n\nSelect Subject:',
+            'options': [f'📚 {subject}' if subject == 'English' else 
+                       f'🔢 {subject}' if subject == 'Math' else
+                       f'🇵🇰 {subject}' if subject == 'Urdu' else
+                       f'🕌 {subject}' if subject == 'Islamiyat' else
+                       f'🌍 {subject}' if subject == 'General Knowledge' else
+                       f'📊 {subject}' if subject == 'Social Studies' else
+                       f'🔬 {subject}' for subject in subjects] + ['🔄 Change Grade', '← Back to Menu'],
             'show_menu': True
         })
     
     # Handle subject selection with auto-loading book content
     if 'curriculum_selection' in session and 'grade' in session['curriculum_selection'] and 'selected_feature' in session:
-        subjects = ['english', 'urdu', 'mathematics', 'science', 'islamiyat', 'social studies', 'general knowledge']
-        subject_message = user_message.lower().replace('📖 ', '')
+        # Map emojis to subjects
+        subject_mapping = {
+            '📚 english': 'English', 'english': 'English',
+            '🔢 math': 'Math', 'math': 'Math',
+            '🇵🇰 urdu': 'Urdu', 'urdu': 'Urdu', 
+            '🕌 islamiyat': 'Islamiyat', 'islamiyat': 'Islamiyat',
+            '🌍 general knowledge': 'General Knowledge', 'general knowledge': 'General Knowledge',
+            '📊 social studies': 'Social Studies', 'social studies': 'Social Studies',
+            '🔬 science': 'Science', 'science': 'Science'
+        }
         
-        if subject_message in subjects:
-            session['curriculum_selection']['subject'] = subject_message.title()
+        subject_key = user_message.lower()
+        if subject_key in subject_mapping:
+            subject = subject_mapping[subject_key]
+            session['curriculum_selection']['subject'] = subject
             session.modified = True
+            
             grade = session['curriculum_selection']['grade']
-            subject = session['curriculum_selection']['subject']
+            feature_display = session.get('selected_feature_display', 'Content')
+            
+            print(f"📚 Loading content for Grade {grade} {subject}...")
             
             # AUTO-LOAD BOOK based on grade + subject
             book_content = get_auto_loaded_book_content(grade, subject)
@@ -3402,15 +3427,24 @@ def chat():
             if book_content:
                 # Store auto-loaded book info in session
                 session['curriculum_selection']['book'] = book_content['title']
-                session['curriculum_selection']['book_filename'] = book_content['filename']
+                session['curriculum_selection']['book_filename'] = book_content.get('filename', '')
                 session.modified = True
                 
-                # Display auto-loaded book with chapters
+                # Display confirmation and available chapters
                 chapter_options = list(book_content['chapters'].keys())
                 
+                # Clean chapter names for display (remove "Chapter X:" prefix)
+                display_chapters = []
+                for chapter in chapter_options[:10]:
+                    if ':' in chapter:
+                        clean_name = chapter.split(':', 1)[1].strip()
+                        display_chapters.append(f'📖 Chapter {len(display_chapters)+1}: {clean_name}')
+                    else:
+                        display_chapters.append(f'📖 {chapter}')
+                
                 return jsonify({
-                    'message': f'**📖 {book_content["title"]}** \n\n*Auto-loaded from Pakistani curriculum*\n\n**Available Chapters:** ({len(chapter_options)} chapters found)',
-                    'options': [f'📄 {chapter}' for chapter in chapter_options[:10]] + (['📚 Show More Chapters'] if len(chapter_options) > 10 else []) + ['🔄 Change Subject', '← Back to Menu'],
+                    'message': f'You selected: **{feature_display} for Grade {grade} {subject}**\n\nAvailable Chapters:',
+                    'options': display_chapters + (['📚 Show More Chapters'] if len(chapter_options) > 10 else []) + ['🔄 Change Subject', '← Back to Menu'],
                     'show_menu': True
                 })
             else:
@@ -3474,36 +3508,36 @@ def chat():
                 'Vocabulary': '📚 VOCABULARY'
             }
             
-            # Build exercise display message  
-            exercise_display = f"✅ **Chapter Selected: {chapter_title}** 📄\n\n**Available Exercises:**\n\n"
+            # Get feature display name for context
+            feature_display = session.get('selected_feature_display', 'Content')
+            
+            # Build exercise display message with proper confirmation format
+            exercise_display = f"You selected: **{feature_display} for Grade {grade} {subject}**\n\n**Available Exercises:**\n\n"
             exercise_options = []
             total_exercises = 0
             
-            # Display exercises by category
+            # Display exercises by category in the requested format
             for category, exercises in chapter_exercises.items():
                 emoji_category = category_emojis.get(category, f'📋 {category.upper()}')
                 
-                if exercises and len(exercises) > 0:  # Show categories with exercises
-                    exercise_titles = [ex.get('title', f'Exercise {i+1}') if isinstance(ex, dict) else str(ex) for i, ex in enumerate(exercises[:3])]
+                if exercises and len(exercises) > 0:
+                    # Show first few exercise titles
+                    exercise_titles = [ex.get('title', f'Exercise {i+1}') if isinstance(ex, dict) else str(ex) for i, ex in enumerate(exercises[:2])]
                     exercise_list = ', '.join(exercise_titles)
-                    if len(exercises) > 3:
-                        exercise_list += f" (+{len(exercises)-3} more)"
-                    exercise_display += f"{emoji_category}: {exercise_list}\n\n"
+                    if len(exercises) > 2:
+                        exercise_list += f", Exercise {len(exercises)-1}"
+                    
+                    exercise_display += f"{emoji_category}: {exercise_list}\n"
                     total_exercises += len(exercises)
                     
-                    # Add category as selectable option with count
-                    exercise_options.append(f'🎯 {category} ({len(exercises)} exercises)')
-                else:
-                    # Show empty categories too for transparency
-                    exercise_display += f"{emoji_category}: (No exercises)\n\n"
+                    # Add category as selectable option
+                    exercise_options.append(f'🎯 {category}')
             
             print(f"📊 Exercises found: {total_exercises} total across {len(exercise_options)} categories")
             
             if not exercise_options:
-                exercise_display += "📝 No exercises found in this chapter.\n\nThis might be a loading issue."
+                exercise_display += "\n📝 No exercises found in this chapter."
                 exercise_options = ['🔄 Refresh Exercises']
-            else:
-                exercise_display += f"**Total: {total_exercises} exercises found** ✨"
             
             return jsonify({
                 'message': exercise_display,
@@ -4702,11 +4736,35 @@ Make examples relatable and practice progressive from easy to challenging."""
         
         if ai_response and ai_response.strip():
             print(f"✅ AI generated content successfully ({len(ai_response)} characters)")
-            # Return formatted content string, not JSON
-            return f"✅ **Exercise Selected: {exercise}**\n\n**📚 {feature_type.replace('_', ' ').title()} - Grade {grade} {subject}**\n\n" + ai_response
+            # Format according to user requirements
+            feature_display = feature_type.replace('_', ' ').upper()
+            chapter_display = chapter if chapter else "Chapter"
+            skill_display = skill_category if skill_category else "Exercise"
+            
+            header = f"✅ Generating {feature_display} for:\nGrade {grade} → {subject} → {chapter_display} → {skill_display}\n\n"
+            
+            # Add specific emojis based on feature type
+            if feature_type == 'activities':
+                header += f"🎮 CLASSROOM ACTIVITIES:\n"
+            elif feature_type == 'lesson_plans':
+                header += f"📚 LESSON PLAN:\n"
+            elif feature_type == 'teaching_strategies':
+                header += f"🎯 TEACHING STRATEGIES:\n"
+            elif feature_type == 'assessment_tools':
+                header += f"📝 ASSESSMENT TOOLS:\n"
+            elif feature_type == 'definitions':
+                header += f"📖 DEFINITIONS:\n"
+            elif feature_type == 'educational_games':
+                header += f"🎲 EDUCATIONAL GAMES:\n"
+            elif feature_type == 'examples_practice':
+                header += f"💡 EXAMPLES & PRACTICE:\n"
+            else:
+                header += f"📚 {feature_display}:\n"
+            
+            return header + ai_response
         else:
             print("❌ AI returned empty response")
-            return f"✅ **Exercise Selected: {exercise}**\n\n❌ Content generation failed - AI returned empty response. Please try again."
+            return f"✅ Generating {feature_type.replace('_', ' ').upper()} for:\nGrade {grade} → {subject} → {chapter} → {skill_category}\n\n❌ Content generation failed - AI returned empty response. Please try again."
         
     except Exception as e:
         print(f"❌ AI content generation error: {str(e)}")
