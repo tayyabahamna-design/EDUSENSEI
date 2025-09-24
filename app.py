@@ -3039,9 +3039,9 @@ def get_pakistani_teacher_fallback(user_message, session_context=None):
     if 'noun' in topic:
         if activity_type == 'pair_work':
             if grade == 1:
-                return f"""👫 PAIR WORK - Nouns (Grade 1 English)
+                return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
 
-Hello teacher! Grade 1 ke liye simple activities:
+Hello teacher! Grade {grade} ke liye simple activities:
 
 🌟 Point and Say:
 Ahmed chair dikhaega, Fatima 'chair' bolegi
@@ -3058,12 +3058,31 @@ Partners classroom mein cheez touch karenge
 "This is..." kehte jaenge
 Door, window, floor - basic words
 
-Grade 1 ke liye bilkul perfect level! Try kariye teacher! 😊"""
+Grade {grade} ke liye bilkul perfect level! Try kariye teacher! 😊"""
+
+            elif grade == 2:
+                return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
+
+Hello teacher! Grade {grade} ke bachon ke liye yeh activities perfect hain:
+
+🌟 Noun Categories Game:
+Partners mein proper aur common nouns sort karenge
+Ahmed (proper) vs boy (common) samjhayenge
+
+🌟 Sentence Building:
+Simple sentences mein nouns identify karenge
+"Ahmed plays cricket" - Ahmed aur cricket dono nouns hain
+
+🌟 Pakistani Context Stories:
+Partners mein Eid, cricket, school ke bare mein sentences banayenge
+Har sentence mein kam se kam 2 nouns hone chahiye
+
+Grade {grade} ke liye suitable complexity! Try kariye teacher! 😊"""
 
             elif grade == 3:
-                return f"""👫 PAIR WORK - Nouns (Grade 3 English)
+                return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
 
-Hello teacher! Grade 3 ke liye yeh activities:
+Hello teacher! Grade {grade} ke liye yeh activities:
 
 🌟 Noun Hunt:
 Partners classroom mein common aur proper nouns dhundenge
@@ -3077,7 +3096,7 @@ Partners turns lete kar categories batayenge
 "My Abbu is a teacher" - family words practice
 Partners family members ke bare mein sentences banayenge
 
-Grade 3 ke liye perfect complexity! Kaisa laga teacher? 😊"""
+Grade {grade} ke liye perfect complexity! Kaisa laga teacher? 😊"""
 
             elif grade >= 4:
                 return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
@@ -3195,9 +3214,9 @@ Bachon ko bahut samajh aayega! 😊"""
         assessment_type = session_context.get('assessment_type', 'general')
         
         if grade == 1:
-            return f"""📝 Assessment - {topic.title()} (Grade 1 {subject})
+            return f"""📝 Assessment - {topic.title()} (Grade {grade} {subject})
 
-Hello teacher! Grade 1 ke liye simple assessment:
+Hello teacher! Grade {grade} ke liye simple assessment:
 
 🌟 Point and Choose:
 Teacher picture dikhaega, bachon ko simple pointing
@@ -3211,12 +3230,31 @@ Simple visual recognition
 Pictures mein se correct option circle karna
 Very basic multiple choice
 
-Grade 1 ke liye bilkul easy level! Samajh aayega teacher? 😊"""
+Grade {grade} ke liye bilkul easy level! Samajh aayega teacher? 😊"""
+
+        elif grade == 2:
+            return f"""📝 Assessment - {topic.title()} (Grade {grade} {subject})
+
+Hello teacher! Grade {grade} ke liye assessment:
+
+🌟 Simple Fill in the Blanks:
+"This is a ___" (book/chair/table)
+Single word completion
+
+🌟 Picture Matching:
+Pictures ko words ke saath match karna
+Simple noun recognition
+
+🌟 True or False:
+"Ahmed is a boy" - simple factual questions
+Basic comprehension check
+
+Grade {grade} ke liye appropriate level! Try kariye teacher! 😊"""
 
         elif grade == 3:
-            return f"""📝 Assessment - {topic.title()} (Grade 3 {subject})
+            return f"""📝 Assessment - {topic.title()} (Grade {grade} {subject})
 
-Hello teacher! Grade 3 ke liye medium assessment:
+Hello teacher! Grade {grade} ke liye medium assessment:
 
 🌟 Fill in the Blanks:
 "Ahmed is a ___" (boy/teacher/student)
@@ -3230,7 +3268,7 @@ Person-Place-Thing categories
 "Name 3 classroom objects" - listing practice
 Simple recall questions
 
-Grade 3 ke liye perfect difficulty! Try kariye teacher! 😊"""
+Grade {grade} ke liye perfect difficulty! Try kariye teacher! 😊"""
 
         elif grade >= 4:
             return f"""📝 Assessment - {topic.title()} (Grade {grade} {subject})
