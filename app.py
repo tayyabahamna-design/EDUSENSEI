@@ -4396,47 +4396,53 @@ MANDATORY: Follow the 6-step lesson structure exactly:
 
 Make it practical and ready to use in Pakistani classrooms.""",
 
-        'teaching_strategies': f"""Provide effective teaching strategies for Grade {grade} {subject}, Chapter {chapter}, focusing on {skill_category}.
+        'teaching_strategies': f"""Provide effective teaching strategies (HOW TO TEACH) for Grade {grade} {subject}, Chapter {chapter}, focusing on {skill_category}.
 
-## 🎯 **SKILL-SPECIFIC STRATEGIES**
+🎯 **TEACHING STRATEGIES = HOW TO TEACH ONLY**
 
-### **For {skill_category} Skills, use these proven methods:**
+### **For {skill_category} Skills, use these proven teaching methods:**
 
 **If focusing on READING:**
-- Echo Reading, Choral Reading, Paired Reading
-- Picture Walk, Prediction, Think-Aloud
-- Phonics Blending, Sight Word Recognition
-- Reading Comprehension Questions
+- Echo Reading Method, Choral Reading Method, Paired Reading Method
+- Picture Walk Strategy, Prediction Strategy, Think-Aloud Method
+- Phonics Blending Technique, Sight Word Recognition Strategy
+- Reading Comprehension Method
 
 **If focusing on WRITING:**
-- Sentence Starters, Writing Frames
-- Guided Writing, Shared Writing
-- Grammar Integration, Vocabulary Building
-- Peer Editing, Self-Correction
+- Sentence Starters Strategy, Writing Frames Method
+- Guided Writing Approach, Shared Writing Technique
+- Grammar Integration Strategy, Vocabulary Building Method
+- Peer Editing Method, Self-Correction Strategy
 
 **If focusing on ORAL COMMUNICATION:**
-- Show and Tell, Role Play, Storytelling
-- Question-Answer Sessions, Group Discussions
-- Pronunciation Practice, Vocabulary Games
-- Listen and Repeat Activities
+- Show and Tell Method, Role Play Strategy, Storytelling Technique
+- Question-Answer Method, Group Discussion Strategy
+- Pronunciation Practice Technique, Vocabulary Games Method
+- Listen and Repeat Strategy
 
 **If focusing on COMPREHENSION:**
-- KWL Charts (Know-Want-Learn)
-- Story Mapping, Sequence Activities
-- Main Idea and Details, Cause and Effect
-- Making Connections, Inference Skills
+- KWL Charts Method (Know-Want-Learn)
+- Story Mapping Strategy, Sequence Activities Method
+- Main Idea and Details Strategy, Cause and Effect Method
+- Making Connections Strategy, Inference Skills Technique
 
 **If focusing on GRAMMAR:**
-- Grammar Games, Pattern Practice
-- Sentence Building, Error Correction
-- Visual Grammar Charts, Examples and Non-examples
-- Contextual Grammar Teaching
+- Grammar Games Method, Pattern Practice Strategy
+- Sentence Building Technique, Error Correction Method
+- Visual Grammar Charts Strategy, Examples and Non-examples Method
+- Contextual Grammar Teaching Approach
 
 **If focusing on VOCABULARY:**
-- Picture-Word Association, Word Maps
-- Synonym/Antonym Games, Context Clues
-- Word Families, Vocabulary Journals
-- Total Physical Response (TPR)
+- Picture-Word Association Method, Word Maps Strategy
+- Synonym/Antonym Games Method, Context Clues Strategy
+- Word Families Technique, Vocabulary Journals Method
+- Total Physical Response (TPR) Strategy
+
+🚫 **DO NOT INCLUDE:**
+- Specific activities or classroom tasks (those belong in Activities)
+- Definitions or explanations of concepts
+- Assessment questions or tests
+- Lesson plan steps or structure
 
 ### **Pakistani ESL Adaptations:**
 - Use familiar cultural references (Pakistani foods, festivals, places)
@@ -4445,80 +4451,96 @@ Make it practical and ready to use in Pakistani classrooms.""",
 - Consider limited English vocabulary of students
 - Focus on practical, communicative English skills
 
-Make strategies practical and ready to implement in Pakistani classrooms.""",
+Make strategies practical HOW-TO methods ready to implement in Pakistani classrooms.""",
 
-        'activities': f"""Design 6 engaging activities for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
+        'activities': f"""Design 6 engaging classroom activities for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
-## 🎨 **CULTURALLY-ADAPTED ACTIVITIES**
+🎮 **ACTIVITIES = CLASSROOM TASKS ONLY**
 
 ### **Activity 1: Independent Work**
-- Individual practice that matches exact textbook content
-- Use Pakistani names (Ahmed, Fatima, Ali, Ayesha)
+- Individual practice tasks for students to do alone
+- Use Pakistani names (Ahmed, Fatima, Ali, Ayesha)  
 - Include familiar objects (rickshaw, chapati, mangoes)
 
 ### **Activity 2: Group Activity** 
-- Collaborative learning with Islamic values emphasis
+- Collaborative learning tasks for teams
 - Reference Pakistani festivals (Eid, Independence Day, Jashn-e-Baharan)
 - Use cricket or other familiar sports as examples
 
 ### **Activity 3: Assignment/Homework**
-- Take-home practice involving family members
+- Take-home practice tasks involving family members
 - Connect to home life in Pakistani context
 - Include respect for elders and family values
 
 ### **Activity 4: Pair Work**
-- Partner activities promoting cooperation
+- Partner tasks promoting cooperation
 - Use local Pakistani contexts (bazaar, masjid, school)
 - Include helping and sharing concepts
 
 ### **Activity 5: Creative Activity**
-- Arts, crafts using Pakistani cultural elements
+- Arts, crafts tasks using Pakistani cultural elements
 - Traditional patterns, local animals, or foods
 - Express creativity while staying culturally appropriate
 
-### **Activity 6: Assessment Activity**
-- Fun way to check learning through games
+### **Activity 6: Practice Activity**
+- Hands-on learning tasks and exercises
 - Use Pakistani context (cricket scoring, counting rotis)
-- Make assessment enjoyable and stress-free
+- Make practice enjoyable and engaging
+
+🚫 **DO NOT INCLUDE:**
+- Definitions or explanations of concepts
+- Teaching strategies or methods
+- Assessment questions or tests
+- Lesson plan steps or structure
 
 ### **Each Activity Includes:**
-- **Clear Instructions:** Step-by-step in simple English
+- **Clear Task Instructions:** What students will DO
 - **Time Required:** Realistic timing for Pakistani classrooms
 - **Materials Needed:** Available local materials
-- **Learning Outcomes:** What students will achieve
-- **Urdu Support:** Translation hints for difficult words
-- **Cultural Connection:** How it relates to students' lives
+- **Task Outcomes:** What students will accomplish
 
 **Pakistani ESL Adaptations:**
 - Use simple vocabulary appropriate for Grade {grade}
-- Include pronunciation guides for difficult English words
 - Connect activities to real Pakistani student experiences
 - Ensure activities work in typical Pakistani classroom settings""",
 
-        'definitions': f"""Provide clear, age-appropriate definitions and explanations for key concepts in Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
+        'definitions': f"""Provide clear, age-appropriate definitions and explanations ONLY for key concepts in Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
-Include:
-1. **Key Terms** (Main vocabulary with simple definitions)
-2. **Concept Explanations** (Break down complex ideas)
-3. **Pakistani Examples** (Local context for better understanding)
-4. **Urdu Translations** (Where helpful for comprehension)
-5. **Memory Aids** (Mnemonics, rhymes, visual associations)
-6. **Practice Questions** (Simple questions to check understanding)
+📖 **DEFINITIONS = MEANINGS ONLY**
 
-Make definitions simple and relatable for Grade {grade} Pakistani students.""",
+Include ONLY:
+1. **Clear Definitions** (Simple meanings in both English and Roman Urdu)
+2. **What It Is Explanations** (Direct explanations of concepts)
+3. **Pakistani Context Examples** (To help understanding, but still part of definition)
+
+🚫 **DO NOT INCLUDE:**
+- Activities or classroom tasks
+- Teaching strategies or methods  
+- Practice questions or assessments
+- Games or interactive elements
+- Lesson plan steps
+
+Make definitions pure meanings - simple and relatable for Grade {grade} Pakistani students.""",
 
         'assessment_tools': f"""Create comprehensive assessment tools for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
-Include:
-1. **Quick Quiz** (5 multiple choice questions with answers)
-2. **True/False Statements** (5 statements with answers)
-3. **Thumbs Up/Down Activities** (5 interactive checks)
-4. **Exit Tickets** (3 reflection questions)
-5. **Fill in the Blanks** (5 sentences with answers)
-6. **Comprehension Questions** (3-5 open-ended questions)
-7. **Assessment Rubric** (Simple scoring guide)
+📝 **ASSESSMENTS = TESTING/CHECKING ONLY**
 
-Provide answer keys for all assessments. Make them engaging and age-appropriate.""",
+Include ONLY:
+1. **Multiple Choice Questions** (5 questions with answer keys)
+2. **True/False Statements** (5 statements with correct answers)
+3. **Fill in the Blanks** (5 sentences with answer keys)
+4. **Short Answer Questions** (3-5 open-ended questions)
+5. **Assessment Rubric** (Simple scoring guide)
+
+🚫 **DO NOT INCLUDE:**
+- Teaching activities or classroom tasks
+- Definitions or explanations of concepts
+- Teaching strategies or methods
+- Lesson plan steps
+- Games (unless specifically for assessment)
+
+Provide complete answer keys for all assessments. Make them clear tests to check student understanding.""",
 
         'educational_games': f"""Design 5 fun educational games and hooks for Grade {grade} {subject}, Chapter {chapter}, {skill_category}.
 
