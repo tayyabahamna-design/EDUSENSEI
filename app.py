@@ -2341,6 +2341,7 @@ def chat():
     
     
     
+    
     # Handle Free Chat mode first - bypass all menu logic
     if session.get('selected_feature') == 'free_chat' and user_message.lower() not in ['menu', 'start', '← back to menu']:
         # Process uploaded files and generate AI response directly
@@ -2497,14 +2498,15 @@ def chat():
     if user_message.lower() in ['exit tickets', '🎫 exit tickets', 'exit ticket']:
         return generate_assessment_response('exit-ticket')
     
-    # Handle grade selection
+    # Handle grade selection  
     grade_options = {
-        '1️⃣ grade 1': 1, 'grade 1': 1,
-        '2️⃣ grade 2': 2, 'grade 2': 2,
-        '3️⃣ grade 3': 3, 'grade 3': 3,
-        '4️⃣ grade 4': 4, 'grade 4': 4,
-        '5️⃣ grade 5': 5, 'grade 5': 5
+        '1️⃣ grade 1': 1, 'grade 1': 1, '1️⃣ Grade 1': 1,
+        '2️⃣ grade 2': 2, 'grade 2': 2, '2️⃣ Grade 2': 2,
+        '3️⃣ grade 3': 3, 'grade 3': 3, '3️⃣ Grade 3': 3,
+        '4️⃣ grade 4': 4, 'grade 4': 4, '4️⃣ Grade 4': 4,
+        '5️⃣ grade 5': 5, 'grade 5': 5, '5️⃣ Grade 5': 5
     }
+    
     
     if user_message.lower() in grade_options and 'selected_feature' in session:
         grade = grade_options[user_message.lower()]
