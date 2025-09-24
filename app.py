@@ -494,20 +494,53 @@ def get_predefined_books():
 
 # ============= GOOGLE DRIVE INTEGRATION FUNCTIONS =============
 
+def list_drive_files_paginated(query, fields="files(id, name)", page_size=100):
+    """Helper function to list Google Drive files with pagination support"""
+    if not drive_service:
+        return []
+    
+    all_files = []
+    page_token = None
+    
+    try:
+        while True:
+            request_params = {
+                'q': query,
+                'fields': f"nextPageToken, {fields}",
+                'pageSize': page_size
+            }
+            
+            if page_token:
+                request_params['pageToken'] = page_token
+            
+            results = drive_service.files().list(**request_params).execute()
+            
+            files = results.get('files', [])
+            all_files.extend(files)
+            
+            page_token = results.get('nextPageToken')
+            if not page_token:
+                break
+                
+        return all_files
+        
+    except Exception as e:
+        # Sanitize error logging to prevent credential leakage
+        print(f"Error in paginated Drive listing: {type(e).__name__}")
+        return []
+
 def scan_google_drive_folders():
-    """Scan Google Drive folders to build book structure automatically"""
+    """Scan Google Drive folders to build book structure automatically with pagination support"""
     if not drive_service:
         return None
     
     try:
-        # Get all folders in the main directory
-        results = drive_service.files().list(
-            q=f"'{GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'",
-            fields="files(id, name)"
-        ).execute()
+        # Get all grade folders in the main directory with pagination
+        grade_folders = list_drive_files_paginated(
+            f"'{GOOGLE_DRIVE_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.folder'"
+        )
         
         books_structure = {}
-        grade_folders = results.get('files', [])
         
         for grade_folder in grade_folders:
             grade_name = grade_folder['name']
@@ -521,25 +554,19 @@ def scan_google_drive_folders():
             grade_key = f"Grade {grade_match.group(1)}"
             books_structure[grade_key] = {}
             
-            # Get subject folders within this grade
-            subject_results = drive_service.files().list(
-                q=f"'{grade_id}' in parents and mimeType='application/vnd.google-apps.folder'",
-                fields="files(id, name)"
-            ).execute()
-            
-            subject_folders = subject_results.get('files', [])
+            # Get subject folders within this grade with pagination
+            subject_folders = list_drive_files_paginated(
+                f"'{grade_id}' in parents and mimeType='application/vnd.google-apps.folder'"
+            )
             
             for subject_folder in subject_folders:
                 subject_name = subject_folder['name']
                 subject_id = subject_folder['id']
                 
-                # Get PDF files in this subject folder
-                pdf_results = drive_service.files().list(
-                    q=f"'{subject_id}' in parents and mimeType='application/pdf'",
-                    fields="files(id, name)"
-                ).execute()
-                
-                pdf_files = pdf_results.get('files', [])
+                # Get PDF files in this subject folder with pagination
+                pdf_files = list_drive_files_paginated(
+                    f"'{subject_id}' in parents and mimeType='application/pdf'"
+                )
                 
                 if pdf_files:
                     books_structure[grade_key][subject_name] = {}
