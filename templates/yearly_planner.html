@@ -160,6 +160,8 @@
                 <h3>Step 2: Create Your Weekly Schedule</h3>
                 <p class="grade-subjects-info">Grade: ${selectedGrade} | Subjects: ${selectedSubjects.join(', ')}</p>
                 
+                ${addQuickActionsToolbar()}
+                
                 <div class="weekly-schedule">
                     ${createDaySchedule('Monday', selectedSubjects)}
                     ${createDaySchedule('Tuesday', selectedSubjects)}
@@ -173,61 +175,86 @@
                     <button onclick="copyToYear()" class="btn btn-success copy-btn">📅 Copy This Week to Entire Year</button>
                 </div>
             `;
+            
+            // Store selected subjects globally for period management
+            localStorage.setItem('selectedSubjects', JSON.stringify(selectedSubjects));
         }
 
         function createDaySchedule(day, subjects) {
             return `
-                <div class="day-schedule" style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
-                    <h4>${day}</h4>
-                    <div class="periods">
-                        <div class="period-row">
-                            <label>Period 1 (8:00-8:40):</label>
-                            <select id="${day}_period1" style="width: 150px;">
-                                <option value="">Select Subject</option>
-                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
+                <div class="day-schedule" style="border: 2px solid #333; padding: 15px; margin: 10px; border-radius: 8px; background: #fafafa;">
+                    <h4>${day} Schedule</h4>
+                    
+                    <div class="periods-container">
+                        <div class="period-header" style="margin-bottom: 15px;">
+                            <button onclick="addNewPeriod('${day}')" class="add-period-btn" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">➕ Add Period</button>
+                            <button onclick="resetDaySchedule('${day}')" class="reset-btn" style="background: #ffc107; color: black; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">🔄 Reset Day</button>
                         </div>
                         
-                        <div class="period-row">
-                            <label>Period 2 (8:40-9:20):</label>
-                            <select id="${day}_period2" style="width: 150px;">
-                                <option value="">Select Subject</option>
-                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
+                        <div id="${day}_periods" class="all-periods">
+                            ${createEditablePeriod(day, 1, '8:00', '8:40', subjects)}
+                            ${createEditablePeriod(day, 2, '8:40', '9:20', subjects)}
+                            ${createEditablePeriod(day, 3, '9:20', '10:00', subjects)}
+                            
+                            <!-- EDITABLE BREAK TIME -->
+                            ${createEditableBreak(day, '10:00', '10:20')}
+                            
+                            ${createEditablePeriod(day, 4, '10:20', '11:00', subjects)}
+                            ${createEditablePeriod(day, 5, '11:00', '11:40', subjects)}
+                            ${createEditablePeriod(day, 6, '11:40', '12:20', subjects)}
+                            ${createEditablePeriod(day, 7, '12:20', '1:00', subjects)}
+                            
+                            <!-- LUNCH BREAK -->
+                            ${createEditableBreak(day, '1:00', '1:40', 'Lunch')}
+                            
+                            ${createEditablePeriod(day, 8, '1:40', '2:20', subjects)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createEditablePeriod(day, periodNumber, startTime, endTime, subjects) {
+            return `
+                <div class="period-row" id="${day}_period${periodNumber}_container" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
+                    <div class="period-info" style="flex: 1;">
+                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${periodNumber}:</label>
+                        
+                        <div class="time-inputs" style="margin: 5px 0;">
+                            <input type="time" id="${day}_period${periodNumber}_start" value="${startTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            <span style="margin: 0 5px;">to</span>
+                            <input type="time" id="${day}_period${periodNumber}_end" value="${endTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
                         </div>
                         
-                        <div class="period-row">
-                            <label>Period 3 (9:20-10:00):</label>
-                            <select id="${day}_period3" style="width: 150px;">
-                                <option value="">Select Subject</option>
-                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
-                        </div>
+                        <select id="${day}_period${periodNumber}_subject" style="width: 150px; margin: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            <option value="">Select Subject</option>
+                            ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="period-actions" style="display: flex; flex-direction: column; gap: 5px;">
+                        <button onclick="deletePeriod('${day}', ${periodNumber})" class="delete-btn" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                        <button onclick="duplicatePeriod('${day}', ${periodNumber})" class="duplicate-btn" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createEditableBreak(day, startTime, endTime, breakType = 'Break') {
+            return `
+                <div class="break-row" id="${day}_${breakType.toLowerCase()}_container" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
+                    <div class="break-info" style="flex: 1;">
+                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">${breakType} Time:</label>
                         
-                        <!-- WORKING BREAK TIME EDITOR -->
-                        <div class="break-time-editor" style="background: #f0f0f0; padding: 5px; margin: 5px 0;">
-                            <label><strong>Break Time:</strong></label><br>
-                            <label>Start:</label>
-                            <input type="time" id="${day}_breakStart" value="10:00" style="margin: 2px;">
-                            <label>End:</label>
-                            <input type="time" id="${day}_breakEnd" value="10:20" style="margin: 2px;">
+                        <div class="time-inputs" style="margin: 5px 0;">
+                            <input type="time" id="${day}_${breakType.toLowerCase()}_start" value="${startTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            <span style="margin: 0 5px;">to</span>
+                            <input type="time" id="${day}_${breakType.toLowerCase()}_end" value="${endTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
                         </div>
-                        
-                        <div class="period-row">
-                            <label>Period 4 (After Break):</label>
-                            <select id="${day}_period4" style="width: 150px;">
-                                <option value="">Select Subject</option>
-                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
-                        </div>
-                        
-                        <div class="period-row">
-                            <label>Period 5 (Last Period):</label>
-                            <select id="${day}_period5" style="width: 150px;">
-                                <option value="">Select Subject</option>
-                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
-                            </select>
-                        </div>
+                    </div>
+                    
+                    <div class="break-actions">
+                        <button onclick="deleteBreak('${day}', '${breakType.toLowerCase()}')" class="delete-btn" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
                     </div>
                 </div>
             `;
@@ -239,31 +266,251 @@
             document.getElementById('yearlyCalendar').style.display = 'none';
         }
 
-        // STEP 3 - COPY TO ENTIRE YEAR
+        // PERIOD MANAGEMENT FUNCTIONS
+        function addNewPeriod(day) {
+            const periodsContainer = document.getElementById(`${day}_periods`);
+            const currentPeriods = periodsContainer.querySelectorAll('.period-row').length;
+            const newPeriodNumber = currentPeriods + 1;
+            
+            // Get available subjects
+            const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu", "Islamiyat", "Science", "Social Studies", "General Knowledge"]');
+            
+            const newPeriodHTML = createEditablePeriod(day, newPeriodNumber, '2:20', '3:00', subjects);
+            periodsContainer.innerHTML += newPeriodHTML;
+            
+            alert(`✅ New period added to ${day}!`);
+        }
+
+        function deletePeriod(day, periodNumber) {
+            if (confirm(`Delete Period ${periodNumber} from ${day}?`)) {
+                const periodContainer = document.getElementById(`${day}_period${periodNumber}_container`);
+                if (periodContainer) {
+                    periodContainer.remove();
+                    alert(`✅ Period ${periodNumber} deleted from ${day}!`);
+                }
+            }
+        }
+
+        function duplicatePeriod(day, periodNumber) {
+            const originalPeriod = document.getElementById(`${day}_period${periodNumber}_container`);
+            if (originalPeriod) {
+                const periodsContainer = document.getElementById(`${day}_periods`);
+                const allPeriods = periodsContainer.querySelectorAll('.period-row').length;
+                const newPeriodNumber = allPeriods + 1;
+                
+                // Get original values
+                const startTime = document.getElementById(`${day}_period${periodNumber}_start`).value;
+                const endTime = document.getElementById(`${day}_period${periodNumber}_end`).value;
+                const subject = document.getElementById(`${day}_period${periodNumber}_subject`).value;
+                
+                // Create duplicate
+                const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu", "Islamiyat", "Science", "Social Studies", "General Knowledge"]');
+                const duplicateHTML = createEditablePeriod(day, newPeriodNumber, startTime, endTime, subjects);
+                periodsContainer.innerHTML += duplicateHTML;
+                
+                // Set the subject
+                setTimeout(() => {
+                    if (subject) {
+                        document.getElementById(`${day}_period${newPeriodNumber}_subject`).value = subject;
+                    }
+                }, 100);
+                
+                alert(`✅ Period duplicated on ${day}!`);
+            }
+        }
+
+        function deleteBreak(day, breakType) {
+            if (confirm(`Delete ${breakType} time from ${day}?`)) {
+                const breakContainer = document.getElementById(`${day}_${breakType}_container`);
+                if (breakContainer) {
+                    breakContainer.remove();
+                    alert(`✅ ${breakType} deleted from ${day}!`);
+                }
+            }
+        }
+
+        function resetDaySchedule(day) {
+            if (confirm(`Reset entire ${day} schedule to default?`)) {
+                const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu"]');
+                const periodsContainer = document.getElementById(`${day}_periods`);
+                
+                periodsContainer.innerHTML = `
+                    ${createEditablePeriod(day, 1, '8:00', '8:40', subjects)}
+                    ${createEditablePeriod(day, 2, '8:40', '9:20', subjects)}
+                    ${createEditablePeriod(day, 3, '9:20', '10:00', subjects)}
+                    ${createEditableBreak(day, '10:00', '10:20')}
+                    ${createEditablePeriod(day, 4, '10:20', '11:00', subjects)}
+                    ${createEditablePeriod(day, 5, '11:00', '11:40', subjects)}
+                    ${createEditablePeriod(day, 6, '11:40', '12:20', subjects)}
+                    ${createEditablePeriod(day, 7, '12:20', '1:00', subjects)}
+                    ${createEditableBreak(day, '1:00', '1:40', 'Lunch')}
+                    ${createEditablePeriod(day, 8, '1:40', '2:20', subjects)}
+                `;
+                
+                alert(`✅ ${day} schedule reset to default!`);
+            }
+        }
+
+        // QUICK ACTIONS FUNCTIONS
+        function addQuickActionsToolbar() {
+            return `
+                <div class="quick-actions" style="background: #e9ecef; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <h5 style="margin-bottom: 10px; color: #495057;">⚡ Quick Actions:</h5>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="addBreakToAllDays()" class="quick-btn" style="background: #6c757d; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🕐 Add Break to All Days</button>
+                        <button onclick="addPeriodToAllDays()" class="quick-btn" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">➕ Add Period to All Days</button>
+                        <button onclick="copyMondayToAll()" class="quick-btn" style="background: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📋 Copy Monday to All Days</button>
+                        <button onclick="clearAllSchedules()" class="quick-btn" style="background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🗑️ Clear All Schedules</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addPeriodToAllDays() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            days.forEach(day => addNewPeriod(day));
+            alert('✅ New period added to all days!');
+        }
+
+        function addBreakToAllDays() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            days.forEach(day => {
+                const periodsContainer = document.getElementById(`${day}_periods`);
+                const newBreakHTML = createEditableBreak(day, '3:00', '3:15', 'Evening');
+                periodsContainer.innerHTML += newBreakHTML;
+            });
+            alert('✅ Evening break added to all days!');
+        }
+
+        function copyMondayToAll() {
+            if (confirm('Copy Monday schedule to all other days?')) {
+                const mondayPeriods = document.querySelectorAll('#Monday_periods .period-row');
+                const mondayBreaks = document.querySelectorAll('#Monday_periods .break-row');
+                const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu"]');
+                
+                const days = ['Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+                
+                days.forEach(day => {
+                    const dayContainer = document.getElementById(`${day}_periods`);
+                    
+                    // Copy all periods from Monday
+                    let newHTML = '';
+                    mondayPeriods.forEach((period, index) => {
+                        const periodNum = index + 1;
+                        const startTime = document.getElementById(`Monday_period${periodNum}_start`)?.value || '8:00';
+                        const endTime = document.getElementById(`Monday_period${periodNum}_end`)?.value || '8:40';
+                        const subject = document.getElementById(`Monday_period${periodNum}_subject`)?.value || '';
+                        
+                        newHTML += createEditablePeriod(day, periodNum, startTime, endTime, subjects);
+                    });
+                    
+                    // Copy breaks from Monday
+                    mondayBreaks.forEach(breakEl => {
+                        const breakId = breakEl.id.split('_')[1]; // get break type
+                        const startTime = document.getElementById(`Monday_${breakId}_start`)?.value || '10:00';
+                        const endTime = document.getElementById(`Monday_${breakId}_end`)?.value || '10:20';
+                        const breakType = breakId.charAt(0).toUpperCase() + breakId.slice(1);
+                        
+                        newHTML += createEditableBreak(day, startTime, endTime, breakType);
+                    });
+                    
+                    dayContainer.innerHTML = newHTML;
+                    
+                    // Set subject values after DOM update
+                    setTimeout(() => {
+                        mondayPeriods.forEach((period, index) => {
+                            const periodNum = index + 1;
+                            const subject = document.getElementById(`Monday_period${periodNum}_subject`)?.value;
+                            if (subject) {
+                                const daySubjectSelect = document.getElementById(`${day}_period${periodNum}_subject`);
+                                if (daySubjectSelect) {
+                                    daySubjectSelect.value = subject;
+                                }
+                            }
+                        });
+                    }, 100);
+                });
+                
+                alert('✅ Monday schedule copied to all days!');
+            }
+        }
+
+        function clearAllSchedules() {
+            if (confirm('Clear all schedules? This will remove all periods and breaks from all days.')) {
+                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+                days.forEach(day => {
+                    const dayContainer = document.getElementById(`${day}_periods`);
+                    dayContainer.innerHTML = '<p style="padding: 20px; text-align: center; color: #6c757d;">No periods scheduled</p>';
+                });
+                alert('✅ All schedules cleared!');
+            }
+        }
+
+        // STEP 3 - COPY TO ENTIRE YEAR (ENHANCED)
         function copyToYear() {
-            // Get weekly schedule
             const weeklySchedule = {};
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             
             days.forEach(day => {
-                weeklySchedule[day] = {
-                    period1: document.getElementById(`${day}_period1`).value,
-                    period2: document.getElementById(`${day}_period2`).value,
-                    period3: document.getElementById(`${day}_period3`).value,
-                    period4: document.getElementById(`${day}_period4`).value,
-                    period5: document.getElementById(`${day}_period5`).value,
-                    breakStart: document.getElementById(`${day}_breakStart`).value || '10:00',
-                    breakEnd: document.getElementById(`${day}_breakEnd`).value || '10:20'
+                const daySchedule = {
+                    periods: [],
+                    breaks: []
                 };
+                
+                // Get all periods for this day
+                const periodRows = document.querySelectorAll(`#${day}_periods .period-row`);
+                periodRows.forEach((row, index) => {
+                    const periodNum = index + 1;
+                    const startTimeEl = document.getElementById(`${day}_period${periodNum}_start`);
+                    const endTimeEl = document.getElementById(`${day}_period${periodNum}_end`);
+                    const subjectEl = document.getElementById(`${day}_period${periodNum}_subject`);
+                    
+                    if (startTimeEl && endTimeEl) {
+                        const startTime = startTimeEl.value;
+                        const endTime = endTimeEl.value;
+                        const subject = subjectEl ? subjectEl.value : '';
+                        
+                        if (startTime && endTime) {
+                            daySchedule.periods.push({
+                                number: periodNum,
+                                startTime: startTime,
+                                endTime: endTime,
+                                subject: subject || 'Free Period'
+                            });
+                        }
+                    }
+                });
+                
+                // Get break times
+                const breakRows = document.querySelectorAll(`#${day}_periods .break-row`);
+                breakRows.forEach(breakRow => {
+                    const breakId = breakRow.id.split('_')[1]; // get break type
+                    const startTimeEl = document.getElementById(`${day}_${breakId}_start`);
+                    const endTimeEl = document.getElementById(`${day}_${breakId}_end`);
+                    
+                    if (startTimeEl && endTimeEl) {
+                        const startTime = startTimeEl.value;
+                        const endTime = endTimeEl.value;
+                        const breakType = breakId.charAt(0).toUpperCase() + breakId.slice(1);
+                        
+                        if (startTime && endTime) {
+                            daySchedule.breaks.push({ 
+                                type: breakType, 
+                                start: startTime, 
+                                end: endTime 
+                            });
+                        }
+                    }
+                });
+                
+                weeklySchedule[day] = daySchedule;
             });
             
             // Get grade and subjects info
             const selectedGrade = document.getElementById('teacherGrade').value;
-            const selectedSubjects = [];
-            const checkboxes = document.querySelectorAll('.subject-checkboxes input:checked');
-            checkboxes.forEach(cb => selectedSubjects.push(cb.value));
+            const selectedSubjects = JSON.parse(localStorage.getItem('selectedSubjects') || '[]');
             
-            // Save to storage
+            // Save complete schedule
             localStorage.setItem('yearlyPlan', JSON.stringify({
                 grade: selectedGrade,
                 subjects: selectedSubjects,
@@ -271,10 +518,9 @@
                 createdDate: new Date().toISOString()
             }));
             
-            // Show success message
-            alert('✅ Weekly plan copied to entire year! You can edit any week individually.');
+            const totalPeriods = Object.values(weeklySchedule).reduce((total, day) => total + day.periods.length, 0);
+            alert(`✅ Complete schedule with ${Object.keys(weeklySchedule).length} days and ${totalPeriods} total periods copied to entire year!`);
             
-            // Show yearly calendar
             showYearlyCalendar();
         }
 
@@ -359,116 +605,372 @@
         }
         
         function createEditableDay(day, dayData, weekNumber) {
+            // Handle both old format (period1, period2, etc.) and new format (periods array)
+            const periodsData = dayData.periods || [];
+            const breaksData = dayData.breaks || [];
+            
+            // Convert old format to new format if needed
+            if (dayData.period1 && !dayData.periods) {
+                for (let i = 1; i <= 8; i++) {
+                    if (dayData[`period${i}`]) {
+                        periodsData.push({
+                            number: i,
+                            startTime: getDefaultPeriodTime(i, 'start'),
+                            endTime: getDefaultPeriodTime(i, 'end'),
+                            subject: dayData[`period${i}`]
+                        });
+                    }
+                }
+                if (dayData.breakStart) {
+                    breaksData.push({ type: 'Break', start: dayData.breakStart, end: dayData.breakEnd });
+                }
+            }
+            
+            // If no periods, use default 8-period structure
+            if (periodsData.length === 0) {
+                for (let i = 1; i <= 8; i++) {
+                    periodsData.push({
+                        number: i,
+                        startTime: getDefaultPeriodTime(i, 'start'),
+                        endTime: getDefaultPeriodTime(i, 'end'),
+                        subject: ''
+                    });
+                }
+                breaksData.push(
+                    { type: 'Break', start: '10:00', end: '10:20' },
+                    { type: 'Lunch', start: '1:00', end: '1:40' }
+                );
+            }
+            
             return `
                 <div class="editable-day" style="border: 2px solid #333; margin: 10px; padding: 15px; border-radius: 8px; background: #f9f9f9;">
                     <h3>${day} - Week ${weekNumber}</h3>
                     
-                    <div class="day-periods" style="display: grid; gap: 10px;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="width: 120px; font-weight: bold;">Period 1:</label>
-                            <select id="edit_${weekNumber}_${day}_period1" style="padding: 5px; width: 150px;">
-                                <option value="">Select Subject</option>
-                                <option value="English" ${dayData.period1 === 'English' ? 'selected' : ''}>English</option>
-                                <option value="Math" ${dayData.period1 === 'Math' ? 'selected' : ''}>Math</option>
-                                <option value="Urdu" ${dayData.period1 === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                <option value="Science" ${dayData.period1 === 'Science' ? 'selected' : ''}>Science</option>
-                                <option value="Islamiyat" ${dayData.period1 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                <option value="Social Studies" ${dayData.period1 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                <option value="General Knowledge" ${dayData.period1 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
-                            </select>
+                    <div class="enhanced-period-editor">
+                        <div class="period-header" style="margin-bottom: 15px;">
+                            <button onclick="addNewPeriodToWeekDay('${day}', ${weekNumber})" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">➕ Add Period</button>
+                            <button onclick="resetWeekDaySchedule('${day}', ${weekNumber})" style="background: #ffc107; color: black; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">🔄 Reset Day</button>
                         </div>
                         
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="width: 120px; font-weight: bold;">Period 2:</label>
-                            <select id="edit_${weekNumber}_${day}_period2" style="padding: 5px; width: 150px;">
-                                <option value="">Select Subject</option>
-                                <option value="English" ${dayData.period2 === 'English' ? 'selected' : ''}>English</option>
-                                <option value="Math" ${dayData.period2 === 'Math' ? 'selected' : ''}>Math</option>
-                                <option value="Urdu" ${dayData.period2 === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                <option value="Science" ${dayData.period2 === 'Science' ? 'selected' : ''}>Science</option>
-                                <option value="Islamiyat" ${dayData.period2 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                <option value="Social Studies" ${dayData.period2 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                <option value="General Knowledge" ${dayData.period2 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
-                            </select>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="width: 120px; font-weight: bold;">Period 3:</label>
-                            <select id="edit_${weekNumber}_${day}_period3" style="padding: 5px; width: 150px;">
-                                <option value="">Select Subject</option>
-                                <option value="English" ${dayData.period3 === 'English' ? 'selected' : ''}>English</option>
-                                <option value="Math" ${dayData.period3 === 'Math' ? 'selected' : ''}>Math</option>
-                                <option value="Urdu" ${dayData.period3 === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                <option value="Science" ${dayData.period3 === 'Science' ? 'selected' : ''}>Science</option>
-                                <option value="Islamiyat" ${dayData.period3 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                <option value="Social Studies" ${dayData.period3 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                <option value="General Knowledge" ${dayData.period3 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
-                            </select>
-                        </div>
-                        
-                        <div style="background: #e8f4f8; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Break Time:</label>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <label>Start:</label>
-                                <input type="time" id="edit_${weekNumber}_${day}_breakStart" value="${dayData.breakStart || '10:00'}" style="padding: 5px;">
-                                <label>End:</label>
-                                <input type="time" id="edit_${weekNumber}_${day}_breakEnd" value="${dayData.breakEnd || '10:20'}" style="padding: 5px;">
-                            </div>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="width: 120px; font-weight: bold;">Period 4:</label>
-                            <select id="edit_${weekNumber}_${day}_period4" style="padding: 5px; width: 150px;">
-                                <option value="">Select Subject</option>
-                                <option value="English" ${dayData.period4 === 'English' ? 'selected' : ''}>English</option>
-                                <option value="Math" ${dayData.period4 === 'Math' ? 'selected' : ''}>Math</option>
-                                <option value="Urdu" ${dayData.period4 === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                <option value="Science" ${dayData.period4 === 'Science' ? 'selected' : ''}>Science</option>
-                                <option value="Islamiyat" ${dayData.period4 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                <option value="Social Studies" ${dayData.period4 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                <option value="General Knowledge" ${dayData.period4 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
-                            </select>
-                        </div>
-                        
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <label style="width: 120px; font-weight: bold;">Period 5:</label>
-                            <select id="edit_${weekNumber}_${day}_period5" style="padding: 5px; width: 150px;">
-                                <option value="">Select Subject</option>
-                                <option value="English" ${dayData.period5 === 'English' ? 'selected' : ''}>English</option>
-                                <option value="Math" ${dayData.period5 === 'Math' ? 'selected' : ''}>Math</option>
-                                <option value="Urdu" ${dayData.period5 === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                <option value="Science" ${dayData.period5 === 'Science' ? 'selected' : ''}>Science</option>
-                                <option value="Islamiyat" ${dayData.period5 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                <option value="Social Studies" ${dayData.period5 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                <option value="General Knowledge" ${dayData.period5 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
-                            </select>
+                        <div id="edit_${weekNumber}_${day}_periods_container">
+                            ${periodsData.map(period => `
+                                <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
+                                    <div style="flex: 1;">
+                                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${period.number}:</label>
+                                        
+                                        <div style="margin: 5px 0;">
+                                            <input type="time" id="edit_${weekNumber}_${day}_period${period.number}_start" value="${period.startTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                            <span style="margin: 0 5px;">to</span>
+                                            <input type="time" id="edit_${weekNumber}_${day}_period${period.number}_end" value="${period.endTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                        </div>
+                                        
+                                        <select id="edit_${weekNumber}_${day}_period${period.number}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                            <option value="">Select Subject</option>
+                                            <option value="English" ${period.subject === 'English' ? 'selected' : ''}>English</option>
+                                            <option value="Math" ${period.subject === 'Math' ? 'selected' : ''}>Math</option>
+                                            <option value="Urdu" ${period.subject === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                            <option value="Science" ${period.subject === 'Science' ? 'selected' : ''}>Science</option>
+                                            <option value="Islamiyat" ${period.subject === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                            <option value="Social Studies" ${period.subject === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                            <option value="General Knowledge" ${period.subject === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${period.number})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                                        <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${period.number})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
+                                    </div>
+                                </div>
+                            `).join('')}
+                            
+                            ${breaksData.map(breakItem => `
+                                <div class="edit-break-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
+                                    <div style="flex: 1;">
+                                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">${breakItem.type} Time:</label>
+                                        
+                                        <div style="margin: 5px 0;">
+                                            <input type="time" id="edit_${weekNumber}_${day}_${breakItem.type.toLowerCase()}_start" value="${breakItem.start}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                            <span style="margin: 0 5px;">to</span>
+                                            <input type="time" id="edit_${weekNumber}_${day}_${breakItem.type.toLowerCase()}_end" value="${breakItem.end}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <button onclick="deleteWeekBreak('${day}', ${weekNumber}, '${breakItem.type.toLowerCase()}')" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                                    </div>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 </div>
             `;
         }
         
-        function saveWeekEdits(weekNumber) {
-            console.log(`Saving Week ${weekNumber} changes`);
+        function getDefaultPeriodTime(periodNumber, type) {
+            const times = {
+                1: { start: '8:00', end: '8:40' },
+                2: { start: '8:40', end: '9:20' },
+                3: { start: '9:20', end: '10:00' },
+                4: { start: '10:20', end: '11:00' },
+                5: { start: '11:00', end: '11:40' },
+                6: { start: '11:40', end: '12:20' },
+                7: { start: '12:20', end: '1:00' },
+                8: { start: '1:40', end: '2:20' }
+            };
+            return times[periodNumber] ? times[periodNumber][type] : '8:00';
+        }
+        
+        // Additional functions for week editing
+        function addNewPeriodToWeekDay(day, weekNumber) {
+            const container = document.getElementById(`edit_${weekNumber}_${day}_periods_container`);
+            const currentPeriods = container.querySelectorAll('.edit-period-row').length;
+            const newPeriodNumber = currentPeriods + 1;
             
-            // Save individual week data
-            const weekData = {};
-            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
-                weekData[day] = {
-                    period1: document.getElementById(`edit_${weekNumber}_${day}_period1`)?.value || '',
-                    period2: document.getElementById(`edit_${weekNumber}_${day}_period2`)?.value || '',
-                    period3: document.getElementById(`edit_${weekNumber}_${day}_period3`)?.value || '',
-                    period4: document.getElementById(`edit_${weekNumber}_${day}_period4`)?.value || '',
-                    period5: document.getElementById(`edit_${weekNumber}_${day}_period5`)?.value || '',
-                    breakStart: document.getElementById(`edit_${weekNumber}_${day}_breakStart`)?.value || '10:00',
-                    breakEnd: document.getElementById(`edit_${weekNumber}_${day}_breakEnd`)?.value || '10:20'
+            const newPeriodHTML = `
+                <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
+                    <div style="flex: 1;">
+                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${newPeriodNumber}:</label>
+                        
+                        <div style="margin: 5px 0;">
+                            <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_start" value="2:20" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            <span style="margin: 0 5px;">to</span>
+                            <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_end" value="3:00" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                        </div>
+                        
+                        <select id="edit_${weekNumber}_${day}_period${newPeriodNumber}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            <option value="">Select Subject</option>
+                            <option value="English">English</option>
+                            <option value="Math">Math</option>
+                            <option value="Urdu">Urdu</option>
+                            <option value="Science">Science</option>
+                            <option value="Islamiyat">Islamiyat</option>
+                            <option value="Social Studies">Social Studies</option>
+                            <option value="General Knowledge">General Knowledge</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                        <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML += newPeriodHTML;
+            alert(`✅ New period added to ${day}!`);
+        }
+        
+        function deleteWeekPeriod(day, weekNumber, periodNumber) {
+            if (confirm(`Delete Period ${periodNumber} from ${day}?`)) {
+                const periodRow = document.querySelector(`#edit_${weekNumber}_${day}_periods_container .edit-period-row:nth-child(${periodNumber})`);
+                if (periodRow) {
+                    periodRow.remove();
+                    alert(`✅ Period ${periodNumber} deleted!`);
+                }
+            }
+        }
+        
+        function duplicateWeekPeriod(day, weekNumber, periodNumber) {
+            const startTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNumber}_start`);
+            const endTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNumber}_end`);
+            const subjectEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNumber}_subject`);
+            
+            if (startTimeEl && endTimeEl && subjectEl) {
+                const container = document.getElementById(`edit_${weekNumber}_${day}_periods_container`);
+                const currentPeriods = container.querySelectorAll('.edit-period-row').length;
+                const newPeriodNumber = currentPeriods + 1;
+                
+                const newPeriodHTML = `
+                    <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${newPeriodNumber}:</label>
+                            
+                            <div style="margin: 5px 0;">
+                                <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_start" value="${startTimeEl.value}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                <span style="margin: 0 5px;">to</span>
+                                <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_end" value="${endTimeEl.value}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            </div>
+                            
+                            <select id="edit_${weekNumber}_${day}_period${newPeriodNumber}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                <option value="">Select Subject</option>
+                                <option value="English" ${subjectEl.value === 'English' ? 'selected' : ''}>English</option>
+                                <option value="Math" ${subjectEl.value === 'Math' ? 'selected' : ''}>Math</option>
+                                <option value="Urdu" ${subjectEl.value === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                <option value="Science" ${subjectEl.value === 'Science' ? 'selected' : ''}>Science</option>
+                                <option value="Islamiyat" ${subjectEl.value === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                <option value="Social Studies" ${subjectEl.value === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                <option value="General Knowledge" ${subjectEl.value === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                            <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                            <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML += newPeriodHTML;
+                alert(`✅ Period duplicated on ${day}!`);
+            }
+        }
+        
+        function deleteWeekBreak(day, weekNumber, breakType) {
+            if (confirm(`Delete ${breakType} time from ${day}?`)) {
+                const breakRow = document.querySelector(`#edit_${weekNumber}_${day}_periods_container .edit-break-row`);
+                if (breakRow) {
+                    breakRow.remove();
+                    alert(`✅ ${breakType} break deleted!`);
+                }
+            }
+        }
+        
+        function resetWeekDaySchedule(day, weekNumber) {
+            if (confirm(`Reset ${day} schedule to default 8-period structure?`)) {
+                const container = document.getElementById(`edit_${weekNumber}_${day}_periods_container`);
+                
+                let resetHTML = '';
+                for (let i = 1; i <= 8; i++) {
+                    const times = getDefaultPeriodTime(i);
+                    resetHTML += `
+                        <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
+                            <div style="flex: 1;">
+                                <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${i}:</label>
+                                
+                                <div style="margin: 5px 0;">
+                                    <input type="time" id="edit_${weekNumber}_${day}_period${i}_start" value="${times.start}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                    <span style="margin: 0 5px;">to</span>
+                                    <input type="time" id="edit_${weekNumber}_${day}_period${i}_end" value="${times.end}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                </div>
+                                
+                                <select id="edit_${weekNumber}_${day}_period${i}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                    <option value="">Select Subject</option>
+                                    <option value="English">English</option>
+                                    <option value="Math">Math</option>
+                                    <option value="Urdu">Urdu</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Islamiyat">Islamiyat</option>
+                                    <option value="Social Studies">Social Studies</option>
+                                    <option value="General Knowledge">General Knowledge</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 5px;">
+                                <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${i})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                                <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${i})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Add default breaks
+                resetHTML += `
+                    <div class="edit-break-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Break Time:</label>
+                            
+                            <div style="margin: 5px 0;">
+                                <input type="time" id="edit_${weekNumber}_${day}_break_start" value="10:00" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                <span style="margin: 0 5px;">to</span>
+                                <input type="time" id="edit_${weekNumber}_${day}_break_end" value="10:20" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <button onclick="deleteWeekBreak('${day}', ${weekNumber}, 'break')" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                        </div>
+                    </div>
+                    
+                    <div class="edit-break-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
+                        <div style="flex: 1;">
+                            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Lunch Time:</label>
+                            
+                            <div style="margin: 5px 0;">
+                                <input type="time" id="edit_${weekNumber}_${day}_lunch_start" value="1:00" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                                <span style="margin: 0 5px;">to</span>
+                                <input type="time" id="edit_${weekNumber}_${day}_lunch_end" value="1:40" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <button onclick="deleteWeekBreak('${day}', ${weekNumber}, 'lunch')" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
+                        </div>
+                    </div>
+                `;
+                
+                container.innerHTML = resetHTML;
+                alert(`✅ ${day} schedule reset to default 8-period structure!`);
+            }
+        }
+                        
+        }
+        
+        function saveWeekEdits(weekNumber) {
+            console.log(`Saving Week ${weekNumber} edits`);
+            
+            const editedWeek = {};
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            
+            days.forEach(day => {
+                const daySchedule = {
+                    periods: [],
+                    breaks: []
                 };
+                
+                // Get all periods for this day
+                const periodRows = document.querySelectorAll(`#edit_${weekNumber}_${day}_periods_container .edit-period-row`);
+                periodRows.forEach((row, index) => {
+                    const periodNum = index + 1;
+                    const startTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNum}_start`);
+                    const endTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNum}_end`);
+                    const subjectEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNum}_subject`);
+                    
+                    if (startTimeEl && endTimeEl) {
+                        const startTime = startTimeEl.value;
+                        const endTime = endTimeEl.value;
+                        const subject = subjectEl ? subjectEl.value : '';
+                        
+                        if (startTime && endTime) {
+                            daySchedule.periods.push({
+                                number: periodNum,
+                                startTime: startTime,
+                                endTime: endTime,
+                                subject: subject || 'Free Period'
+                            });
+                        }
+                    }
+                });
+                
+                // Get break times
+                const breakRows = document.querySelectorAll(`#edit_${weekNumber}_${day}_periods_container .edit-break-row`);
+                breakRows.forEach(breakRow => {
+                    const inputs = breakRow.querySelectorAll('input[type="time"]');
+                    if (inputs.length >= 2) {
+                        const startTime = inputs[0].value;
+                        const endTime = inputs[1].value;
+                        const label = breakRow.querySelector('label').textContent;
+                        const breakType = label.replace(' Time:', '');
+                        
+                        if (startTime && endTime) {
+                            daySchedule.breaks.push({ 
+                                type: breakType, 
+                                start: startTime, 
+                                end: endTime 
+                            });
+                        }
+                    }
+                });
+                
+                editedWeek[day] = daySchedule;
             });
             
-            // Save to localStorage
-            localStorage.setItem(`week_${weekNumber}_plan`, JSON.stringify(weekData));
+            // Save this specific week
+            localStorage.setItem(`week_${weekNumber}_plan`, JSON.stringify(editedWeek));
             
-            alert(`✅ Week ${weekNumber} saved successfully!`);
+            const totalPeriods = Object.values(editedWeek).reduce((total, day) => total + day.periods.length, 0);
+            alert(`✅ Week ${weekNumber} saved successfully with ${totalPeriods} total periods!`);
+            
+            // Show yearly calendar
             showYearlyCalendar();
         }
 
