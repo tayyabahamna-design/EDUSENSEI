@@ -435,7 +435,9 @@ def generate_conversational_content(topic, activity_type, subject, grade):
     session_context = {
         'selected_feature': activity_type,
         'activity_type': activity_type,
-        'assessment_type': activity_type if activity_type == 'assessment' else None
+        'assessment_type': activity_type if activity_type == 'assessment' else None,
+        'subject': subject,  # Add subject for subject-specific responses
+        'grade': grade      # Add grade for grade-appropriate content
     }
     
     # Call existing fallback function
@@ -3015,11 +3017,15 @@ def generate_curriculum_tips(grade, subject, chapter, topic):
 def get_pakistani_teacher_fallback(user_message, session_context=None):
     """Robust fallback responses for Pakistani teachers when AI services fail"""
     
-    # Get session data for context-aware responses
-    grade = session_context.get('grade', 1) if session_context else 1
-    subject = session_context.get('subject', 'English') if session_context else 'English'
-    activity_type = session_context.get('activity_type', 'activities') if session_context else 'activities'
-    selected_feature = session_context.get('selected_feature', 'lesson_plans') if session_context else 'lesson_plans'
+    # Safely get session data with proper defaults to prevent None errors
+    session_context = session_context or {}
+    grade = session_context.get('grade', 1)
+    subject = session_context.get('subject') or 'English'  # Safe default
+    activity_type = session_context.get('activity_type') or 'activities'
+    selected_feature = session_context.get('selected_feature') or 'lesson_plans'
+    
+    # Ensure user_message is not None
+    user_message = user_message or ''
     
     # Convert grade to number if it's a string
     try:
@@ -3039,11 +3045,382 @@ def get_pakistani_teacher_fallback(user_message, session_context=None):
     print(f"Fallback triggered - Grade: {grade}, Subject: {subject}, Topic: {topic}, Activity: {activity_type}")
     print(f"Session context grade: {session_context.get('grade') if session_context else 'No session context'}")
     
-    # Specific hardcoded responses for common topics with grade-based complexity
-    if 'noun' in topic:
-        if activity_type == 'pair_work':
-            if grade == 1:
-                return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
+    # SUBJECT-SPECIFIC RESPONSES - Check subject first, then provide appropriate content
+    # Safe subject checking to prevent .lower() on None
+    subject_lower = (subject or 'english').lower()
+    
+    if subject_lower in ['islamiyat', 'islamic studies']:
+        # ISLAMIYAT-SPECIFIC RESPONSES
+        if 'prophet muhammad' in topic or 'prophet' in topic or 'rasool' in topic:
+            if selected_feature == 'definitions':
+                return f"""📖 DEFINITIONS - Prophet Muhammad (PBUH) (Grade {grade} Islamiyat)
+
+🔹 ONE LINE:
+English: Prophet Muhammad (PBUH) is the last messenger of Allah.
+Roman Urdu: Hazrat Muhammad (PBUH) Allah ke aakhri rasool hain.
+
+🔹 SIMPLE EXPLANATION:
+English: Prophet Muhammad (PBUH) taught us how to be good Muslims and follow Allah's guidance.
+Roman Urdu: Hazrat Muhammad (PBUH) ne humein sikhaaya ke kaise ache Muslim bante hain aur Allah ki hidayat follow karte hain.
+
+🔹 ACTIVITIES:
+🌟 Stories of Prophet: Bachon ko Prophet ki simple stories sunayiye
+🌟 Good Manners: Prophet ke ache akhlaq follow kariye
+🌟 Islamic Greetings: Assalam-o-Alaikum practice kariye
+
+Grade {grade} Islamiyat ke liye perfect hai teacher! 😊"""
+            else:
+                return f"""🕌 Prophet Muhammad (PBUH) - Islamiyat Activities (Grade {grade})
+
+Hello teacher! Prophet Muhammad (PBUH) ke bare mein teaching:
+
+🌟 Simple Stories:
+Bachon ko Prophet ki kindness aur honesty ki stories sunayiye
+Age-appropriate examples use kariye
+
+🌟 Good Character Building:
+Prophet ke akhlaq follow karne ki practice
+Truthfulness, kindness, helping others
+
+🌟 Daily Duas:
+Simple duas teach kariye jo Prophet ne sikhayi
+Bismillah, Alhamdulillah basics
+
+Grade {grade} ke liye bilkul perfect level! Try kariye teacher! 😊"""
+        
+        elif 'allah' in topic:
+            if selected_feature == 'definitions':
+                return f"""📖 DEFINITIONS - Allah (Grade {grade} Islamiyat)
+
+🔹 ONE LINE:
+English: Allah is our Creator and the one God we worship.
+Roman Urdu: Allah hamare Khaliq hain aur wahi ek Allah hain jis ki hum ibadat karte hain.
+
+🔹 SIMPLE EXPLANATION:
+English: Allah created everything - us, animals, trees, the whole world.
+Roman Urdu: Allah ne sab kuch banaya hai - hum, janwar, pedh, puri duniya.
+
+🔹 ACTIVITIES:
+🌟 Allah's Creations: Nature walk aur Allah ke banaye gaye cheezain dekhaiye
+🌟 Simple Duas: Allah ka shukr karna sikhaiye
+🌟 99 Names: Easy names like Ar-Rahman, Ar-Raheem sikhaiye
+
+Grade {grade} Islamiyat ke liye perfect hai teacher! 😊"""
+        
+        elif 'kalima' in topic or 'kalma' in topic:
+            return f"""📿 Kalima Tayyaba - Islamiyat (Grade {grade})
+
+Hello teacher! Kalima sikhane ke liye:
+
+🌟 Step by Step:
+La ilaha illa Allah Muhammad Rasool Allah
+Slowly repeat karwayiye, pronunciation pe focus
+
+🌟 Meaning Explain:
+"Allah ke siwa koi maabood nahin, Muhammad Allah ke rasool hain"
+Simple Urdu mein meaning batayiye
+
+🌟 Daily Practice:
+Morning assembly mein daily recitation
+Confidence building ke liye group recitation
+
+Grade {grade} ke bachon ke liye perfect practice! 😊"""
+        
+        else:
+            return f"""🕌 Islamiyat Topics (Grade {grade})
+
+Hello teacher! Islamiyat ke liye general guidance:
+
+🌟 Basic Islamic Knowledge:
+Allah, Prophet Muhammad (PBUH), Kalima, basic duas
+Pakistani Islamic culture ke examples use kariye
+
+🌟 Character Building:
+Islamic values: honesty, kindness, respect
+Daily life mein implement karne ke tarikay
+
+🌟 Simple Activities:
+Story telling, duas memorization, good manners practice
+Grade {grade} ke level ke appropriate content
+
+Koi specific topic chahiye teacher? Main help kar sakti hun! 😊"""
+    
+    elif subject_lower in ['science', 'general science']:
+        # SCIENCE-SPECIFIC RESPONSES
+        if 'water' in topic or 'pani' in topic:
+            if selected_feature == 'definitions':
+                return f"""📖 DEFINITIONS - Water (Grade {grade} Science)
+
+🔹 ONE LINE:
+English: Water is a liquid that we drink and use for cleaning.
+Roman Urdu: Paani ek liquid hai jo hum peetay aur safai ke liye use karte hain.
+
+🔹 SIMPLE EXPLANATION:
+English: Water has no color, no smell, and no taste. We need it to live.
+Roman Urdu: Paani ka koi rang nahin, koi smell nahin, koi taste nahin. Humein jeene ke liye zaroori hai.
+
+🔹 ACTIVITIES:
+🌟 Water Sources: Pakistani water sources like rivers, wells dikhaiye
+🌟 Water Uses: Drinking, cooking, washing, watering plants
+🌟 Water Cycle: Simple cloud, rain, river cycle
+
+Grade {grade} Science ke liye perfect hai teacher! 😊"""
+            else:
+                return f"""💧 Water - Science Activities (Grade {grade})
+
+Hello teacher! Water ke bare mein practical activities:
+
+🌟 Water Experiments:
+Float aur sink experiment with classroom objects
+Ice melting experiment - solid to liquid
+
+🌟 Water Uses:
+Daily life mein water ka use: drinking, cooking, cleaning
+Pakistani context: hand pump, tube well, tap water
+
+🌟 Clean Water Importance:
+Boiling water, clean vs dirty water identification
+Health benefits samjhayiye
+
+Grade {grade} ke liye hands-on learning! Try kariye teacher! 😊"""
+        
+        elif 'air' in topic or 'hawa' in topic:
+            return f"""🌬️ Air - Science Activities (Grade {grade})
+
+Hello teacher! Air ke bare mein experiments:
+
+🌟 Air Around Us:
+Fan chalayiye - bachon ko air feel karwayiye
+Balloon blow karne se air movement dikhaiye
+
+🌟 Air Needs:
+Living things need air to breathe
+Fish water mein, humans air mein breathing
+
+🌟 Wind Activities:
+Paper airplane, kite flying se wind direction
+Pakistani kites (patang) ka example use kariye
+
+Grade {grade} ke bachon ko practical examples pasand aayenge! 😊"""
+        
+        elif 'plants' in topic or 'tree' in topic:
+            return f"""🌱 Plants - Science Activities (Grade {grade})
+
+Hello teacher! Plants ke bare mein teaching:
+
+🌟 Plant Parts:
+Roots, stem, leaves, flowers - real plants use kariye
+Pakistani plants: mango tree, rose flower examples
+
+🌟 Plant Needs:
+Water, sunlight, air, soil - basic needs
+Small gardening activity class mein
+
+🌟 Plant Uses:
+Food (fruits, vegetables), shade, oxygen
+Pakistani fruits: aam, kela, santara examples
+
+Grade {grade} ke liye nature-based learning! Perfect hai! 😊"""
+        
+        else:
+            return f"""🔬 Science Topics (Grade {grade})
+
+Hello teacher! Science ke liye general activities:
+
+🌟 Observation Skills:
+Pakistani environment explore kariye
+Living vs non-living classification
+
+🌟 Simple Experiments:
+Sink/float, hot/cold, rough/smooth
+Hands-on learning encourage kariye
+
+🌟 Daily Science:
+Kitchen science, garden science
+Bachon ke daily experience se connect kariye
+
+Koi specific science topic chahiye teacher? Main help kar sakti hun! 😊"""
+    
+    elif subject_lower in ['math', 'mathematics']:
+        # MATH-SPECIFIC RESPONSES
+        if 'addition' in topic or 'add' in topic or 'plus' in topic:
+            if selected_feature == 'definitions':
+                return f"""📖 DEFINITIONS - Addition (Grade {grade} Math)
+
+🔹 ONE LINE:
+English: Addition means putting numbers together to make a bigger number.
+Roman Urdu: Addition ka matlab hai numbers ko jor kar bara number banana.
+
+🔹 SIMPLE EXPLANATION:
+English: When we add 2 + 3, we count 2 things, then 3 more things, and get 5 total.
+Roman Urdu: Jab hum 2 + 3 karte hain, pehle 2 cheezain ginte hain, phir 3 aur, total 5 milte hain.
+
+🔹 ACTIVITIES:
+🌟 Pakistani Objects: Mangoes, rotis, crickets counting
+🌟 Money Addition: Pakistani rupees use kariye
+🌟 Cricket Scores: Runs adding practice
+
+Grade {grade} Math ke liye perfect hai teacher! 😊"""
+            else:
+                return f"""➕ Addition Activities (Grade {grade} Math)
+
+Hello teacher! Addition ke liye practical examples use kariye!
+
+🌟 Pakistani Objects Counting:
+Mangoes counting: 2 aam + 3 aam = 5 aam
+Roti counting: 1 roti + 2 roti = 3 roti
+
+🌟 Money Addition:
+Pakistani rupees use kariye
+5 rupees + 3 rupees = 8 rupees
+
+🌟 Cricket Score:
+Ahmed ne 2 runs banaye, Ali ne 3 runs
+Total kitne runs? 2 + 3 = 5
+
+Grade {grade} ke liye bilkul perfect level hai!
+Bachon ko bahut samajh aayega! 😊"""
+        
+        elif 'subtraction' in topic or 'minus' in topic:
+            return f"""➖ Subtraction Activities (Grade {grade} Math)
+
+Hello teacher! Subtraction ke liye examples:
+
+🌟 Taking Away:
+5 rotis mein se 2 kha liye, kitne bach gaye? 5 - 2 = 3
+Pakistani food examples use kariye
+
+🌟 Money Problems:
+10 rupees mein se 4 rupees kharch kiye
+Kitne bach gaye? 10 - 4 = 6 rupees
+
+🌟 Classroom Objects:
+7 pencils mein se 3 use ho gayi
+Bachon ko physical counting karwayiye
+
+Grade {grade} ke liye hands-on subtraction! Perfect! 😊"""
+        
+        elif 'counting' in topic or 'numbers' in topic:
+            return f"""🔢 Counting/Numbers (Grade {grade} Math)
+
+Hello teacher! Numbers sikhane ke liye:
+
+🌟 Pakistani Context Counting:
+1 se 10 tak: Pakistani fruits, foods use kariye
+Aam (1), kela (2), santara (3)
+
+🌟 Urdu Numbers:
+Aik, do, teen, char, panch - parallel sikhaiye
+English aur Urdu dono
+
+🌟 Daily Life Numbers:
+Class attendance, tiffin items counting
+Real situations mein numbers use
+
+Grade {grade} ke bachon ke liye bilkul suitable! 😊"""
+        
+        else:
+            return f"""🧮 Math Topics (Grade {grade})
+
+Hello teacher! Math ke liye general guidance:
+
+🌟 Pakistani Context Math:
+Money (rupees), food items, daily objects
+Relatable examples use kariye
+
+🌟 Hands-on Activities:
+Physical counting, manipulatives use kariye
+Abstract concepts ko concrete banayiye
+
+🌟 Practice Activities:
+Games, puzzles, real-life problems
+Math ko interesting banayiye
+
+Koi specific math topic chahiye teacher? Main help kar sakti hun! 😊"""
+    
+    elif subject_lower in ['urdu']:
+        # URDU-SPECIFIC RESPONSES
+        if 'alif' in topic or 'ا' in topic:
+            if selected_feature == 'definitions':
+                return f"""📖 DEFINITIONS - Alif (Grade {grade} Urdu)
+
+🔹 ONE LINE:
+English: Alif is the first letter of Urdu alphabet.
+Roman Urdu: Alif Urdu ke huroof e tahajji ka pehla harf hai.
+
+🔹 SIMPLE EXPLANATION:
+English: Alif looks like a straight line and makes 'aa' sound.
+Roman Urdu: Alif ek seedhi lash ki tarah dikhayi hai aur 'aa' ki awaz nikalta hai.
+
+🔹 ACTIVITIES:
+🌟 Alif Writing: Air mein finger se trace kariye
+🌟 Alif Words: Aam, Aag, Aadmi examples
+🌟 Recognition Games: Alif find karne wali activities
+
+Grade {grade} Urdu ke liye perfect hai teacher! 😊"""
+            else:
+                return f"""🔤 Alif - Urdu Activities (Grade {grade})
+
+Hello teacher! Alif sikhane ke liye:
+
+🌟 Letter Recognition:
+Alif ki shape practice - straight line
+Visual recognition activities
+
+🌟 Alif Words:
+Aam (mango), Aag (fire), Aadmi (man)
+Pakistani context words use kariye
+
+🌟 Writing Practice:
+Sand tray mein alif likhiye
+Step-by-step stroke practice
+
+Grade {grade} ke bachon ke liye perfect start! 😊"""
+        
+        elif 'huroof' in topic or 'letters' in topic:
+            return f"""🔤 Urdu Huroof (Grade {grade})
+
+Hello teacher! Urdu letters sikhane ke liye:
+
+🌟 Sequential Learning:
+Alif se shuru karke step by step
+Daily 2-3 letters introduce kariye
+
+🌟 Sound Recognition:
+Har letter ki awaz alag se sikhaiye
+Words mein use dikhaiye
+
+🌟 Writing Practice:
+Dotted lines mein trace kariye
+Motor skills develop kariye
+
+Grade {grade} ke liye structured approach perfect! 😊"""
+        
+        else:
+            return f"""📚 Urdu Topics (Grade {grade})
+
+Hello teacher! Urdu ke liye general guidance:
+
+🌟 Letter Recognition:
+Huroof e tahajji systematic way mein
+Pakistani cultural context use kariye
+
+🌟 Basic Vocabulary:
+Daily use Urdu words
+Simple sentence formation
+
+🌟 Reading Practice:
+Story telling, poem recitation
+Urdu literature se introduction
+
+Koi specific Urdu topic chahiye teacher? Main help kar sakti hun! 😊"""
+    
+    elif subject_lower in ['english']:
+        # ENGLISH-SPECIFIC RESPONSES (Keep existing English content)
+        if 'noun' in topic:
+            if activity_type == 'pair_work':
+                if grade == 1:
+                    return f"""👫 PAIR WORK - Nouns (Grade {grade} English)
 
 Hello teacher! Grade {grade} ke liye simple activities:
 
