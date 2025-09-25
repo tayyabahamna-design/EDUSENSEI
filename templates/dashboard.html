@@ -258,7 +258,7 @@
         
         .feature-card {
             background: var(--warm-white);
-            padding: 30px 30px 20px 30px;
+            padding: 30px;
             border-radius: 20px;
             box-shadow: var(--shadow-lg);
             text-align: center;
@@ -269,12 +269,17 @@
         }
 
         .card-content {
-            flex: 1;
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
             min-height: 0;
+            overflow-y: auto;
         }
 
         .feature-card .btn {
-            margin-top: 15px;
+            margin-top: auto;
+            margin-bottom: 0;
             flex-shrink: 0;
         }
         
