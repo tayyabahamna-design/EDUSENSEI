@@ -1,26 +1,26 @@
 /* USTAAD DOST - Eye-Friendly Soothing Teacher Assistant */
 :root {
-    /* Green Primary Colors */
-    --primary: #22c55e;        /* Green */
-    --secondary: #16a34a;      /* Dark Green */
-    --accent: #84cc16;         /* Light Green */
+    /* Light Lavender Primary Colors */
+    --primary: #e9d5ff;        /* Very Light Lavender */
+    --secondary: #ddd6fe;      /* Soft Lavender */
+    --accent: #f3f4f6;         /* Barely There Lavender */
     
-    /* Green Appealing Palette */
-    --soft-blue: #22c55e;
-    --soft-blue-light: #86efac;
-    --soft-blue-dark: #16a34a;
+    /* Light Lavender Appealing Palette */
+    --soft-blue: #e9d5ff;
+    --soft-blue-light: #f5f3ff;
+    --soft-blue-dark: #ddd6fe;
     
-    --sage-green: #22c55e;
-    --sage-green-light: #86efac;
-    --sage-green-dark: #16a34a;
+    --sage-green: #e9d5ff;
+    --sage-green-light: #f5f3ff;
+    --sage-green-dark: #ddd6fe;
     
-    --warm-cream: #84cc16;
-    --warm-cream-light: #bef264;
-    --warm-cream-dark: #65a30d;
+    --warm-cream: #f5f3ff;
+    --warm-cream-light: #faf9ff;
+    --warm-cream-dark: #ede9fe;
     
-    --gentle-mint: #10b981;
-    --gentle-mint-light: #6ee7b7;
-    --gentle-mint-dark: #059669;
+    --gentle-mint: #ede9fe;
+    --gentle-mint-light: #f5f3ff;
+    --gentle-mint-dark: #e9d5ff;
     
     --warm-white: #ffffff;
     --paper-light: #ffffff;
@@ -55,16 +55,16 @@
     --gray-medium: var(--gray-500);
     --gray-dark: var(--gray-700);
     
-    /* Legacy color tokens - harmonized with green palette */
-    --baby-pink: #22c55e;
-    --baby-pink-light: #86efac;
-    --baby-pink-dark: #16a34a;
-    --calm-blue: #22c55e;
-    --calm-blue-light: #86efac;
-    --calm-blue-dark: #16a34a;
-    --pretty-yellow: #84cc16;
-    --pretty-yellow-light: #bef264;
-    --pretty-yellow-dark: #65a30d;
+    /* Legacy color tokens - harmonized with light lavender palette */
+    --baby-pink: #f5f3ff;
+    --baby-pink-light: #faf9ff;
+    --baby-pink-dark: #ede9fe;
+    --calm-blue: #e9d5ff;
+    --calm-blue-light: #f5f3ff;
+    --calm-blue-dark: #ddd6fe;
+    --pretty-yellow: #ede9fe;
+    --pretty-yellow-light: #f5f3ff;
+    --pretty-yellow-dark: #e9d5ff;
     
     /* Additional legacy mappings */
     --pink-primary: var(--baby-pink);
