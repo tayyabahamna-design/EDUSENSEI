@@ -931,19 +931,6 @@
                 return false;
             }
         }
-                existingUsers[userIndex].password = newPassword;
-                localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-                
-                // Clear reset code
-                localStorage.removeItem('resetCode');
-                
-                // Show success and return to login
-                alert('✅ Password reset successfully! Please login with your new password.');
-                backToLogin();
-            } else {
-                alert('❌ Error updating password. Please try again.');
-            }
-        }
 
         // SECURITY ENHANCEMENTS - Rate limiting for reset attempts
         function checkResetAttempts(phone) {
