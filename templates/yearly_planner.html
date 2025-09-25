@@ -123,12 +123,18 @@
         
         // STEP 2 - WEEKLY TEMPLATE CREATION
         function createWeeklyTemplate() {
+            console.log('Create Weekly Template button clicked!'); // Debug log
+            
             const selectedGrade = document.getElementById('teacherGrade').value;
+            console.log('Selected grade:', selectedGrade); // Debug log
+            
             const selectedSubjects = [];
             
             // Get selected subjects
             const checkboxes = document.querySelectorAll('.subject-checkboxes input:checked');
+            console.log('Found checkboxes:', checkboxes.length); // Debug log
             checkboxes.forEach(cb => selectedSubjects.push(cb.value));
+            console.log('Selected subjects:', selectedSubjects); // Debug log
             
             if (!selectedGrade || selectedSubjects.length === 0) {
                 alert('Please select grade and at least one subject!');
