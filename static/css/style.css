@@ -1,28 +1,28 @@
 /* USTAAD DOST - Eye-Friendly Soothing Teacher Assistant */
 :root {
-    /* Soothing Primary Colors */
-    --primary: #a8d5e8;        /* Soft Blue */
-    --secondary: #b8d4b8;      /* Sage Green */
-    --accent: #f5f3e9;         /* Warm Cream */
+    /* Modern Primary Colors */
+    --primary: #6366f1;        /* Indigo Blue */
+    --secondary: #10b981;      /* Emerald Green */
+    --accent: #f59e0b;         /* Amber Orange */
     
-    /* Eye-Friendly Soothing Palette */
-    --soft-blue: #a8d5e8;
-    --soft-blue-light: #d4ebf5;
-    --soft-blue-dark: #7cc0db;
+    /* Modern Appealing Palette */
+    --soft-blue: #6366f1;
+    --soft-blue-light: #a5b4fc;
+    --soft-blue-dark: #4f46e5;
     
-    --sage-green: #b8d4b8;
-    --sage-green-light: #d9e7d9;
-    --sage-green-dark: #9bc19b;
+    --sage-green: #10b981;
+    --sage-green-light: #6ee7b7;
+    --sage-green-dark: #059669;
     
-    --warm-cream: #f5f3e9;
-    --warm-cream-light: #faf9f3;
-    --warm-cream-dark: #ebe8db;
+    --warm-cream: #f59e0b;
+    --warm-cream-light: #fbbf24;
+    --warm-cream-dark: #d97706;
     
-    --gentle-mint: #d4e9d4;
-    --gentle-mint-light: #e8f4e8;
-    --gentle-mint-dark: #b8d9b8;
+    --gentle-mint: #14b8a6;
+    --gentle-mint-light: #5eead4;
+    --gentle-mint-dark: #0f766e;
     
-    --warm-white: #fdfcf8;
+    --warm-white: #ffffff;
     --paper-light: #ffffff;
     --paper-dark: #f0f0f0;
     
@@ -54,6 +54,25 @@
     --gray-light: var(--paper-light);
     --gray-medium: var(--gray-500);
     --gray-dark: var(--gray-700);
+    
+    /* Legacy color tokens - harmonized with new palette */
+    --baby-pink: #f472b6;
+    --baby-pink-light: #f9a8d4;
+    --baby-pink-dark: #ec4899;
+    --calm-blue: #3b82f6;
+    --calm-blue-light: #93c5fd;
+    --calm-blue-dark: #2563eb;
+    --pretty-yellow: #eab308;
+    --pretty-yellow-light: #fde047;
+    --pretty-yellow-dark: #ca8a04;
+    
+    /* Additional legacy mappings */
+    --pink-primary: var(--baby-pink);
+    --pink-light: var(--baby-pink-light);  
+    --pink-dark: var(--baby-pink-dark);
+    --yellow-primary: var(--pretty-yellow);
+    --yellow-light: var(--pretty-yellow-light);
+    --yellow-dark: var(--pretty-yellow-dark);
     
     /* Modern shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -97,7 +116,7 @@ body::before {
 /* Navigation */
 .navbar {
     background: linear-gradient(135deg, var(--baby-pink) 0%, var(--calm-blue) 100%);
-    border-bottom: 3px solid var(--pretty-yellow);
+    border-bottom: 1px solid var(--gray-200);
     padding: 1rem 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     border-top: 1px solid var(--paper-light);
@@ -215,7 +234,7 @@ body::before {
     border-radius: 16px;
     margin-bottom: 3rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 3px solid var(--pretty-yellow);
+    border: 1px solid var(--gray-300);
     position: relative;
     overflow: hidden;
 }
@@ -291,8 +310,8 @@ body::before {
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--baby-pink), var(--calm-blue), var(--pretty-yellow));
+    height: 2px;
+    background: linear-gradient(90deg, var(--gray-200), var(--gray-300), var(--gray-200));
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -461,8 +480,8 @@ h1::after {
     left: 50%;
     transform: translateX(-50%);
     width: 60px;
-    height: 4px;
-    background: linear-gradient(90deg, var(--baby-pink), var(--pretty-yellow), var(--calm-blue));
+    height: 2px;
+    background: linear-gradient(90deg, var(--gray-300), var(--gray-400), var(--gray-300));
     border-radius: 2px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
@@ -687,7 +706,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     padding: 2rem;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 3px solid var(--baby-pink);
+    border: 1px solid var(--gray-300);
     position: relative;
     overflow: hidden;
 }
@@ -698,10 +717,8 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--baby-pink), var(--pretty-yellow), var(--calm-blue), var(--baby-pink));
-    background-size: 200% 100%;
-    animation: gradient-slide 3s ease infinite;
+    height: 1px;
+    background: linear-gradient(90deg, var(--gray-200), var(--gray-300), var(--gray-200));
 }
 
 @keyframes gradient-slide {
