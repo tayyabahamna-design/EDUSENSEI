@@ -3679,7 +3679,302 @@ def yearly_planner():
     # Check if user is logged in
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('yearly_planner.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    
+    # Check if user has any active templates
+    user_id = session['user_id']
+    cursor.execute("SELECT * FROM weekly_templates WHERE user_id = %s AND is_active = true ORDER BY created_at DESC", (user_id,))
+    templates = cursor.fetchall()
+    
+    return render_template('yearly_planner.html', templates=templates, posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/yearly-planner/create-template', methods=['GET', 'POST'])
+def create_weekly_template():
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        user_id = session['user_id']
+        grade = request.form.get('grade', type=int)
+        template_name = request.form.get('template_name', 'My Weekly Template')
+        
+        if not grade or grade not in [1, 2, 3, 4, 5]:
+            flash('Please select a valid grade (1-5)', 'error')
+            return redirect(url_for('create_weekly_template'))
+        
+        try:
+            # Create the weekly template
+            cursor.execute(
+                "INSERT INTO weekly_templates (user_id, grade, template_name) VALUES (%s, %s, %s) RETURNING id",
+                (user_id, grade, template_name)
+            )
+            template_id = cursor.fetchone()['id']
+            conn.commit()
+            
+            return redirect(url_for('edit_template_periods', template_id=template_id))
+            
+        except Exception as e:
+            conn.rollback()
+            flash('Error creating template. Please try again.', 'error')
+            return redirect(url_for('yearly_planner'))
+    
+    return render_template('create_template.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/yearly-planner/template/<int:template_id>/edit-periods', methods=['GET', 'POST'])
+def edit_template_periods(template_id):
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Verify template belongs to user
+    cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
+    template = cursor.fetchone()
+    if not template:
+        flash('Template not found', 'error')
+        return redirect(url_for('yearly_planner'))
+    
+    if request.method == 'POST':
+        try:
+            # Clear existing periods for this template
+            cursor.execute("DELETE FROM weekly_template_periods WHERE template_id = %s", (template_id,))
+            
+            # Save new periods
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+            periods = [
+                {'start': '8:00', 'end': '8:40'},
+                {'start': '8:40', 'end': '9:20'},
+                {'start': '9:20', 'end': '10:00'},
+                {'start': '10:20', 'end': '11:00'},  # After break
+                {'start': '11:00', 'end': '11:40'}
+            ]
+            
+            for day_idx, day in enumerate(days, 1):
+                for period_idx, period_time in enumerate(periods, 1):
+                    subject = request.form.get(f'{day.lower()}_period_{period_idx}')
+                    if subject:
+                        cursor.execute(
+                            """INSERT INTO weekly_template_periods 
+                               (template_id, day_of_week, period_number, subject, start_time, end_time) 
+                               VALUES (%s, %s, %s, %s, %s, %s)""",
+                            (template_id, day_idx, period_idx, subject, period_time['start'], period_time['end'])
+                        )
+            
+            conn.commit()
+            flash('Weekly template created successfully!', 'success')
+            return redirect(url_for('copy_template_to_year', template_id=template_id))
+            
+        except Exception as e:
+            conn.rollback()
+            flash('Error saving template. Please try again.', 'error')
+    
+    # Get existing periods if any
+    cursor.execute(
+        """SELECT day_of_week, period_number, subject FROM weekly_template_periods 
+           WHERE template_id = %s ORDER BY day_of_week, period_number""", 
+        (template_id,)
+    )
+    existing_periods = cursor.fetchall()
+    
+    return render_template('edit_template_periods.html', 
+                         template=template, 
+                         existing_periods=existing_periods,
+                         template_id=template_id,
+                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/yearly-planner/template/<int:template_id>/copy-to-year', methods=['GET', 'POST'])
+def copy_template_to_year(template_id):
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Verify template belongs to user
+    cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
+    template = cursor.fetchone()
+    if not template:
+        flash('Template not found', 'error')
+        return redirect(url_for('yearly_planner'))
+    
+    if request.method == 'POST':
+        academic_year = request.form.get('academic_year', '2024-2025')
+        
+        try:
+            # Get template periods
+            cursor.execute(
+                """SELECT day_of_week, period_number, subject, start_time, end_time 
+                   FROM weekly_template_periods WHERE template_id = %s""", 
+                (template_id,)
+            )
+            template_periods = cursor.fetchall()
+            
+            if not template_periods:
+                flash('Please complete your weekly template first.', 'error')
+                return redirect(url_for('edit_template_periods', template_id=template_id))
+            
+            # Clear existing entries for this user and year
+            cursor.execute(
+                "DELETE FROM yearly_schedule_entries WHERE user_id = %s AND academic_year = %s AND template_id = %s",
+                (user_id, academic_year, template_id)
+            )
+            
+            # Generate entries for 52 weeks (260 school days)
+            from datetime import datetime, timedelta
+            start_date = datetime(2024, 8, 1)  # Academic year starts August 1st
+            
+            for week_num in range(1, 53):  # 52 weeks
+                for day_of_week in range(1, 6):  # Monday to Friday
+                    # Calculate the date for this day
+                    days_offset = (week_num - 1) * 7 + (day_of_week - 1)
+                    current_date = start_date + timedelta(days=days_offset)
+                    
+                    # Find template periods for this day
+                    matching_periods = [p for p in template_periods if p[0] == day_of_week]
+                    
+                    for period in matching_periods:
+                        cursor.execute(
+                            """INSERT INTO yearly_schedule_entries 
+                               (user_id, template_id, academic_year, week_number, day_of_week, 
+                                date, period_number, subject, start_time, end_time)
+                               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (user_id, template_id, academic_year, week_num, day_of_week,
+                             current_date.date(), period[1], period[2], period[3], period[4])
+                        )
+            
+            conn.commit()
+            flash('Yearly plan created successfully! (52 weeks × 5 days = 260 school days)', 'success')
+            return redirect(url_for('view_yearly_calendar', template_id=template_id))
+            
+        except Exception as e:
+            conn.rollback()
+            flash('Error creating yearly plan. Please try again.', 'error')
+    
+    return render_template('copy_to_year.html', 
+                         template=template,
+                         template_id=template_id,
+                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/yearly-planner/calendar/<int:template_id>')
+def view_yearly_calendar(template_id):
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Get template info
+    cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
+    template = cursor.fetchone()
+    if not template:
+        flash('Template not found', 'error')
+        return redirect(url_for('yearly_planner'))
+    
+    # Get calendar entries for this template
+    cursor.execute(
+        """SELECT week_number, date, day_of_week, period_number, subject, 
+           start_time, end_time, is_modified, id as entry_id
+           FROM yearly_schedule_entries 
+           WHERE user_id = %s AND template_id = %s 
+           ORDER BY week_number, day_of_week, period_number""", 
+        (user_id, template_id)
+    )
+    raw_entries = cursor.fetchall()
+    
+    # Group entries by (week_number, date, day_of_week) in Python
+    from collections import defaultdict
+    grouped_data = defaultdict(lambda: {"periods": []})
+    
+    for entry in raw_entries:
+        key = (entry['week_number'], entry['date'], entry['day_of_week'])
+        
+        # Set basic day info if not already set
+        if 'week_number' not in grouped_data[key]:
+            grouped_data[key]['week_number'] = entry['week_number']
+            grouped_data[key]['date'] = entry['date']
+            grouped_data[key]['day_of_week'] = entry['day_of_week']
+        
+        # Add period info as native Python dict
+        period_data = {
+            'period_number': entry['period_number'],
+            'subject': entry['subject'],
+            'start_time': entry['start_time'],
+            'end_time': entry['end_time'],
+            'is_modified': entry['is_modified'],
+            'entry_id': entry['entry_id']
+        }
+        grouped_data[key]['periods'].append(period_data)
+    
+    # Convert to list format expected by template, ensuring chronological order
+    calendar_data = []
+    for (week_number, date, day_of_week), day_info in sorted(grouped_data.items(), key=lambda x: (x[0][0], x[0][2])):
+        calendar_data.append(day_info)
+    
+    return render_template('yearly_calendar.html', 
+                         template=template,
+                         calendar_data=calendar_data,
+                         template_id=template_id,
+                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/yearly-planner/edit-day/<date>')
+def edit_day(date):
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Get entries for this specific day
+    cursor.execute(
+        """SELECT id, period_number, subject, start_time, end_time, is_modified
+           FROM yearly_schedule_entries 
+           WHERE user_id = %s AND date = %s 
+           ORDER BY period_number""", 
+        (user_id, date)
+    )
+    day_entries = cursor.fetchall()
+    
+    if not day_entries:
+        flash('No entries found for this date', 'error')
+        return redirect(url_for('yearly_planner'))
+    
+    return render_template('edit_day.html', 
+                         date=date,
+                         day_entries=day_entries,
+                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+
+@app.route('/yearly-planner/update-day', methods=['POST'])
+def update_day():
+    # Check if user is logged in
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    date = request.form.get('date')
+    
+    try:
+        # Update each period for this day
+        for i in range(1, 6):  # 5 periods
+            entry_id = request.form.get(f'entry_id_{i}')
+            subject = request.form.get(f'period_{i}_subject')
+            
+            if entry_id and subject:
+                cursor.execute(
+                    """UPDATE yearly_schedule_entries 
+                       SET subject = %s, is_modified = true, updated_at = CURRENT_TIMESTAMP
+                       WHERE id = %s AND user_id = %s""",
+                    (subject, entry_id, user_id)
+                )
+        
+        conn.commit()
+        flash(f'Changes saved for {date}!', 'success')
+        
+    except Exception as e:
+        conn.rollback()
+        flash('Error saving changes. Please try again.', 'error')
+    
+    return redirect(url_for('edit_day', date=date))
 
 @app.route('/grading-buddy')
 def grading_buddy():

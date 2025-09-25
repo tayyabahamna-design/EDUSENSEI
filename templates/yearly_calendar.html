@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yearly Calendar - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">📅 Yearly Calendar</h1>
+            <div class="nav-menu">
+                <a href="{{ url_for('yearly_planner') }}" class="nav-link">← Back to Planner</a>
+                <a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a>
+                <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="calendar-container">
+            <div class="step-header">
+                <div class="step-indicator">
+                    <div class="step-number completed">1</div>
+                    <div class="step-text">Create Template</div>
+                </div>
+                <div class="step-indicator">
+                    <div class="step-number completed">2</div>
+                    <div class="step-text">Copy to Year</div>
+                </div>
+                <div class="step-indicator">
+                    <div class="step-number active">3</div>
+                    <div class="step-text">Edit Days</div>
+                </div>
+            </div>
+
+            <div class="calendar-header">
+                <h1>📅 {{ template.template_name }} - Grade {{ template.grade }}</h1>
+                <p class="calendar-subtitle">Academic Year 2024-2025 • 52 weeks × 5 days = 260 school days</p>
+                
+                <div class="calendar-controls">
+                    <a href="{{ url_for('edit_template_periods', template_id=template_id) }}" class="btn btn-secondary">✏️ Edit Template</a>
+                    <a href="{{ url_for('copy_template_to_year', template_id=template_id) }}" class="btn btn-success">🔄 Re-copy to Year</a>
+                </div>
+            </div>
+
+            <div class="calendar-grid">
+                {% if calendar_data %}
+                    {% set week_groups = calendar_data | groupby('week_number') %}
+                    {% for week_number, week_days in week_groups %}
+                        <div class="week-section">
+                            <div class="week-header">
+                                <h3>📗 Week {{ week_number }}</h3>
+                                <span class="week-dates">
+                                    {{ (week_days | first).date.strftime('%b %d') }} - 
+                                    {{ (week_days | last).date.strftime('%b %d, %Y') }}
+                                </span>
+                            </div>
+                            
+                            <div class="days-grid">
+                                {% for day_data in week_days %}
+                                    <div class="day-card {% if day_data.periods and day_data.periods[0].is_modified %}modified{% endif %}">
+                                        <div class="day-header">
+                                            <div class="day-name">
+                                                {{ ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'][day_data.day_of_week - 1] }}
+                                            </div>
+                                            <div class="day-date">{{ day_data.date.strftime('%m/%d') }}</div>
+                                        </div>
+                                        
+                                        <div class="periods-list">
+                                            {% if day_data.periods %}
+                                                {% for period in day_data.periods %}
+                                                    <div class="period-item">
+                                                        <span class="period-number">{{ period.period_number }}</span>
+                                                        <span class="period-subject">{{ period.subject }}</span>
+                                                        <span class="period-time">{{ period.start_time.strftime('%H:%M') }}</span>
+                                                    </div>
+                                                {% endfor %}
+                                            {% else %}
+                                                <div class="no-periods">No periods scheduled</div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="day-actions">
+                                            <a href="{{ url_for('edit_day', date=day_data.date.strftime('%Y-%m-%d')) }}" class="btn btn-edit">
+                                                ✏️ Edit Day
+                                            </a>
+                                        </div>
+                                        
+                                        {% if day_data.periods and day_data.periods[0].is_modified %}
+                                            <div class="modified-indicator">
+                                                <span class="modified-badge">Modified</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-calendar">
+                        <div class="empty-icon">📅</div>
+                        <h2>No Calendar Data Found</h2>
+                        <p>It looks like the yearly schedule hasn't been generated yet.</p>
+                        <a href="{{ url_for('copy_template_to_year', template_id=template_id) }}" class="btn btn-primary">
+                            🚀 Generate Yearly Schedule
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+    
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
+            box-shadow: var(--shadow-md);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .nav-welcome {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-bottom: 40px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .step-number.active {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .step-number.completed {
+            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
+            color: white;
+        }
+        
+        .step-text {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: var(--warm-white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .calendar-header h1 {
+            color: var(--gray-700);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .calendar-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+        
+        .calendar-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .week-section {
+            margin-bottom: 40px;
+            background: var(--warm-white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        .week-header {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .week-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        
+        .week-dates {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1px;
+            background: var(--gray-200);
+        }
+        
+        .day-card {
+            background: white;
+            padding: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .day-card:hover {
+            background: var(--warm-white);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .day-card.modified {
+            border-left: 4px solid var(--warm-yellow);
+        }
+        
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .day-name {
+            font-weight: 700;
+            color: var(--gray-700);
+            font-size: 1rem;
+        }
+        
+        .day-date {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        
+        .periods-list {
+            flex: 1;
+            margin-bottom: 15px;
+        }
+        
+        .period-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-100);
+            font-size: 0.85rem;
+        }
+        
+        .period-item:last-child {
+            border-bottom: none;
+        }
+        
+        .period-number {
+            background: var(--sage-green);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .period-subject {
+            flex: 1;
+            color: var(--gray-700);
+            font-weight: 500;
+        }
+        
+        .period-time {
+            color: var(--gray-500);
+            font-size: 0.75rem;
+        }
+        
+        .no-periods {
+            color: var(--gray-400);
+            font-style: italic;
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .day-actions {
+            margin-top: auto;
+        }
+        
+        .btn-edit {
+            width: 100%;
+            padding: 8px 12px;
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-edit:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .modified-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        
+        .modified-badge {
+            background: var(--warm-yellow);
+            color: var(--gray-700);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        
+        .empty-calendar {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--warm-white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        
+        .empty-calendar h2 {
+            color: var(--gray-700);
+            margin-bottom: 15px;
+        }
+        
+        .empty-calendar p {
+            color: var(--gray-600);
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        @media (max-width: 1200px) {
+            .days-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .step-header {
+                gap: 30px;
+                margin-bottom: 30px;
+            }
+            
+            .calendar-header {
+                padding: 20px;
+            }
+            
+            .week-header {
+                padding: 15px 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .days-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .calendar-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Weekly Template - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">📝 Create Template</h1>
+            <div class="nav-menu">
+                <a href="{{ url_for('yearly_planner') }}" class="nav-link">← Back to Planner</a>
+                <a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a>
+                <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="create-container">
+            <div class="step-header">
+                <div class="step-indicator">
+                    <div class="step-number active">1</div>
+                    <div class="step-text">Create Template</div>
+                </div>
+                <div class="step-indicator">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Copy to Year</div>
+                </div>
+                <div class="step-indicator">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Edit Days</div>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <h1>📝 Create New Weekly Template</h1>
+                <p class="form-subtitle">Start by selecting the grade and naming your template</p>
+
+                <form method="POST" action="{{ url_for('create_weekly_template') }}" class="template-form">
+                    <div class="form-group">
+                        <label for="grade">Select Grade:</label>
+                        <select id="grade" name="grade" class="form-select" required>
+                            <option value="">Choose Grade...</option>
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="template_name">Template Name:</label>
+                        <input type="text" id="template_name" name="template_name" 
+                               class="form-input" placeholder="e.g., My Grade 3 Schedule" 
+                               value="My Weekly Template" required>
+                        <small class="form-hint">Give your template a descriptive name</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{{ url_for('yearly_planner') }}" class="btn btn-secondary">← Cancel</a>
+                        <button type="submit" class="btn btn-primary">Next: Design Schedule →</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
+            box-shadow: var(--shadow-md);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .nav-welcome {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .step-header {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+        
+        .step-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            color: var(--gray-600);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .step-number.active {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .step-text {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            font-weight: 500;
+        }
+        
+        .form-container {
+            background: var(--warm-white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+        }
+        
+        .form-container h1 {
+            color: var(--gray-700);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .form-subtitle {
+            color: var(--gray-600);
+            margin-bottom: 40px;
+            font-size: 1.1rem;
+        }
+        
+        .template-form {
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        
+        .form-select, .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid var(--gray-300);
+            border-radius: 12px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-select:focus, .form-input:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+        }
+        
+        .form-hint {
+            display: block;
+            margin-top: 5px;
+            color: var(--gray-500);
+            font-size: 0.9rem;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .step-header {
+                gap: 30px;
+                margin-bottom: 30px;
+            }
+            
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</body>
+</html>

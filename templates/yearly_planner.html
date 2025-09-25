@@ -32,81 +32,89 @@
         <div class="planner-container">
             <div class="welcome-section">
                 <h1>📅 Yearly Planner</h1>
-                <p class="welcome-subtitle">Plan your entire academic year with weekly schedules for Pakistani curriculum (grades 1-5)</p>
+                <p class="welcome-subtitle">Create your teaching schedule in 3 simple steps</p>
             </div>
             
-            <!-- Grade and Subject Selection -->
-            <div class="planning-controls">
-                <div class="control-group">
-                    <label for="grade-select">Select Grade:</label>
-                    <select id="grade-select" class="form-select">
-                        <option value="">Choose Grade...</option>
-                        <option value="1">Grade 1</option>
-                        <option value="2">Grade 2</option>
-                        <option value="3">Grade 3</option>
-                        <option value="4">Grade 4</option>
-                        <option value="5">Grade 5</option>
-                    </select>
+            <!-- 3-Step Process Flow -->
+            <div class="process-flow">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>📝 Create Weekly Template</h3>
+                        <p>Design your ideal weekly schedule with periods and subjects</p>
+                        <a href="{{ url_for('create_weekly_template') }}" class="btn btn-primary">Start Creating</a>
+                    </div>
                 </div>
                 
-                <div class="control-group">
-                    <label for="subject-select">Select Subject:</label>
-                    <select id="subject-select" class="form-select">
-                        <option value="">Choose Subject...</option>
-                        <option value="English">📚 English</option>
-                        <option value="Math">🔢 Mathematics</option>
-                        <option value="Urdu">🇵🇰 Urdu</option>
-                        <option value="Islamiyat">🕌 Islamiyat</option>
-                        <option value="Science">🔬 Science</option>
-                        <option value="Social Studies">📊 Social Studies</option>
-                        <option value="General Knowledge">🌍 General Knowledge</option>
-                    </select>
+                <div class="step-arrow">→</div>
+                
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>📅 Copy to Full Year</h3>
+                        <p>Apply your template to entire academic year (52 weeks × 5 days = 260 school days)</p>
+                    </div>
                 </div>
                 
-                <button id="generate-plan" class="btn btn-primary">📅 Generate Yearly Plan</button>
+                <div class="step-arrow">→</div>
+                
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>✏️ Edit Individual Days</h3>
+                        <p>View calendar and customize specific days as needed</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- Planning Grid -->
-            <div id="planning-grid" class="planning-grid" style="display: none;">
-                <div class="grid-header">
-                    <h2 id="plan-title">Academic Year Plan</h2>
-                    <div class="plan-controls">
-                        <button id="save-plan" class="btn btn-success">💾 Save Plan</button>
-                        <button id="export-plan" class="btn btn-secondary">📄 Export PDF</button>
+            <!-- Existing Templates -->
+            {% if templates %}
+            <div class="templates-section">
+                <h2>📋 Your Templates</h2>
+                <div class="templates-grid">
+                    {% for template in templates %}
+                    <div class="template-card">
+                        <div class="template-header">
+                            <h3>{{ template.template_name }}</h3>
+                            <span class="grade-badge">Grade {{ template.grade }}</span>
+                        </div>
+                        <div class="template-actions">
+                            <a href="{{ url_for('view_yearly_calendar', template_id=template.id) }}" class="btn btn-primary">📅 View Calendar</a>
+                            <a href="{{ url_for('edit_template_periods', template_id=template.id) }}" class="btn btn-secondary">✏️ Edit Template</a>
+                            <a href="{{ url_for('copy_template_to_year', template_id=template.id) }}" class="btn btn-success">🔄 Re-copy to Year</a>
+                        </div>
+                        <div class="template-info">
+                            <small>Created: {{ template.created_at.strftime('%B %d, %Y') if template.created_at else 'Unknown' }}</small>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Weekly Schedule Template -->
-                <div class="schedule-container">
-                    <div class="month-grid" id="months-container">
-                        <!-- Months will be dynamically generated here -->
-                    </div>
+                    {% endfor %}
                 </div>
             </div>
+            {% endif %}
 
             <!-- Feature Highlights -->
             <div class="features-section">
-                <h2>🌟 Yearly Planner Features</h2>
+                <h2>🌟 Teacher-Controlled Planning</h2>
                 <div class="features-grid">
                     <div class="feature-item">
-                        <div class="feature-icon">📝</div>
-                        <h3>Weekly Templates</h3>
-                        <p>Pre-designed weekly schedules for all Pakistani curriculum subjects</p>
+                        <div class="feature-icon">🏗️</div>
+                        <h3>Build Your Own Template</h3>
+                        <p>Create custom weekly schedules with your preferred subjects and timings</p>
                     </div>
                     <div class="feature-item">
-                        <div class="feature-icon">📊</div>
-                        <h3>Auto-Population</h3>
-                        <p>Automatically fill entire academic year with curriculum-based content</p>
+                        <div class="feature-icon">⚡</div>
+                        <h3>Instant Year Generation</h3>
+                        <p>Copy your weekly template to entire academic year in seconds</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">📋</div>
+                        <h3>Calendar View</h3>
+                        <p>See your entire year at a glance with week-by-week schedule</p>
                     </div>
                     <div class="feature-item">
                         <div class="feature-icon">✏️</div>
-                        <h3>Editable Entries</h3>
-                        <p>Customize and edit individual lessons and topics as needed</p>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">📈</div>
-                        <h3>Progress Tracking</h3>
-                        <p>Monitor teaching progress and curriculum completion</p>
+                        <h3>Day-by-Day Editing</h3>
+                        <p>Modify individual days for holidays, special events, or curriculum changes</p>
                     </div>
                 </div>
             </div>
@@ -185,43 +193,131 @@
             margin-bottom: 0;
         }
         
-        .planning-controls {
+        /* 3-Step Process Flow */
+        .process-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+        
+        .step-card {
             background: var(--warm-white);
             padding: 30px;
             border-radius: 20px;
             box-shadow: var(--shadow-md);
-            margin-bottom: 30px;
+            text-align: center;
+            max-width: 300px;
+            flex: 1;
+            position: relative;
+        }
+        
+        .step-number {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             display: flex;
-            gap: 20px;
-            align-items: end;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 20px auto;
+        }
+        
+        .step-content h3 {
+            color: var(--gray-700);
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .step-content p {
+            color: var(--gray-600);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .step-arrow {
+            font-size: 2rem;
+            color: var(--soft-blue);
+            font-weight: bold;
+        }
+        
+        /* Templates Section */
+        .templates-section {
+            margin-bottom: 50px;
+        }
+        
+        .templates-section h2 {
+            color: var(--gray-700);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        
+        .template-card {
+            background: var(--warm-white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            border: 2px solid var(--gray-200);
+            transition: all 0.3s ease;
+        }
+        
+        .template-card:hover {
+            border-color: var(--soft-blue);
+            transform: translateY(-2px);
+        }
+        
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .template-header h3 {
+            color: var(--gray-700);
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        
+        .grade-badge {
+            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .template-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
             flex-wrap: wrap;
         }
         
-        .control-group {
+        .template-actions .btn {
             flex: 1;
-            min-width: 200px;
+            min-width: 120px;
+            font-size: 0.9rem;
+            padding: 10px 16px;
         }
         
-        .control-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: var(--gray-700);
-        }
-        
-        .form-select {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--gray-300);
-            border-radius: 10px;
-            font-size: 1rem;
-            background: white;
-            transition: border-color 0.3s ease;
-        }
-        
-        .form-select:focus {
-            outline: none;
-            border-color: var(--soft-blue);
+        .template-info {
+            color: var(--gray-500);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--gray-200);
+            padding-top: 15px;
         }
         
         .btn {
@@ -233,6 +329,7 @@
             transition: all 0.3s ease;
             text-decoration: none;
             display: inline-block;
+            text-align: center;
         }
         
         .btn-primary {
@@ -255,33 +352,7 @@
             box-shadow: var(--shadow-md);
         }
         
-        .planning-grid {
-            background: var(--warm-white);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 30px;
-        }
-        
-        .grid-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-        
-        .grid-header h2 {
-            color: var(--gray-700);
-            margin: 0;
-        }
-        
-        .plan-controls {
-            display: flex;
-            gap: 15px;
-        }
-        
+        /* Features Section */
         .features-section {
             text-align: center;
         }
@@ -339,76 +410,26 @@
         }
         
         @media (max-width: 768px) {
-            .planning-controls {
+            .process-flow {
                 flex-direction: column;
-                align-items: stretch;
             }
             
-            .grid-header {
-                flex-direction: column;
-                text-align: center;
+            .step-arrow {
+                transform: rotate(90deg);
             }
             
-            .plan-controls {
-                justify-content: center;
+            .templates-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .template-actions {
+                flex-direction: column;
+            }
+            
+            .template-actions .btn {
+                flex: none;
             }
         }
     </style>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const gradeSelect = document.getElementById('grade-select');
-            const subjectSelect = document.getElementById('subject-select');
-            const generateBtn = document.getElementById('generate-plan');
-            const planningGrid = document.getElementById('planning-grid');
-            const planTitle = document.getElementById('plan-title');
-            
-            generateBtn.addEventListener('click', function() {
-                const grade = gradeSelect.value;
-                const subject = subjectSelect.value;
-                
-                if (!grade || !subject) {
-                    alert('Please select both grade and subject');
-                    return;
-                }
-                
-                planTitle.textContent = `Grade ${grade} ${subject} - Academic Year Plan`;
-                planningGrid.style.display = 'block';
-                planningGrid.scrollIntoView({ behavior: 'smooth' });
-                
-                generateYearlyPlan(grade, subject);
-            });
-            
-            function generateYearlyPlan(grade, subject) {
-                const monthsContainer = document.getElementById('months-container');
-                monthsContainer.innerHTML = '';
-                
-                const months = [
-                    'January', 'February', 'March', 'April', 'May', 'June',
-                    'July', 'August', 'September', 'October', 'November', 'December'
-                ];
-                
-                const academicMonths = [
-                    'August', 'September', 'October', 'November', 'December',
-                    'January', 'February', 'March', 'April', 'May'
-                ];
-                
-                academicMonths.forEach(month => {
-                    const monthDiv = document.createElement('div');
-                    monthDiv.className = 'month-section';
-                    monthDiv.innerHTML = `
-                        <h3>${month} 2024/2025</h3>
-                        <div class="weeks-grid">
-                            <div class="week-item">Week 1: Introduction to ${subject} concepts</div>
-                            <div class="week-item">Week 2: Basic ${subject} skills development</div>
-                            <div class="week-item">Week 3: Practice and application</div>
-                            <div class="week-item">Week 4: Assessment and review</div>
-                        </div>
-                    `;
-                    monthsContainer.appendChild(monthDiv);
-                });
-            }
-        });
-    </script>
 </body>
 </html>

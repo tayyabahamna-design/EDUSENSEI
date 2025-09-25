@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Day Schedule - USTAAD DOST</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">✏️ Edit Day</h1>
+            <div class="nav-menu">
+                <a href="javascript:history.back()" class="nav-link">← Back to Calendar</a>
+                <a href="{{ url_for('yearly_planner') }}" class="nav-link">📅 Planner</a>
+                <a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a>
+                <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="edit-container">
+            <div class="edit-header">
+                <h1>✏️ Edit Day Schedule</h1>
+                <p class="edit-subtitle">
+                    <strong>{{ date }}</strong> • 
+                    Modify periods for this specific day
+                </p>
+            </div>
+
+            <div class="form-container">
+                <form method="POST" action="{{ url_for('update_day') }}" class="day-form">
+                    <input type="hidden" name="date" value="{{ date }}">
+                    
+                    <div class="periods-grid">
+                        {% for entry in day_entries %}
+                            <div class="period-card {% if entry.is_modified %}modified{% endif %}">
+                                <div class="period-header">
+                                    <div class="period-info">
+                                        <span class="period-number">Period {{ entry.period_number }}</span>
+                                        <span class="period-time">
+                                            {{ entry.start_time.strftime('%H:%M') }} - {{ entry.end_time.strftime('%H:%M') }}
+                                        </span>
+                                    </div>
+                                    {% if entry.is_modified %}
+                                        <span class="modified-badge">Modified</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="period-content">
+                                    <input type="hidden" name="entry_id_{{ entry.period_number }}" value="{{ entry.id }}">
+                                    
+                                    <label for="period_{{ entry.period_number }}_subject" class="period-label">
+                                        Subject:
+                                    </label>
+                                    <select name="period_{{ entry.period_number }}_subject" 
+                                            id="period_{{ entry.period_number }}_subject" 
+                                            class="subject-select">
+                                        <option value="">No Subject</option>
+                                        <option value="English" {% if entry.subject == 'English' %}selected{% endif %}>📚 English</option>
+                                        <option value="Math" {% if entry.subject == 'Math' %}selected{% endif %}>🔢 Mathematics</option>
+                                        <option value="Urdu" {% if entry.subject == 'Urdu' %}selected{% endif %}>🇵🇰 Urdu</option>
+                                        <option value="Islamiyat" {% if entry.subject == 'Islamiyat' %}selected{% endif %}>🕌 Islamiyat</option>
+                                        <option value="Science" {% if entry.subject == 'Science' %}selected{% endif %}>🔬 Science</option>
+                                        <option value="Social Studies" {% if entry.subject == 'Social Studies' %}selected{% endif %}>📊 Social Studies</option>
+                                        <option value="General Knowledge" {% if entry.subject == 'General Knowledge' %}selected{% endif %}>🌍 General Knowledge</option>
+                                        <option value="Holiday" {% if entry.subject == 'Holiday' %}selected{% endif %}>🎉 Holiday</option>
+                                        <option value="Assembly" {% if entry.subject == 'Assembly' %}selected{% endif %}>🏛️ Assembly</option>
+                                        <option value="Break" {% if entry.subject == 'Break' %}selected{% endif %}>☕ Break</option>
+                                        <option value="Sports" {% if entry.subject == 'Sports' %}selected{% endif %}>⚽ Sports</option>
+                                        <option value="Art" {% if entry.subject == 'Art' %}selected{% endif %}>🎨 Art</option>
+                                        <option value="Free Period" {% if entry.subject == 'Free Period' %}selected{% endif %}>📖 Free Period</option>
+                                    </select>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="special-options">
+                        <h3>🎯 Quick Options</h3>
+                        <div class="quick-buttons">
+                            <button type="button" class="btn btn-quick" onclick="setAllPeriods('Holiday')">
+                                🎉 Mark as Holiday
+                            </button>
+                            <button type="button" class="btn btn-quick" onclick="setAllPeriods('Assembly')">
+                                🏛️ Assembly Day
+                            </button>
+                            <button type="button" class="btn btn-quick" onclick="setAllPeriods('Sports')">
+                                ⚽ Sports Day
+                            </button>
+                            <button type="button" class="btn btn-quick" onclick="clearAllPeriods()">
+                                🗑️ Clear All
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="javascript:history.back()" class="btn btn-secondary">← Cancel</a>
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <style>
+        .navbar {
+            background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
+            box-shadow: var(--shadow-md);
+            padding: 15px 0;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+        }
+        
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+        
+        .nav-welcome {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .edit-header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: var(--warm-white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .edit-header h1 {
+            color: var(--gray-700);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+        
+        .edit-subtitle {
+            color: var(--gray-600);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        
+        .form-container {
+            background: var(--warm-white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .periods-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .period-card {
+            background: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .period-card:hover {
+            border-color: var(--soft-blue);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .period-card.modified {
+            border-color: var(--warm-yellow);
+            background: rgba(255, 193, 7, 0.05);
+        }
+        
+        .period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .period-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .period-number {
+            font-weight: 700;
+            color: var(--gray-700);
+            font-size: 1.1rem;
+        }
+        
+        .period-time {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            font-weight: 500;
+        }
+        
+        .modified-badge {
+            background: var(--warm-yellow);
+            color: var(--gray-700);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .period-content {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .period-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            font-size: 0.9rem;
+        }
+        
+        .subject-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s ease;
+        }
+        
+        .subject-select:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+        }
+        
+        .special-options {
+            background: var(--sage-green-light);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border: 2px solid var(--sage-green);
+        }
+        
+        .special-options h3 {
+            color: var(--gray-700);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+        
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .btn-quick {
+            padding: 12px 20px;
+            background: white;
+            color: var(--gray-700);
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .btn-quick:hover {
+            border-color: var(--soft-blue);
+            background: var(--soft-blue);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: rgba(104, 211, 145, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(104, 211, 145, 0.3);
+        }
+        
+        .alert-error {
+            background: rgba(252, 129, 129, 0.1);
+            color: var(--danger);
+            border: 1px solid rgba(252, 129, 129, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .edit-header {
+                padding: 20px;
+            }
+            
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            .periods-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        function setAllPeriods(subject) {
+            const selects = document.querySelectorAll('.subject-select');
+            selects.forEach(select => {
+                select.value = subject;
+            });
+        }
+        
+        function clearAllPeriods() {
+            const selects = document.querySelectorAll('.subject-select');
+            selects.forEach(select => {
+                select.value = '';
+            });
+        }
+        
+        // Add a custom date filter to make the date more readable
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        // Show confirmation when saving
+        document.querySelector('.day-form').addEventListener('submit', function(e) {
+            const hasChanges = Array.from(document.querySelectorAll('.subject-select')).some(select => {
+                return select.value !== select.defaultValue;
+            });
+            
+            if (hasChanges) {
+                const confirmed = confirm('Save changes to this day\'s schedule?');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
