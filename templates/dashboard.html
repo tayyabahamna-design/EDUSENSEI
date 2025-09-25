@@ -1193,15 +1193,11 @@
         // Check session status every 5 minutes
         setInterval(checkSessionStatus, 5 * 60 * 1000);
         
-        // COMPREHENSIVE APP TESTING SYSTEM
+        // COMPREHENSIVE APP TESTING SYSTEM (BACKEND ONLY - REMOVED FROM USER INTERFACE)
         function addTestingMode() {
-            // Add test button to main dashboard
-            const testButton = document.createElement('button');
-            testButton.onclick = runFullAppTest;
-            testButton.className = 'test-btn';
-            testButton.style.cssText = 'background: orange; color: white; position: fixed; top: 10px; right: 10px; padding: 10px; border: none; border-radius: 5px; cursor: pointer; z-index: 9999; font-weight: bold;';
-            testButton.innerHTML = '🧪 TEST ALL FEATURES';
-            document.body.appendChild(testButton);
+            // Testing functionality removed from user interface
+            // Only available for backend/development use
+            return;
         }
 
         function runFullAppTest() {
@@ -1443,11 +1439,8 @@
             });
         }
 
-        // Initialize testing mode when DOM loads
-        document.addEventListener('DOMContentLoaded', function() {
-            addTestingMode();
-            console.log("🧪 Testing mode enabled. Click orange button to test all features.");
-        });
+        // Testing mode removed from user interface
+        // App initialization without testing features
     </script>
 </body>
 </html>
