@@ -269,8 +269,18 @@
         // PERIOD MANAGEMENT FUNCTIONS
         function addNewPeriod(day) {
             const periodsContainer = document.getElementById(`${day}_periods`);
-            const currentPeriods = periodsContainer.querySelectorAll('.period-row').length;
-            const newPeriodNumber = currentPeriods + 1;
+            
+            // Get next available period number by finding the highest existing number
+            const existingPeriods = periodsContainer.querySelectorAll('.period-row');
+            let maxPeriodNumber = 0;
+            existingPeriods.forEach(row => {
+                const periodLabel = row.querySelector('label').textContent;
+                const periodMatch = periodLabel.match(/Period (\d+):/);
+                if (periodMatch) {
+                    maxPeriodNumber = Math.max(maxPeriodNumber, parseInt(periodMatch[1]));
+                }
+            });
+            const newPeriodNumber = maxPeriodNumber + 1;
             
             // Get available subjects
             const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu", "Islamiyat", "Science", "Social Studies", "General Knowledge"]');
@@ -295,8 +305,18 @@
             const originalPeriod = document.getElementById(`${day}_period${periodNumber}_container`);
             if (originalPeriod) {
                 const periodsContainer = document.getElementById(`${day}_periods`);
-                const allPeriods = periodsContainer.querySelectorAll('.period-row').length;
-                const newPeriodNumber = allPeriods + 1;
+                
+                // Get next available period number
+                const existingPeriods = periodsContainer.querySelectorAll('.period-row');
+                let maxPeriodNumber = 0;
+                existingPeriods.forEach(row => {
+                    const periodLabel = row.querySelector('label').textContent;
+                    const periodMatch = periodLabel.match(/Period (\d+):/);
+                    if (periodMatch) {
+                        maxPeriodNumber = Math.max(maxPeriodNumber, parseInt(periodMatch[1]));
+                    }
+                });
+                const newPeriodNumber = maxPeriodNumber + 1;
                 
                 // Get original values
                 const startTime = document.getElementById(`${day}_period${periodNumber}_start`).value;
@@ -376,7 +396,7 @@
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             days.forEach(day => {
                 const periodsContainer = document.getElementById(`${day}_periods`);
-                const newBreakHTML = createEditableBreak(day, '3:00', '3:15', 'Evening');
+                const newBreakHTML = createEditableBreak(day, '15:00', '15:15', 'Evening');
                 periodsContainer.innerHTML += newBreakHTML;
             });
             alert('✅ Evening break added to all days!');
@@ -457,22 +477,21 @@
                     breaks: []
                 };
                 
-                // Get all periods for this day
+                // Get all periods for this day using robust DOM traversal
                 const periodRows = document.querySelectorAll(`#${day}_periods .period-row`);
                 periodRows.forEach((row, index) => {
-                    const periodNum = index + 1;
-                    const startTimeEl = document.getElementById(`${day}_period${periodNum}_start`);
-                    const endTimeEl = document.getElementById(`${day}_period${periodNum}_end`);
-                    const subjectEl = document.getElementById(`${day}_period${periodNum}_subject`);
+                    const startTimeInput = row.querySelector('input[type="time"]:first-of-type');
+                    const endTimeInput = row.querySelector('input[type="time"]:last-of-type');
+                    const subjectSelect = row.querySelector('select');
                     
-                    if (startTimeEl && endTimeEl) {
-                        const startTime = startTimeEl.value;
-                        const endTime = endTimeEl.value;
-                        const subject = subjectEl ? subjectEl.value : '';
+                    if (startTimeInput && endTimeInput) {
+                        const startTime = startTimeInput.value;
+                        const endTime = endTimeInput.value;
+                        const subject = subjectSelect ? subjectSelect.value : '';
                         
                         if (startTime && endTime) {
                             daySchedule.periods.push({
-                                number: periodNum,
+                                number: index + 1,
                                 startTime: startTime,
                                 endTime: endTime,
                                 subject: subject || 'Free Period'
@@ -481,19 +500,18 @@
                     }
                 });
                 
-                // Get break times
+                // Get break times using robust DOM traversal
                 const breakRows = document.querySelectorAll(`#${day}_periods .break-row`);
                 breakRows.forEach(breakRow => {
-                    const breakId = breakRow.id.split('_')[1]; // get break type
-                    const startTimeEl = document.getElementById(`${day}_${breakId}_start`);
-                    const endTimeEl = document.getElementById(`${day}_${breakId}_end`);
+                    const timeInputs = breakRow.querySelectorAll('input[type="time"]');
+                    const labelEl = breakRow.querySelector('label');
                     
-                    if (startTimeEl && endTimeEl) {
-                        const startTime = startTimeEl.value;
-                        const endTime = endTimeEl.value;
-                        const breakType = breakId.charAt(0).toUpperCase() + breakId.slice(1);
+                    if (timeInputs.length >= 2 && labelEl) {
+                        const startTime = timeInputs[0].value;
+                        const endTime = timeInputs[1].value;
+                        const breakType = labelEl.textContent.replace(' Time:', '');
                         
-                        if (startTime && endTime) {
+                        if (startTime && endTime && breakType) {
                             daySchedule.breaks.push({ 
                                 type: breakType, 
                                 start: startTime, 
@@ -519,7 +537,8 @@
             }));
             
             const totalPeriods = Object.values(weeklySchedule).reduce((total, day) => total + day.periods.length, 0);
-            alert(`✅ Complete schedule with ${Object.keys(weeklySchedule).length} days and ${totalPeriods} total periods copied to entire year!`);
+            const totalBreaks = Object.values(weeklySchedule).reduce((total, day) => total + day.breaks.length, 0);
+            alert(`✅ Complete schedule with ${Object.keys(weeklySchedule).length} days, ${totalPeriods} total periods, and ${totalBreaks} breaks copied to entire year!`);
             
             showYearlyCalendar();
         }
@@ -917,22 +936,21 @@
                     breaks: []
                 };
                 
-                // Get all periods for this day
+                // Get all periods for this day using robust DOM traversal
                 const periodRows = document.querySelectorAll(`#edit_${weekNumber}_${day}_periods_container .edit-period-row`);
                 periodRows.forEach((row, index) => {
-                    const periodNum = index + 1;
-                    const startTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNum}_start`);
-                    const endTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNum}_end`);
-                    const subjectEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNum}_subject`);
+                    const startTimeInput = row.querySelector('input[type="time"]:first-of-type');
+                    const endTimeInput = row.querySelector('input[type="time"]:last-of-type');
+                    const subjectSelect = row.querySelector('select');
                     
-                    if (startTimeEl && endTimeEl) {
-                        const startTime = startTimeEl.value;
-                        const endTime = endTimeEl.value;
-                        const subject = subjectEl ? subjectEl.value : '';
+                    if (startTimeInput && endTimeInput) {
+                        const startTime = startTimeInput.value;
+                        const endTime = endTimeInput.value;
+                        const subject = subjectSelect ? subjectSelect.value : '';
                         
                         if (startTime && endTime) {
                             daySchedule.periods.push({
-                                number: periodNum,
+                                number: index + 1,
                                 startTime: startTime,
                                 endTime: endTime,
                                 subject: subject || 'Free Period'
@@ -941,17 +959,18 @@
                     }
                 });
                 
-                // Get break times
+                // Get break times using robust DOM traversal
                 const breakRows = document.querySelectorAll(`#edit_${weekNumber}_${day}_periods_container .edit-break-row`);
                 breakRows.forEach(breakRow => {
-                    const inputs = breakRow.querySelectorAll('input[type="time"]');
-                    if (inputs.length >= 2) {
-                        const startTime = inputs[0].value;
-                        const endTime = inputs[1].value;
-                        const label = breakRow.querySelector('label').textContent;
-                        const breakType = label.replace(' Time:', '');
+                    const timeInputs = breakRow.querySelectorAll('input[type="time"]');
+                    const labelEl = breakRow.querySelector('label');
+                    
+                    if (timeInputs.length >= 2 && labelEl) {
+                        const startTime = timeInputs[0].value;
+                        const endTime = timeInputs[1].value;
+                        const breakType = labelEl.textContent.replace(' Time:', '');
                         
-                        if (startTime && endTime) {
+                        if (startTime && endTime && breakType) {
                             daySchedule.breaks.push({ 
                                 type: breakType, 
                                 start: startTime, 
@@ -968,7 +987,8 @@
             localStorage.setItem(`week_${weekNumber}_plan`, JSON.stringify(editedWeek));
             
             const totalPeriods = Object.values(editedWeek).reduce((total, day) => total + day.periods.length, 0);
-            alert(`✅ Week ${weekNumber} saved successfully with ${totalPeriods} total periods!`);
+            const totalBreaks = Object.values(editedWeek).reduce((total, day) => total + day.breaks.length, 0);
+            alert(`✅ Week ${weekNumber} saved successfully with ${totalPeriods} total periods and ${totalBreaks} breaks!`);
             
             // Show yearly calendar
             showYearlyCalendar();
