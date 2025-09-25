@@ -39,9 +39,9 @@
     --gray-900: #0f0f0f;
     
     /* Matte Black for Content */
-    --content-black: #2d2d2d;
-    --content-black-light: #404040;
-    --content-black-dark: #1a1a1a;
+    --content-black: #000000;
+    --content-black-light: #1a1a1a;
+    --content-black-dark: #000000;
     
     --success: #68d391;
     --danger: #fc8181;
@@ -90,6 +90,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    color: var(--content-black) !important;
 }
 
 body {
