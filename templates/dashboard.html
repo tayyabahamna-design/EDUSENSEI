@@ -78,7 +78,7 @@
                         <div class="feature-item">✅ Screener Grading</div>
                         <div class="feature-item">📄 PDF Reports</div>
                     </div>
-                    <button id="gradingBuddyBtn" class="btn btn-secondary">📊 Manage Grades</button>
+                    <button id="gradingBuddyBtn" class="btn btn-primary btn-large">📊 Manage Grades</button>
                 </div>
                 
                 <!-- AI Chatbox Feature -->
@@ -92,7 +92,7 @@
                         <div class="ai-feature">🎮 Activities & Games</div>
                         <div class="ai-feature">📋 Assessments</div>
                     </div>
-                    <button id="chatbotBtn" class="btn btn-accent">🤖 AI Assistant</button>
+                    <button id="chatbotBtn" class="btn btn-primary btn-large">🤖 AI Assistant</button>
                 </div>
             </div>
             
@@ -273,16 +273,8 @@
             margin-bottom: 20px;
         }
         
-        .yearly-planner {
+        .yearly-planner, .grading-buddy, .ai-chatbox {
             border-top: 5px solid var(--soft-blue);
-        }
-        
-        .grading-buddy {
-            border-top: 5px solid var(--sage-green);
-        }
-        
-        .ai-chatbox {
-            border-top: 5px solid var(--warm-cream-dark);
         }
         
         .feature-card h3 {
@@ -297,35 +289,19 @@
             margin-bottom: 20px;
         }
         
-        .feature-highlights {
+        .feature-highlights, .feature-list, .ai-features {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin: 20px 0;
         }
         
-        .highlight {
-            background: var(--gentle-mint-light);
-            color: var(--gray-700);
-            padding: 8px 12px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        
-        .feature-list, .ai-features {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin: 15px 0;
-        }
-        
-        .feature-item, .ai-feature {
+        .highlight, .feature-item, .ai-feature {
             background: var(--soft-blue-light);
             color: var(--gray-700);
             padding: 8px 12px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             font-weight: 500;
         }
         
