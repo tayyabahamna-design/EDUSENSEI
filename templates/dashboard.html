@@ -58,7 +58,7 @@
                     <div class="card-content">
                         <div class="feature-icon">📅</div>
                         <h3>📚 Yearly Planner</h3>
-                        <p>Complete academic planning for all subjects and grades | تمام مضامین اور جماعتوں کے لیے تعلیمی منصوبہ بندی</p>
+                        <p>Complete academic planning for all subjects and grades<br>تمام مضامین اور جماعتوں کے لیے تعلیمی منصوبہ بندی</p>
                     </div>
                     <button id="yearlyPlannerBtn" class="btn btn-primary btn-large">📅 Start Planning</button>
                 </div>
@@ -68,7 +68,7 @@
                     <div class="card-content">
                         <div class="feature-icon">📊</div>
                         <h3>🎯 Grading Buddy</h3>
-                        <p>Student management and assessment tools with reports | طلباء کا انتظام اور جانچ پڑتال کے ساتھ رپورٹس</p>
+                        <p>Student management and assessment tools with reports<br>طلباء کا انتظام اور جانچ پڑتال کے ساتھ رپورٹس</p>
                     </div>
                     <button id="gradingBuddyBtn" class="btn btn-primary btn-large">📊 Manage Grades</button>
                 </div>
@@ -78,7 +78,7 @@
                     <div class="card-content">
                         <div class="feature-icon">🤖</div>
                         <h3>💬 AI Assistant</h3>
-                        <p>AI-powered teaching support for Pakistani curriculum | پاکستانی نصاب کے لیے AI سے تعلیمی مدد</p>
+                        <p>AI-powered teaching support for Pakistani curriculum<br>پاکستانی نصاب کے لیے AI سے تعلیمی مدد</p>
                     </div>
                     <button id="chatbotBtn" class="btn btn-primary btn-large">🤖 AI Assistant</button>
                 </div>
@@ -234,18 +234,18 @@
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
+            gap: 20px;
             margin-bottom: 40px;
         }
         
         .feature-card {
             background: var(--warm-white);
-            padding: 30px;
+            padding: 20px;
             border-radius: 20px;
             box-shadow: var(--shadow-lg);
             text-align: center;
             transition: all 0.3s ease;
-            min-height: 450px;
+            min-height: 280px;
             display: flex;
             flex-direction: column;
         }
@@ -255,8 +255,26 @@
         }
 
         .feature-card .btn {
-            margin-top: 20px;
+            margin-top: 15px;
             margin-bottom: 0;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: var(--gray-700);
+            margin-bottom: 10px;
+            font-size: 1.4rem;
+        }
+
+        .feature-card p {
+            color: var(--gray-600);
+            line-height: 1.5;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
         }
         
         .feature-card:hover {
@@ -268,26 +286,12 @@
             grid-column: span 2;
         }
         
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 20px;
-        }
         
         .yearly-planner, .grading-buddy, .ai-chatbox {
             border-top: 5px solid var(--soft-blue);
         }
         
-        .feature-card h3 {
-            color: var(--gray-700);
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
         
-        .feature-card p {
-            color: var(--gray-600);
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
         
         .feature-highlights, .feature-list, .ai-features {
             display: grid;
