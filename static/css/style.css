@@ -1,26 +1,26 @@
 /* USTAAD DOST - Eye-Friendly Soothing Teacher Assistant */
 :root {
-    /* Modern Primary Colors */
-    --primary: #6366f1;        /* Indigo Blue */
-    --secondary: #10b981;      /* Emerald Green */
-    --accent: #f59e0b;         /* Amber Orange */
+    /* Green Primary Colors */
+    --primary: #22c55e;        /* Green */
+    --secondary: #16a34a;      /* Dark Green */
+    --accent: #84cc16;         /* Light Green */
     
-    /* Modern Appealing Palette */
-    --soft-blue: #6366f1;
-    --soft-blue-light: #a5b4fc;
-    --soft-blue-dark: #4f46e5;
+    /* Green Appealing Palette */
+    --soft-blue: #22c55e;
+    --soft-blue-light: #86efac;
+    --soft-blue-dark: #16a34a;
     
-    --sage-green: #10b981;
-    --sage-green-light: #6ee7b7;
-    --sage-green-dark: #059669;
+    --sage-green: #22c55e;
+    --sage-green-light: #86efac;
+    --sage-green-dark: #16a34a;
     
-    --warm-cream: #f59e0b;
-    --warm-cream-light: #fbbf24;
-    --warm-cream-dark: #d97706;
+    --warm-cream: #84cc16;
+    --warm-cream-light: #bef264;
+    --warm-cream-dark: #65a30d;
     
-    --gentle-mint: #14b8a6;
-    --gentle-mint-light: #5eead4;
-    --gentle-mint-dark: #0f766e;
+    --gentle-mint: #10b981;
+    --gentle-mint-light: #6ee7b7;
+    --gentle-mint-dark: #059669;
     
     --warm-white: #ffffff;
     --paper-light: #ffffff;
@@ -55,16 +55,16 @@
     --gray-medium: var(--gray-500);
     --gray-dark: var(--gray-700);
     
-    /* Legacy color tokens - harmonized with new palette */
-    --baby-pink: #f472b6;
-    --baby-pink-light: #f9a8d4;
-    --baby-pink-dark: #ec4899;
-    --calm-blue: #3b82f6;
-    --calm-blue-light: #93c5fd;
-    --calm-blue-dark: #2563eb;
-    --pretty-yellow: #eab308;
-    --pretty-yellow-light: #fde047;
-    --pretty-yellow-dark: #ca8a04;
+    /* Legacy color tokens - harmonized with green palette */
+    --baby-pink: #22c55e;
+    --baby-pink-light: #86efac;
+    --baby-pink-dark: #16a34a;
+    --calm-blue: #22c55e;
+    --calm-blue-light: #86efac;
+    --calm-blue-dark: #16a34a;
+    --pretty-yellow: #84cc16;
+    --pretty-yellow-light: #bef264;
+    --pretty-yellow-dark: #65a30d;
     
     /* Additional legacy mappings */
     --pink-primary: var(--baby-pink);
