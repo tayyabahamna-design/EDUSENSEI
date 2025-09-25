@@ -6,6 +6,9 @@
     <title>Yearly Planner - USTAAD DOST</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     
+    <!-- jsPDF Library for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <!-- PostHog Analytics -->
     <script>
         !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);var n=t;if("undefined"!=typeof e){for(var p=0;p<o.length-1;p++)n[o[p]]=n[o[p]]||{},n=n[o[p]];n[o[o.length-1]]=i}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getGroups create_alias get_distinct_id get_session_id capture_pageview capture_pageleave register_for_session unregister_for_session".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
@@ -174,48 +177,53 @@
 
         function createDaySchedule(day, subjects) {
             return `
-                <div class="day-schedule">
+                <div class="day-schedule" style="border: 1px solid #ccc; padding: 10px; margin: 10px;">
                     <h4>${day}</h4>
                     <div class="periods">
-                        <div class="period-slot">
-                            <label>Period 1 (8:00-8:40)</label>
-                            <select id="${day}_period1" class="period-select">
+                        <div class="period-row">
+                            <label>Period 1 (8:00-8:40):</label>
+                            <select id="${day}_period1" style="width: 150px;">
                                 <option value="">Select Subject</option>
                                 ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
                         </div>
                         
-                        <div class="period-slot">
-                            <label>Period 2 (8:40-9:20)</label>
-                            <select id="${day}_period2" class="period-select">
+                        <div class="period-row">
+                            <label>Period 2 (8:40-9:20):</label>
+                            <select id="${day}_period2" style="width: 150px;">
                                 <option value="">Select Subject</option>
                                 ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
                         </div>
                         
-                        <div class="period-slot">
-                            <label>Period 3 (9:20-10:00)</label>
-                            <select id="${day}_period3" class="period-select">
+                        <div class="period-row">
+                            <label>Period 3 (9:20-10:00):</label>
+                            <select id="${day}_period3" style="width: 150px;">
                                 <option value="">Select Subject</option>
                                 ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
                         </div>
                         
-                        <div class="break-time">
-                            <p>☕ Break: 10:00-10:20</p>
+                        <!-- WORKING BREAK TIME EDITOR -->
+                        <div class="break-time-editor" style="background: #f0f0f0; padding: 5px; margin: 5px 0;">
+                            <label><strong>Break Time:</strong></label><br>
+                            <label>Start:</label>
+                            <input type="time" id="${day}_breakStart" value="10:00" style="margin: 2px;">
+                            <label>End:</label>
+                            <input type="time" id="${day}_breakEnd" value="10:20" style="margin: 2px;">
                         </div>
                         
-                        <div class="period-slot">
-                            <label>Period 4 (10:20-11:00)</label>
-                            <select id="${day}_period4" class="period-select">
+                        <div class="period-row">
+                            <label>Period 4 (After Break):</label>
+                            <select id="${day}_period4" style="width: 150px;">
                                 <option value="">Select Subject</option>
                                 ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
                         </div>
                         
-                        <div class="period-slot">
-                            <label>Period 5 (11:00-11:40)</label>
-                            <select id="${day}_period5" class="period-select">
+                        <div class="period-row">
+                            <label>Period 5 (Last Period):</label>
+                            <select id="${day}_period5" style="width: 150px;">
                                 <option value="">Select Subject</option>
                                 ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
                             </select>
@@ -243,7 +251,9 @@
                     period2: document.getElementById(`${day}_period2`).value,
                     period3: document.getElementById(`${day}_period3`).value,
                     period4: document.getElementById(`${day}_period4`).value,
-                    period5: document.getElementById(`${day}_period5`).value
+                    period5: document.getElementById(`${day}_period5`).value,
+                    breakStart: document.getElementById(`${day}_breakStart`).value || '10:00',
+                    breakEnd: document.getElementById(`${day}_breakEnd`).value || '10:20'
                 };
             });
             
@@ -305,10 +315,161 @@
             return weekButtons;
         }
 
+        // WORKING editWeek function
         function editWeek(weekNumber) {
-            const savedPlan = JSON.parse(localStorage.getItem('yearlyPlan'));
+            console.log(`Opening Week ${weekNumber} editor`);
             
-            alert(`Editing Week ${weekNumber}\\n\\nThis feature allows you to customize individual weeks.\\n\\nCurrent template:\\n${formatScheduleForDisplay(savedPlan.schedule)}`);
+            // Get current plan and any saved week overrides
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            const baseSchedule = yearlyPlan.schedule || {};
+            const savedWeekData = JSON.parse(localStorage.getItem(`week_${weekNumber}_plan`) || '{}');
+            
+            // Merge base schedule with saved week overrides
+            const weekSchedule = {};
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+                weekSchedule[day] = savedWeekData[day] || baseSchedule[day] || {};
+            });
+            
+            // Hide other sections
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('weeklyTemplate').style.display = 'none';
+            document.getElementById('yearlyCalendar').style.display = 'none';
+            
+            // Create working week editor
+            const weekEditor = `
+                <div class="week-editor-container" style="padding: 20px;">
+                    <h2>📝 Edit Week ${weekNumber}</h2>
+                    <button onclick="showYearlyCalendar()" class="back-btn" style="background: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
+                        ⬅️ Back to Calendar
+                    </button>
+                    
+                    <div class="edit-days">
+                        ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => 
+                            createEditableDay(day, weekSchedule[day] || {}, weekNumber)
+                        ).join('')}
+                    </div>
+                    
+                    <button onclick="saveWeekEdits(${weekNumber})" style="background: green; color: white; padding: 15px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">
+                        💾 Save Week ${weekNumber} Changes
+                    </button>
+                </div>
+            `;
+            
+            document.querySelector('.planner-container').innerHTML = weekEditor;
+        }
+        
+        function createEditableDay(day, dayData, weekNumber) {
+            return `
+                <div class="editable-day" style="border: 2px solid #333; margin: 10px; padding: 15px; border-radius: 8px; background: #f9f9f9;">
+                    <h3>${day} - Week ${weekNumber}</h3>
+                    
+                    <div class="day-periods" style="display: grid; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 120px; font-weight: bold;">Period 1:</label>
+                            <select id="edit_${weekNumber}_${day}_period1" style="padding: 5px; width: 150px;">
+                                <option value="">Select Subject</option>
+                                <option value="English" ${dayData.period1 === 'English' ? 'selected' : ''}>English</option>
+                                <option value="Math" ${dayData.period1 === 'Math' ? 'selected' : ''}>Math</option>
+                                <option value="Urdu" ${dayData.period1 === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                <option value="Science" ${dayData.period1 === 'Science' ? 'selected' : ''}>Science</option>
+                                <option value="Islamiyat" ${dayData.period1 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                <option value="Social Studies" ${dayData.period1 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                <option value="General Knowledge" ${dayData.period1 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 120px; font-weight: bold;">Period 2:</label>
+                            <select id="edit_${weekNumber}_${day}_period2" style="padding: 5px; width: 150px;">
+                                <option value="">Select Subject</option>
+                                <option value="English" ${dayData.period2 === 'English' ? 'selected' : ''}>English</option>
+                                <option value="Math" ${dayData.period2 === 'Math' ? 'selected' : ''}>Math</option>
+                                <option value="Urdu" ${dayData.period2 === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                <option value="Science" ${dayData.period2 === 'Science' ? 'selected' : ''}>Science</option>
+                                <option value="Islamiyat" ${dayData.period2 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                <option value="Social Studies" ${dayData.period2 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                <option value="General Knowledge" ${dayData.period2 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 120px; font-weight: bold;">Period 3:</label>
+                            <select id="edit_${weekNumber}_${day}_period3" style="padding: 5px; width: 150px;">
+                                <option value="">Select Subject</option>
+                                <option value="English" ${dayData.period3 === 'English' ? 'selected' : ''}>English</option>
+                                <option value="Math" ${dayData.period3 === 'Math' ? 'selected' : ''}>Math</option>
+                                <option value="Urdu" ${dayData.period3 === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                <option value="Science" ${dayData.period3 === 'Science' ? 'selected' : ''}>Science</option>
+                                <option value="Islamiyat" ${dayData.period3 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                <option value="Social Studies" ${dayData.period3 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                <option value="General Knowledge" ${dayData.period3 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                            </select>
+                        </div>
+                        
+                        <div style="background: #e8f4f8; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Break Time:</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <label>Start:</label>
+                                <input type="time" id="edit_${weekNumber}_${day}_breakStart" value="${dayData.breakStart || '10:00'}" style="padding: 5px;">
+                                <label>End:</label>
+                                <input type="time" id="edit_${weekNumber}_${day}_breakEnd" value="${dayData.breakEnd || '10:20'}" style="padding: 5px;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 120px; font-weight: bold;">Period 4:</label>
+                            <select id="edit_${weekNumber}_${day}_period4" style="padding: 5px; width: 150px;">
+                                <option value="">Select Subject</option>
+                                <option value="English" ${dayData.period4 === 'English' ? 'selected' : ''}>English</option>
+                                <option value="Math" ${dayData.period4 === 'Math' ? 'selected' : ''}>Math</option>
+                                <option value="Urdu" ${dayData.period4 === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                <option value="Science" ${dayData.period4 === 'Science' ? 'selected' : ''}>Science</option>
+                                <option value="Islamiyat" ${dayData.period4 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                <option value="Social Studies" ${dayData.period4 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                <option value="General Knowledge" ${dayData.period4 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                            </select>
+                        </div>
+                        
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <label style="width: 120px; font-weight: bold;">Period 5:</label>
+                            <select id="edit_${weekNumber}_${day}_period5" style="padding: 5px; width: 150px;">
+                                <option value="">Select Subject</option>
+                                <option value="English" ${dayData.period5 === 'English' ? 'selected' : ''}>English</option>
+                                <option value="Math" ${dayData.period5 === 'Math' ? 'selected' : ''}>Math</option>
+                                <option value="Urdu" ${dayData.period5 === 'Urdu' ? 'selected' : ''}>Urdu</option>
+                                <option value="Science" ${dayData.period5 === 'Science' ? 'selected' : ''}>Science</option>
+                                <option value="Islamiyat" ${dayData.period5 === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
+                                <option value="Social Studies" ${dayData.period5 === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
+                                <option value="General Knowledge" ${dayData.period5 === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function saveWeekEdits(weekNumber) {
+            console.log(`Saving Week ${weekNumber} changes`);
+            
+            // Save individual week data
+            const weekData = {};
+            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
+                weekData[day] = {
+                    period1: document.getElementById(`edit_${weekNumber}_${day}_period1`)?.value || '',
+                    period2: document.getElementById(`edit_${weekNumber}_${day}_period2`)?.value || '',
+                    period3: document.getElementById(`edit_${weekNumber}_${day}_period3`)?.value || '',
+                    period4: document.getElementById(`edit_${weekNumber}_${day}_period4`)?.value || '',
+                    period5: document.getElementById(`edit_${weekNumber}_${day}_period5`)?.value || '',
+                    breakStart: document.getElementById(`edit_${weekNumber}_${day}_breakStart`)?.value || '10:00',
+                    breakEnd: document.getElementById(`edit_${weekNumber}_${day}_breakEnd`)?.value || '10:20'
+                };
+            });
+            
+            // Save to localStorage
+            localStorage.setItem(`week_${weekNumber}_plan`, JSON.stringify(weekData));
+            
+            alert(`✅ Week ${weekNumber} saved successfully!`);
+            showYearlyCalendar();
         }
 
         function formatScheduleForDisplay(schedule) {
@@ -325,36 +486,58 @@
         }
 
         function downloadSchedule() {
-            const savedPlan = JSON.parse(localStorage.getItem('yearlyPlan'));
-            if (!savedPlan) {
-                alert('No schedule found!');
+            downloadYearlyPlan();
+        }
+        
+        // Add PDF generation functionality
+        function downloadYearlyPlan() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Get saved plan
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            const schedule = yearlyPlan.schedule || {};
+            
+            if (!yearlyPlan.grade) {
+                alert('No yearly plan found! Please create a plan first.');
                 return;
             }
             
-            let scheduleText = `YEARLY SCHEDULE - Grade ${savedPlan.grade}\\n`;
-            scheduleText += `Subjects: ${savedPlan.subjects.join(', ')}\\n`;
-            scheduleText += `Created: ${new Date(savedPlan.createdDate).toLocaleDateString()}\\n\\n`;
+            // Generate PDF content
+            doc.setFontSize(20);
+            doc.text('Yearly Teaching Plan', 20, 30);
             
-            Object.keys(savedPlan.schedule).forEach(day => {
-                scheduleText += `${day.toUpperCase()}:\\n`;
-                scheduleText += `  Period 1 (8:00-8:40): ${savedPlan.schedule[day].period1 || 'Free'}\\n`;
-                scheduleText += `  Period 2 (8:40-9:20): ${savedPlan.schedule[day].period2 || 'Free'}\\n`;
-                scheduleText += `  Period 3 (9:20-10:00): ${savedPlan.schedule[day].period3 || 'Free'}\\n`;
-                scheduleText += `  Break (10:00-10:20)\\n`;
-                scheduleText += `  Period 4 (10:20-11:00): ${savedPlan.schedule[day].period4 || 'Free'}\\n`;
-                scheduleText += `  Period 5 (11:00-11:40): ${savedPlan.schedule[day].period5 || 'Free'}\\n\\n`;
+            doc.setFontSize(14);
+            doc.text(`Grade: ${yearlyPlan.grade}`, 20, 45);
+            doc.text(`Subjects: ${yearlyPlan.subjects.join(', ')}`, 20, 55);
+            doc.text(`Created: ${new Date(yearlyPlan.createdDate).toLocaleDateString()}`, 20, 65);
+            
+            doc.setFontSize(12);
+            let yPosition = 85;
+            
+            Object.keys(schedule).forEach(day => {
+                if (yPosition > 250) {
+                    doc.addPage();
+                    yPosition = 30;
+                }
+                
+                doc.setFont(undefined, 'bold');
+                doc.text(`${day}:`, 20, yPosition);
+                doc.setFont(undefined, 'normal');
+                
+                doc.text(`Period 1 (8:00-8:40): ${schedule[day].period1 || 'Not assigned'}`, 30, yPosition + 10);
+                doc.text(`Period 2 (8:40-9:20): ${schedule[day].period2 || 'Not assigned'}`, 30, yPosition + 20);
+                doc.text(`Period 3 (9:20-10:00): ${schedule[day].period3 || 'Not assigned'}`, 30, yPosition + 30);
+                doc.text(`Break: ${schedule[day].breakStart || '10:00'} - ${schedule[day].breakEnd || '10:20'}`, 30, yPosition + 40);
+                doc.text(`Period 4 (After Break): ${schedule[day].period4 || 'Not assigned'}`, 30, yPosition + 50);
+                doc.text(`Period 5 (Last Period): ${schedule[day].period5 || 'Not assigned'}`, 30, yPosition + 60);
+                
+                yPosition += 80;
             });
             
-            // Create and download file
-            const blob = new Blob([scheduleText], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `yearly-schedule-grade-${savedPlan.grade}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
+            // Download PDF
+            doc.save(`Yearly_Teaching_Plan_Grade_${yearlyPlan.grade}.pdf`);
+            alert('✅ Yearly plan downloaded as PDF!');
         }
 
         // Load existing plan if available
