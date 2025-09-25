@@ -37,10 +37,14 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-title">🤖💖 AI Assistant</h1>
+            <h1 class="nav-title">🌟 USTAAD DOST</h1>
             <ul class="nav-menu">
-                <li><a href="{{ url_for('index') }}" class="nav-link">🏠 Home</a></li>
-                <li><a href="{{ url_for('chatbot') }}" class="nav-link">🤖 Chat</a></li>
+                <li><a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a></li>
+                <li><a href="{{ url_for('chatbot') }}" class="nav-link">🤖 U-Dost Chat</a></li>
+                <li><a href="{{ url_for('yearly_planner') }}" class="nav-link">📅 Yearly Planner</a></li>
+                <li><a href="{{ url_for('grading_buddy') }}" class="nav-link">📊 Grading Buddy</a></li>
+                <li><span class="nav-welcome">Welcome, {{ session.user_name }}!</span></li>
+                <li><a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a></li>
             </ul>
         </div>
     </nav>
@@ -59,6 +63,34 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Navigation JavaScript -->
+    <script>
+        // Home button functionality
+        function goToDashboard() {
+            window.location.href = '{{ url_for("index") }}';
+        }
+        
+        // Add click handlers for all home buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            // Find all home/dashboard links and ensure they work
+            const homeLinks = document.querySelectorAll('a[href="{{ url_for("index") }}"]');
+            homeLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    goToDashboard();
+                });
+            });
+            
+            // Add keyboard shortcut for home (Alt+H)
+            document.addEventListener('keydown', function(e) {
+                if (e.altKey && e.key === 'h') {
+                    e.preventDefault();
+                    goToDashboard();
+                }
+            });
+        });
+    </script>
+    
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

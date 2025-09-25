@@ -36,6 +36,9 @@
         <div class="nav-container">
             <h1 class="nav-title">🌟 USTAAD DOST</h1>
             <div class="nav-menu">
+                <a href="{{ url_for('yearly_planner') }}" class="nav-link">📅 Yearly Planner</a>
+                <a href="{{ url_for('grading_buddy') }}" class="nav-link">📊 Grading Buddy</a>
+                <a href="{{ url_for('chatbot') }}" class="nav-link">🤖 U-Dost Chat</a>
                 <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
                 <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
             </div>
@@ -433,6 +436,24 @@
     </style>
     
     <script>
+        // Dashboard functionality
+        function openYearlyPlanner() {
+            window.location.href = '{{ url_for("yearly_planner") }}';
+        }
+        
+        function openGradingBuddy() {
+            window.location.href = '{{ url_for("grading_buddy") }}';
+        }
+        
+        function openUDost() {
+            window.location.href = '{{ url_for("chatbot") }}';
+        }
+        
+        function openProfile() {
+            // Add profile route when available
+            alert('Profile editing will be available soon!');
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             // Track dashboard page view
             setTimeout(function() {
@@ -451,6 +472,32 @@
                             from: 'dashboard'
                         });
                     }
+                });
+            });
+            
+            // Add click handlers for quick navigation
+            const yearlyPlannerLinks = document.querySelectorAll('a[href="{{ url_for("yearly_planner") }}"]');
+            const gradingBuddyLinks = document.querySelectorAll('a[href="{{ url_for("grading_buddy") }}"]');
+            const chatbotLinks = document.querySelectorAll('a[href="{{ url_for("chatbot") }}"]');
+            
+            yearlyPlannerLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openYearlyPlanner();
+                });
+            });
+            
+            gradingBuddyLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openGradingBuddy();
+                });
+            });
+            
+            chatbotLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    openUDost();
                 });
             });
         });
