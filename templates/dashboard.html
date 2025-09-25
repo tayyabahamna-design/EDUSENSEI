@@ -74,7 +74,7 @@
                         <div class="highlight">✏️ Editable Entries</div>
                         <div class="highlight">📈 Progress Tracking</div>
                     </div>
-                    <a href="/yearly-planner" class="btn btn-primary btn-large">📅 Start Planning</a>
+                    <button id="yearlyPlannerBtn" class="btn btn-primary btn-large">📅 Start Planning</button>
                 </div>
                 
                 <!-- Grading Buddy Feature -->
@@ -88,7 +88,7 @@
                         <div class="feature-item">✅ Screener Grading</div>
                         <div class="feature-item">📄 PDF Reports</div>
                     </div>
-                    <a href="/grading-buddy" class="btn btn-secondary">📊 Manage Grades</a>
+                    <button id="gradingBuddyBtn" class="btn btn-secondary">📊 Manage Grades</button>
                 </div>
                 
                 <!-- AI Chatbox Feature -->
@@ -102,7 +102,7 @@
                         <div class="ai-feature">🎮 Activities & Games</div>
                         <div class="ai-feature">📋 Assessments</div>
                     </div>
-                    <a href="{{ url_for('chatbot') }}" class="btn btn-accent">🤖 AI Assistant</a>
+                    <button id="chatbotBtn" class="btn btn-accent">🤖 AI Assistant</button>
                 </div>
             </div>
             
@@ -454,6 +454,23 @@
             alert('Profile editing will be available soon!');
         }
         
+        // Navigation functions
+        function showYearlyPlanner() {
+            window.location.href = '{{ url_for("yearly_planner") }}';
+        }
+
+        function showChatbot() {
+            window.location.href = '{{ url_for("chatbot") }}';
+        }
+
+        function showGradingBuddy() {
+            window.location.href = '{{ url_for("grading_buddy") }}';
+        }
+
+        function hideOtherSections() {
+            // Not needed for navigation - each opens separate page
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Track dashboard page view
             setTimeout(function() {
@@ -462,43 +479,35 @@
                 }
             }, 1500);
             
-            // Track feature card clicks
-            document.querySelectorAll('.feature-card a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    const featureName = this.closest('.feature-card').querySelector('h3').textContent.trim();
-                    if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
-                        posthog.capture('feature_accessed', {
-                            feature: featureName,
-                            from: 'dashboard'
-                        });
-                    }
-                });
+            // Fix button click handlers for proper navigation
+            document.getElementById('yearlyPlannerBtn').addEventListener('click', function() {
+                showYearlyPlanner(); // Should open planner, NOT grading buddy
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('feature_accessed', {
+                        feature: 'Yearly Planner',
+                        from: 'dashboard'
+                    });
+                }
             });
-            
-            // Add click handlers for quick navigation
-            const yearlyPlannerLinks = document.querySelectorAll('a[href="{{ url_for("yearly_planner") }}"]');
-            const gradingBuddyLinks = document.querySelectorAll('a[href="{{ url_for("grading_buddy") }}"]');
-            const chatbotLinks = document.querySelectorAll('a[href="{{ url_for("chatbot") }}"]');
-            
-            yearlyPlannerLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    openYearlyPlanner();
-                });
+
+            document.getElementById('chatbotBtn').addEventListener('click', function() {
+                showChatbot(); // Should open U-Dost chat, NOT grading buddy
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('feature_accessed', {
+                        feature: 'AI Chatbot',
+                        from: 'dashboard'
+                    });
+                }
             });
-            
-            gradingBuddyLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    openGradingBuddy();
-                });
-            });
-            
-            chatbotLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    openUDost();
-                });
+
+            document.getElementById('gradingBuddyBtn').addEventListener('click', function() {
+                showGradingBuddy(); // Only this should open grading buddy
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('feature_accessed', {
+                        feature: 'Grading Buddy',
+                        from: 'dashboard'
+                    });
+                }
             });
         });
     </script>

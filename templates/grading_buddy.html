@@ -102,7 +102,29 @@
                     <button class="btn btn-primary" onclick="addNewStudent()">➕ Add New Student</button>
                 </div>
                 
-                <div class="student-form">
+                <div class="add-students-section">
+                    <h3>Add Students to Class</h3>
+                    
+                    <div class="upload-options">
+                        <button class="btn btn-secondary" onclick="manualEntry()">📝 Manual Entry</button>
+                        <button class="btn btn-accent" onclick="uploadPicture()">📸 Upload Picture</button>
+                    </div>
+                    
+                    <div id="pictureUpload" style="display:none;" class="picture-upload-section">
+                        <div class="upload-area">
+                            <input type="file" id="studentListImage" accept="image/jpeg,image/jpg,image/png,image/bmp,image/webp,application/pdf" style="display:none;">
+                            <div class="upload-dropzone" onclick="document.getElementById('studentListImage').click();">
+                                <div class="upload-icon">📷</div>
+                                <p>Click to upload student list image</p>
+                                <small>Supports: JPG, PNG, BMP, WebP, PDF with student names</small>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="extractNamesFromImage()" id="extractBtn" style="display:none;">🔍 Extract Names</button>
+                        <div id="extractedNames" class="extracted-names-section"></div>
+                    </div>
+                </div>
+                
+                <div class="student-form" id="manualStudentForm">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="student-name">Student Name</label>
@@ -592,6 +614,157 @@
             border: 1px solid rgba(252, 129, 129, 0.3);
         }
         
+        /* Picture Upload Styling */
+        .add-students-section {
+            background: var(--warm-white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 25px;
+        }
+        
+        .upload-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .picture-upload-section {
+            margin-top: 20px;
+        }
+        
+        .upload-area {
+            margin-bottom: 20px;
+        }
+        
+        .upload-dropzone {
+            border: 3px dashed var(--soft-blue);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(135, 206, 235, 0.05);
+        }
+        
+        .upload-dropzone:hover {
+            border-color: var(--soft-blue-dark);
+            background: rgba(135, 206, 235, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--soft-blue);
+        }
+        
+        .upload-dropzone p {
+            font-size: 1.1rem;
+            color: var(--gray-700);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .upload-dropzone small {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+        
+        .extracted-names-section {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(104, 211, 145, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(104, 211, 145, 0.2);
+        }
+        
+        .extracted-names-section h4 {
+            color: var(--success);
+            margin-bottom: 10px;
+        }
+        
+        .instruction-text {
+            color: var(--gray-600);
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+        
+        .student-list {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .student-name-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--gray-300);
+        }
+        
+        .student-name-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+        
+        .student-name-input:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+            box-shadow: 0 0 0 2px rgba(135, 206, 235, 0.2);
+        }
+        
+        .btn-remove {
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-remove:hover {
+            background: #c53030;
+            transform: scale(1.1);
+        }
+        
+        .extracted-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #38a169;
+        }
+        
+        .btn-warning {
+            background: #d69e2e;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #b7791f;
+        }
+        
         @media (max-width: 768px) {
             .section-header {
                 flex-direction: column;
@@ -640,6 +813,176 @@
         function generateReport() {
             alert('Report generation functionality will be implemented with PDF libraries');
         }
+        
+        // Picture upload functionality for student lists
+        function manualEntry() {
+            document.getElementById('pictureUpload').style.display = 'none';
+            document.getElementById('manualStudentForm').style.display = 'block';
+        }
+        
+        function uploadPicture() {
+            document.getElementById('manualStudentForm').style.display = 'none';
+            document.getElementById('pictureUpload').style.display = 'block';
+        }
+        
+        function extractNamesFromImage() {
+            const fileInput = document.getElementById('studentListImage');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                // Show loading state
+                document.getElementById('extractBtn').textContent = '🔄 Processing...';
+                document.getElementById('extractBtn').disabled = true;
+                
+                // Use backend API to extract text from image
+                processStudentListImage(file);
+            } else {
+                alert('Please select an image file first.');
+            }
+        }
+        
+        async function processStudentListImage(imageFile) {
+            try {
+                // Create FormData for file upload
+                const formData = new FormData();
+                formData.append('file', imageFile);
+                
+                // Call backend API for name extraction
+                const response = await fetch('/grading/extract-names', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.names) {
+                    displayExtractedNames(data.names);
+                    
+                    // Show success message
+                    const container = document.getElementById('extractedNames');
+                    const successMsg = document.createElement('div');
+                    successMsg.className = 'success-message';
+                    successMsg.style.cssText = 'background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;';
+                    successMsg.textContent = data.message;
+                    container.insertBefore(successMsg, container.firstChild);
+                } else {
+                    throw new Error(data.error || 'Failed to extract names');
+                }
+                
+            } catch (error) {
+                console.error('Name extraction error:', error);
+                
+                // Show error message
+                const errorMsg = document.createElement('div');
+                errorMsg.style.cssText = 'background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin: 10px 0;';
+                errorMsg.innerHTML = `
+                    <strong>⚠️ Extraction Failed:</strong> ${error.message}<br>
+                    <small>Note: This feature uses AI vision to extract names. Make sure the image contains clear, readable text with student names.</small>
+                `;
+                document.getElementById('extractedNames').appendChild(errorMsg);
+                
+                // Fallback to demo names for testing
+                const demoNames = [
+                    "Ahmed Ali Khan", 
+                    "Fatima Sheikh", 
+                    "Muhammad Hassan", 
+                    "Ayesha Malik", 
+                    "Ali Raza", 
+                    "Zainab Ahmed"
+                ];
+                setTimeout(() => {
+                    displayExtractedNames(demoNames);
+                    const demoMsg = document.createElement('div');
+                    demoMsg.style.cssText = 'background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px;';
+                    demoMsg.textContent = '📋 Demo: Showing sample names for testing purposes';
+                    document.getElementById('extractedNames').insertBefore(demoMsg, document.getElementById('extractedNames').firstChild);
+                }, 1000);
+            } finally {
+                // Reset button
+                document.getElementById('extractBtn').textContent = '🔍 Extract Names';
+                document.getElementById('extractBtn').disabled = false;
+            }
+        }
+        
+        function displayExtractedNames(names) {
+            const container = document.getElementById('extractedNames');
+            container.innerHTML = `
+                <h4>✅ Extracted Student Names:</h4>
+                <p class="instruction-text">Review and edit the names below, then save to your class:</p>
+                <div class="student-list">
+                    ${names.map((name, index) => `
+                        <div class="student-name-row">
+                            <input type="text" value="${name}" class="student-name-input" data-index="${index}">
+                            <button class="btn-remove" onclick="removeStudentName(${index})" title="Remove">❌</button>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="extracted-actions">
+                    <button class="btn btn-success" onclick="saveStudentList()">💾 Save to Class</button>
+                    <button class="btn btn-secondary" onclick="addMoreNames()">➕ Add More</button>
+                    <button class="btn btn-warning" onclick="clearExtracted()">🗑️ Clear All</button>
+                </div>
+            `;
+            container.style.display = 'block';
+        }
+        
+        function removeStudentName(index) {
+            const row = document.querySelector(`[data-index="${index}"]`).closest('.student-name-row');
+            row.remove();
+        }
+        
+        function addMoreNames() {
+            const studentList = document.querySelector('.student-list');
+            const newIndex = Date.now(); // Use timestamp as unique index
+            const newRow = document.createElement('div');
+            newRow.className = 'student-name-row';
+            newRow.innerHTML = `
+                <input type="text" value="" class="student-name-input" data-index="${newIndex}" placeholder="Enter student name">
+                <button class="btn-remove" onclick="removeStudentName(${newIndex})" title="Remove">❌</button>
+            `;
+            studentList.appendChild(newRow);
+        }
+        
+        function saveStudentList() {
+            const inputs = document.querySelectorAll('.student-name-input');
+            const names = Array.from(inputs).map(input => input.value.trim()).filter(name => name.length > 0);
+            
+            if (names.length === 0) {
+                alert('Please add at least one student name.');
+                return;
+            }
+            
+            // Simulate saving to database
+            alert(`Successfully saved ${names.length} students to class:\n\n${names.join('\n')}\n\nThis feature will be integrated with the database soon!`);
+            
+            // Clear the extracted names
+            clearExtracted();
+        }
+        
+        function clearExtracted() {
+            document.getElementById('extractedNames').innerHTML = '';
+            document.getElementById('extractedNames').style.display = 'none';
+            document.getElementById('studentListImage').value = '';
+            document.getElementById('extractBtn').style.display = 'none';
+        }
+        
+        // Handle file selection
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('studentListImage');
+            if (fileInput) {
+                fileInput.addEventListener('change', function(e) {
+                    if (e.target.files.length > 0) {
+                        const fileName = e.target.files[0].name;
+                        document.querySelector('.upload-dropzone p').textContent = `📎 Selected: ${fileName}`;
+                        document.getElementById('extractBtn').style.display = 'block';
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

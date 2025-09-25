@@ -54,6 +54,18 @@
                     <button id="sendVoiceButton" class="btn btn-send-voice" style="display: none;">📤 Send Voice Message</button>
                     <button id="clearRecordingButton" class="btn btn-clear" style="display: none;">🗑️ Clear</button>
                 </div>
+                
+                <!-- Speech Recognition Controls -->
+                <div class="speech-recognition-controls" style="margin-top: 15px;">
+                    <button id="speechRecognitionButton" class="btn btn-speech" title="Speech to Text">🎙️ Speech to Text</button>
+                    <select id="languageSelect" class="language-selector">
+                        <option value="en-US">English (US)</option>
+                        <option value="ur-PK">Urdu (Pakistan)</option>
+                        <option value="en-GB">English (UK)</option>
+                    </select>
+                    <button id="toggleTTSButton" class="btn btn-tts" title="Enable/Disable Text-to-Speech">🔊 TTS</button>
+                </div>
+                <div class="speech-status" id="speechStatus"></div>
                 <div class="recording-status" id="recordingStatus"></div>
                 <audio id="audioPlayback" controls style="display: none;"></audio>
             </div>
@@ -115,28 +127,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="message-avatar">${isUser ? '😊' : '🤖'}</div>
                 <div class="message-content">
                     <div class="message-text"></div>
+                    ${!isUser ? '<button class="speak-button" onclick="speakText(this.previousElementSibling.textContent)" title="Read aloud">🔊</button>' : ''}
                 </div>
             `;
             // Render with markdown-like formatting
             const textDiv = messageDiv.querySelector('.message-text');
             textDiv.innerHTML = formatMarkdownLike(content);
+            
+            // Auto-speak bot responses if TTS is enabled
+            if (!isUser && isTTSEnabled) {
+                setTimeout(() => speakText(content), 500);
+            }
         } else if (content.is_markdown) {
             messageDiv.innerHTML = `
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
                     <div class="message-text"></div>
+                    <button class="speak-button" onclick="speakText(this.previousElementSibling.textContent)" title="Read aloud">🔊</button>
                 </div>
             `;
             // Render markdown content
             const textDiv = messageDiv.querySelector('.message-text');
             textDiv.innerHTML = formatMarkdownLike(content.message);
+            
+            // Auto-speak bot responses if TTS is enabled
+            if (isTTSEnabled) {
+                setTimeout(() => speakText(content.message), 500);
+            }
         } else {
             messageDiv.innerHTML = `
                 <div class="message-avatar">🤖</div>
                 <div class="message-content">
                     ${formatBotResponse(content)}
+                    <button class="speak-button" onclick="speakText(this.querySelector('.message-content').textContent)" title="Read aloud">🔊</button>
                 </div>
             `;
+            
+            // Auto-speak bot responses if TTS is enabled
+            if (isTTSEnabled && content.message) {
+                setTimeout(() => speakText(content.message), 500);
+            }
         }
         
         chatMessages.appendChild(messageDiv);
@@ -320,34 +350,67 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Make sendMessage globally available with multimodal support
 
-    window.sendMessage = async function(message = null) {
+    window.sendMessage = async function(message = null, inputType = 'text') {
         const messageText = message || (chatInput ? chatInput.value.trim() : '');
         if (!messageText && !currentAudioId && uploadedFiles.length === 0) return;
         
-        // Track chat interaction with PostHog
+        // Detect language for better processing
+        const detectedLanguage = messageText ? detectLanguage(messageText) : 'english';
+        
+        // Track enhanced chat interaction with PostHog
         if (typeof posthog !== 'undefined') {
             posthog.capture('chat_message_sent', {
                 message_length: messageText.length,
                 has_files: uploadedFiles.length > 0,
                 has_audio: !!currentAudioId,
+                input_type: inputType,
+                detected_language: detectedLanguage,
                 message_type: messageText.startsWith('🔢') ? 'assessment' : 
                              messageText.startsWith('💬') ? 'free_chat' :
                              messageText.startsWith('📚') ? 'subject_selection' : 'general'
             });
         }
         
-        // Show what's being sent
+        // Enhanced display message with input type indicators
         let displayMessage = messageText;
-        if (currentAudioId) displayMessage += " 🎤 Voice message";
-        if (uploadedFiles.length > 0) displayMessage += ` 📎 ${uploadedFiles.length} file(s)`;
+        
+        // Add input type indicators for better UX
+        if (inputType === 'voice') {
+            displayMessage = `🎤 ${messageText}`;
+        } else if (inputType === 'image' && uploadedFiles.length > 0) {
+            displayMessage = `📷 ${messageText || 'Image uploaded for analysis'}`;
+        } else if (inputType === 'file' && uploadedFiles.length > 0) {
+            displayMessage = `📎 ${messageText || 'Document uploaded for analysis'}`;
+        }
+        
+        if (currentAudioId && inputType !== 'voice') displayMessage += " 🎤 + Voice";
+        if (uploadedFiles.length > 0 && !inputType.includes('file')) {
+            displayMessage += ` 📎 ${uploadedFiles.length} file(s)`;
+        }
+        
+        // Show language detection feedback
+        if (detectedLanguage === 'urdu') {
+            displayMessage += ' (Urdu detected)';
+        }
         
         addMessage(displayMessage, true);
         if (!message && chatInput) chatInput.value = '';
         
+        // Enhanced request payload with multi-modal support
         const requestPayload = { 
             message: messageText,
+            input_type: inputType,
             file_ids: uploadedFiles.map(f => f.file_id),
-            audio_id: currentAudioId
+            audio_id: currentAudioId,
+            language_detected: detectedLanguage,
+            has_files: uploadedFiles.length > 0,
+            has_audio: !!currentAudioId,
+            file_types: uploadedFiles.map(f => f.type),
+            session_context: {
+                grade: window.currentGrade || 1,
+                subject: window.currentSubject || 'English',
+                activity_type: window.currentActivityType || 'activities'
+            }
         };
         
         let requestResponse = null;
@@ -367,6 +430,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const data = await requestResponse.json();
             addMessage(data);
+            
+            // Provide contextual feedback based on input type
+            if (inputType === 'voice' && detectedLanguage === 'urdu') {
+                setTimeout(() => {
+                    addMessage('🌟 Urdu samajh aa gayi! Main aap ki madad kar sakti hun. (I understood your Urdu!)');
+                }, 1000);
+            } else if (inputType === 'image' && uploadedFiles.length > 0) {
+                setTimeout(() => {
+                    addMessage('🖼️ Image dekh kar main teaching suggestions de sakti hun! (I can provide teaching suggestions after seeing the image!)');
+                }, 1000);
+            }
             
             // Clear uploaded files and audio after sending
             clearUploads();
@@ -482,6 +556,194 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
     
+    // Speech Recognition Variables
+    let speechRecognition = null;
+    let isListening = false;
+    let isTTSEnabled = true;
+    let speechSynthesis = window.speechSynthesis;
+    
+    // Initialize Speech Recognition
+    function initializeSpeechRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            speechRecognition = new SpeechRecognition();
+            
+            speechRecognition.continuous = false;
+            speechRecognition.interimResults = true;
+            speechRecognition.maxAlternatives = 1;
+            
+            // Default to English
+            speechRecognition.lang = 'en-US';
+            
+            speechRecognition.onstart = function() {
+                isListening = true;
+                document.getElementById('speechStatus').textContent = '🎙️ Listening... Speak now!';
+                document.getElementById('speechRecognitionButton').style.background = '#ff4444';
+                document.getElementById('speechRecognitionButton').textContent = '⏹️ Stop Listening';
+            };
+            
+            speechRecognition.onresult = function(event) {
+                let finalTranscript = '';
+                let interimTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript;
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                
+                // Show interim results
+                if (interimTranscript) {
+                    document.getElementById('speechStatus').textContent = `🎙️ Hearing: "${interimTranscript}"`;
+                }
+                
+                // When final result is available
+                if (finalTranscript) {
+                    const chatInput = document.getElementById('chatInput');
+                    chatInput.value = finalTranscript.trim();
+                    
+                    // Auto-detect language and provide feedback
+                    const detectedLang = detectLanguage(finalTranscript);
+                    document.getElementById('speechStatus').textContent = `✅ "${finalTranscript}" (${detectedLang === 'urdu' ? 'Urdu detected' : 'English detected'})`;
+                    
+                    // Auto-send after brief delay or let user review
+                    setTimeout(() => {
+                        document.getElementById('speechStatus').textContent = '✅ Ready to send or continue speaking...';
+                    }, 2000);
+                }
+            };
+            
+            speechRecognition.onerror = function(event) {
+                let errorMessage = 'Speech recognition error: ';
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage += 'No speech detected. Please try again.';
+                        break;
+                    case 'audio-capture':
+                        errorMessage += 'No microphone found. Please check your microphone.';
+                        break;
+                    case 'not-allowed':
+                        errorMessage += 'Microphone permission denied. Please allow microphone access.';
+                        break;
+                    case 'network':
+                        errorMessage += 'Network error. Please check your internet connection.';
+                        break;
+                    default:
+                        errorMessage += event.error;
+                }
+                document.getElementById('speechStatus').textContent = '❌ ' + errorMessage;
+                resetSpeechButton();
+            };
+            
+            speechRecognition.onend = function() {
+                isListening = false;
+                resetSpeechButton();
+                if (document.getElementById('speechStatus').textContent.includes('Listening')) {
+                    document.getElementById('speechStatus').textContent = '🎙️ Speech recognition ended. Click to start again.';
+                }
+            };
+        } else {
+            document.getElementById('speechStatus').textContent = '❌ Speech recognition not supported in this browser.';
+        }
+    }
+    
+    // Language Detection Function
+    function detectLanguage(text) {
+        // Simple Urdu detection based on common patterns
+        const urduPatterns = [
+            /[\u0600-\u06FF]/, // Arabic/Urdu script
+            /\b(mujhe|mein|ke|ki|ka|hai|hain|chahiye|kya|kaise|kahan|main|aap|ap|hum|un|ye|wo|se|tak|par|liye|sath|bhi|agar|lekin|phir|ab|yahan|wahan)\b/i
+        ];
+        
+        for (let pattern of urduPatterns) {
+            if (pattern.test(text)) {
+                return 'urdu';
+            }
+        }
+        return 'english';
+    }
+    
+    // Text-to-Speech Functions
+    function speakText(text, language = 'en-US') {
+        if (!isTTSEnabled || !speechSynthesis) return;
+        
+        // Cancel any ongoing speech
+        speechSynthesis.cancel();
+        
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Configure voice based on detected/selected language
+        if (language.includes('ur') || detectLanguage(text) === 'urdu') {
+            // Try to find Urdu voice, fallback to English
+            const voices = speechSynthesis.getVoices();
+            const urduVoice = voices.find(voice => 
+                voice.lang.includes('ur') || 
+                voice.name.toLowerCase().includes('urdu') ||
+                voice.lang.includes('hi') // Hindi as fallback for Urdu
+            );
+            if (urduVoice) {
+                utterance.voice = urduVoice;
+                utterance.lang = urduVoice.lang;
+            } else {
+                utterance.lang = 'en-US'; // Fallback to English
+            }
+        } else {
+            utterance.lang = language;
+            const voices = speechSynthesis.getVoices();
+            const englishVoice = voices.find(voice => voice.lang.includes('en'));
+            if (englishVoice) {
+                utterance.voice = englishVoice;
+            }
+        }
+        
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 0.8;
+        
+        speechSynthesis.speak(utterance);
+    }
+    
+    // Speech Recognition Control Functions
+    function toggleSpeechRecognition() {
+        if (!speechRecognition) {
+            initializeSpeechRecognition();
+            return;
+        }
+        
+        if (isListening) {
+            speechRecognition.stop();
+        } else {
+            // Update language from selector
+            const selectedLang = document.getElementById('languageSelect').value;
+            speechRecognition.lang = selectedLang;
+            
+            document.getElementById('speechStatus').textContent = `🎙️ Starting ${selectedLang.includes('ur') ? 'Urdu' : 'English'} speech recognition...`;
+            speechRecognition.start();
+        }
+    }
+    
+    function resetSpeechButton() {
+        isListening = false;
+        document.getElementById('speechRecognitionButton').style.background = '';
+        document.getElementById('speechRecognitionButton').textContent = '🎙️ Speech to Text';
+    }
+    
+    function toggleTTS() {
+        isTTSEnabled = !isTTSEnabled;
+        const button = document.getElementById('toggleTTSButton');
+        if (isTTSEnabled) {
+            button.textContent = '🔊 TTS ON';
+            button.style.background = '#4CAF50';
+        } else {
+            button.textContent = '🔇 TTS OFF';
+            button.style.background = '#f44336';
+            speechSynthesis.cancel(); // Stop any ongoing speech
+        }
+    }
+
     // Voice recording functions
     async function startRecording() {
         try {
@@ -866,6 +1128,30 @@ document.addEventListener('DOMContentLoaded', function() {
     if (clearRecordingButton) {
         clearRecordingButton.addEventListener('click', clearRecording);
     }
+    
+    // Speech Recognition Event Listeners
+    const speechRecognitionButton = document.getElementById('speechRecognitionButton');
+    const toggleTTSButton = document.getElementById('toggleTTSButton');
+    const languageSelect = document.getElementById('languageSelect');
+    
+    if (speechRecognitionButton) {
+        speechRecognitionButton.addEventListener('click', toggleSpeechRecognition);
+    }
+    
+    if (toggleTTSButton) {
+        toggleTTSButton.addEventListener('click', toggleTTS);
+    }
+    
+    if (languageSelect) {
+        languageSelect.addEventListener('change', function() {
+            if (speechRecognition) {
+                speechRecognition.lang = this.value;
+            }
+        });
+    }
+    
+    // Initialize speech recognition on page load
+    initializeSpeechRecognition();
     
     // Camera capture event listeners
     const toggleCameraButton = document.getElementById('toggleCameraButton');
@@ -1402,6 +1688,86 @@ document.addEventListener('DOMContentLoaded', function() {
     .voice-controls, .camera-controls {
         justify-content: center;
     }
+}
+
+/* Speech Recognition Styling */
+.speech-recognition-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(135, 206, 235, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.language-selector {
+    padding: 8px 12px;
+    border: 2px solid #87CEEB;
+    border-radius: 5px;
+    background: white;
+    color: #4682b4;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.language-selector:focus {
+    outline: none;
+    border-color: #4682b4;
+}
+
+.btn-speech {
+    background: #87CEEB !important;
+    color: #4682b4 !important;
+    border: 2px solid #87CEEB !important;
+    transition: all 0.3s ease;
+}
+
+.btn-speech:hover {
+    background: #4682b4 !important;
+    color: white !important;
+}
+
+.btn-tts {
+    background: #32CD32 !important;
+    color: white !important;
+    border: 2px solid #32CD32 !important;
+    transition: all 0.3s ease;
+}
+
+.btn-tts:hover {
+    background: #228B22 !important;
+}
+
+.speech-status {
+    color: #4682b4;
+    font-size: 14px;
+    font-style: italic;
+    margin: 5px 0;
+    text-align: center;
+    min-height: 20px;
+}
+
+.speak-button {
+    background: rgba(135, 206, 235, 0.2);
+    border: 1px solid #87CEEB;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.speak-button:hover {
+    background: #87CEEB;
+    transform: scale(1.1);
 }
 
 /* Camera capture styling */
