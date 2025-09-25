@@ -55,42 +55,48 @@
             <div class="feature-grid">
                 <!-- Yearly Planner Feature -->
                 <div class="feature-card yearly-planner">
-                    <div class="feature-icon">📅</div>
-                    <h3>📚 Yearly Planner</h3>
-                    <p>Plan your entire academic year with weekly schedules for all subjects (Math, English, Urdu, Islamiyat, General Knowledge, Social Studies, Science) across grades 1-5.</p>
-                    <div class="feature-highlights">
-                        <div class="highlight">📝 Weekly Templates</div>
-                        <div class="highlight">📊 Auto-Population</div>
-                        <div class="highlight">✏️ Editable Entries</div>
-                        <div class="highlight">📈 Progress Tracking</div>
+                    <div class="card-content">
+                        <div class="feature-icon">📅</div>
+                        <h3>📚 Yearly Planner</h3>
+                        <p>Plan your entire academic year with weekly schedules for all subjects across grades 1-5 with comprehensive tools.</p>
+                        <div class="feature-highlights">
+                            <div class="highlight">📝 Weekly Templates</div>
+                            <div class="highlight">📊 Auto-Population</div>
+                            <div class="highlight">✏️ Editable Entries</div>
+                            <div class="highlight">📈 Progress Tracking</div>
+                        </div>
                     </div>
                     <button id="yearlyPlannerBtn" class="btn btn-primary btn-large">📅 Start Planning</button>
                 </div>
                 
                 <!-- Grading Buddy Feature -->
                 <div class="feature-card grading-buddy">
-                    <div class="feature-icon">📊</div>
-                    <h3>🎯 Grading Buddy</h3>
-                    <p>Manage your classes, students, and assessments with comprehensive grading tools and PDF report generation.</p>
-                    <div class="feature-list">
-                        <div class="feature-item">👥 Class Management</div>
-                        <div class="feature-item">📝 Custom Scoresheets</div>
-                        <div class="feature-item">✅ Screener Grading</div>
-                        <div class="feature-item">📄 PDF Reports</div>
+                    <div class="card-content">
+                        <div class="feature-icon">📊</div>
+                        <h3>🎯 Grading Buddy</h3>
+                        <p>Manage your classes, students, and assessments with comprehensive grading tools and PDF reports.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">👥 Class Management</div>
+                            <div class="feature-item">📝 Custom Scoresheets</div>
+                            <div class="feature-item">✅ Screener Grading</div>
+                            <div class="feature-item">📄 PDF Reports</div>
+                        </div>
                     </div>
                     <button id="gradingBuddyBtn" class="btn btn-primary btn-large">📊 Manage Grades</button>
                 </div>
                 
                 <!-- AI Chatbox Feature -->
                 <div class="feature-card ai-chatbox">
-                    <div class="feature-icon">🤖</div>
-                    <h3>💬 AI Assistant</h3>
-                    <p>Get AI-powered lesson plans, teaching strategies, activities, and assessments tailored to Pakistani curriculum.</p>
-                    <div class="ai-features">
-                        <div class="ai-feature">📖 Lesson Plans</div>
-                        <div class="ai-feature">🎯 Teaching Strategies</div>
-                        <div class="ai-feature">🎮 Activities & Games</div>
-                        <div class="ai-feature">📋 Assessments</div>
+                    <div class="card-content">
+                        <div class="feature-icon">🤖</div>
+                        <h3>💬 AI Assistant</h3>
+                        <p>Get AI-powered lesson plans, teaching strategies, and activities tailored to Pakistani curriculum.</p>
+                        <div class="ai-features">
+                            <div class="ai-feature">📖 Lesson Plans</div>
+                            <div class="ai-feature">🎯 Teaching Strategies</div>
+                            <div class="ai-feature">🎮 Activities & Games</div>
+                            <div class="ai-feature">📋 Assessments</div>
+                        </div>
                     </div>
                     <button id="chatbotBtn" class="btn btn-primary btn-large">🤖 AI Assistant</button>
                 </div>
@@ -257,6 +263,14 @@
             box-shadow: var(--shadow-lg);
             text-align: center;
             transition: all 0.3s ease;
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-content {
+            flex-grow: 1;
         }
         
         .feature-card:hover {
