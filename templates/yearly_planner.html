@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yearly Planner - USTAAD DOST</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- PostHog Analytics -->
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);var n=t;if("undefined"!=typeof e){for(var p=0;p<o.length-1;p++)n[o[p]]=n[o[p]]||{},n=n[o[p]];n[o[o.length-1]]=i}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys getGroups create_alias get_distinct_id get_session_id capture_pageview capture_pageleave register_for_session unregister_for_session".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        
+        // Initialize PostHog with delay to ensure script loads
+        setTimeout(function() {
+            try {
+                if (typeof posthog !== 'undefined' && posthog.init) {
+                    posthog.init('{{ posthog_key }}', {
+                        api_host: '{{ posthog_host }}'
+                    });
+                    console.log('PostHog initialized successfully');
+                } else {
+                    throw new Error('PostHog not loaded');
+                }
+            } catch (error) {
+                console.log('PostHog initialization failed:', error);
+                window.posthog = {
+                    capture: function() { console.log('PostHog tracking:', arguments); },
+                    identify: function() { console.log('PostHog identify:', arguments); }
+                };
+            }
+        }, 1000);
+    </script>
 </head>
 <body>
     <nav class="navbar">
@@ -12,8 +37,10 @@
             <h1 class="nav-title">📅 Yearly Planner</h1>
             <div class="nav-menu">
                 <a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a>
+                <a href="{{ url_for('grading_buddy') }}" class="nav-link">📊 Grading Buddy</a>
+                <a href="{{ url_for('chatbot') }}" class="nav-link">🤖 U-Dost Chat</a>
                 <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
-                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+                <a href="#" onclick="logout()" class="nav-link logout-link">🚪 Logout</a>
             </div>
         </div>
     </nav>
@@ -35,399 +62,721 @@
                 <p class="welcome-subtitle">Create your teaching schedule in 3 simple steps</p>
             </div>
             
-            <!-- 3-Step Process Flow -->
-            <div class="process-flow">
-                <div class="step-card">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>📝 Create Weekly Template</h3>
-                        <p>Design your ideal weekly schedule with periods and subjects</p>
-                        <a href="{{ url_for('create_weekly_template') }}" class="btn btn-primary">Start Creating</a>
+            <!-- Step 1: Select Teaching Details -->
+            <div class="step-1" id="step1">
+                <h3>Step 1: Select Your Teaching Details</h3>
+                
+                <div class="selection-area">
+                    <div class="form-group">
+                        <label for="teacherGrade">Select Grade:</label>
+                        <select id="teacherGrade" class="form-control">
+                            <option value="">Choose Grade</option>
+                            <option value="1">Grade 1</option>
+                            <option value="2">Grade 2</option>
+                            <option value="3">Grade 3</option>
+                            <option value="4">Grade 4</option>
+                            <option value="5">Grade 5</option>
+                        </select>
                     </div>
-                </div>
-                
-                <div class="step-arrow">→</div>
-                
-                <div class="step-card">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>📅 Copy to Full Year</h3>
-                        <p>Apply your template to entire academic year (52 weeks × 5 days = 260 school days)</p>
-                    </div>
-                </div>
-                
-                <div class="step-arrow">→</div>
-                
-                <div class="step-card">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>✏️ Edit Individual Days</h3>
-                        <p>View calendar and customize specific days as needed</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Existing Templates -->
-            {% if templates %}
-            <div class="templates-section">
-                <h2>📋 Your Templates</h2>
-                <div class="templates-grid">
-                    {% for template in templates %}
-                    <div class="template-card">
-                        <div class="template-header">
-                            <h3>{{ template.template_name }}</h3>
-                            <span class="grade-badge">Grade {{ template.grade }}</span>
-                        </div>
-                        <div class="template-actions">
-                            <a href="{{ url_for('view_yearly_calendar', template_id=template.id) }}" class="btn btn-primary">📅 View Calendar</a>
-                            <a href="{{ url_for('edit_template_periods', template_id=template.id) }}" class="btn btn-secondary">✏️ Edit Template</a>
-                            <a href="{{ url_for('copy_template_to_year', template_id=template.id) }}" class="btn btn-success">🔄 Re-copy to Year</a>
-                        </div>
-                        <div class="template-info">
-                            <small>Created: {{ template.created_at.strftime('%B %d, %Y') if template.created_at else 'Unknown' }}</small>
+                    
+                    <div class="form-group">
+                        <label>Select Your Subjects:</label>
+                        <div class="subject-checkboxes">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="english" value="English"> English
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="math" value="Math"> Math
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="urdu" value="Urdu"> Urdu
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="islamiyat" value="Islamiyat"> Islamiyat
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="science" value="Science"> Science
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="social" value="Social Studies"> Social Studies
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="gk" value="General Knowledge"> General Knowledge
+                            </label>
                         </div>
                     </div>
-                    {% endfor %}
+                    
+                    <button onclick="createWeeklyTemplate()" class="btn btn-primary next-btn">Create Weekly Template</button>
                 </div>
             </div>
-            {% endif %}
-
-            <!-- Feature Highlights -->
-            <div class="features-section">
-                <h2>🌟 Teacher-Controlled Planning</h2>
-                <div class="features-grid">
-                    <div class="feature-item">
-                        <div class="feature-icon">🏗️</div>
-                        <h3>Build Your Own Template</h3>
-                        <p>Create custom weekly schedules with your preferred subjects and timings</p>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Instant Year Generation</h3>
-                        <p>Copy your weekly template to entire academic year in seconds</p>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">📋</div>
-                        <h3>Calendar View</h3>
-                        <p>See your entire year at a glance with week-by-week schedule</p>
-                    </div>
-                    <div class="feature-item">
-                        <div class="feature-icon">✏️</div>
-                        <h3>Day-by-Day Editing</h3>
-                        <p>Modify individual days for holidays, special events, or curriculum changes</p>
-                    </div>
-                </div>
-            </div>
+            
+            <!-- Step 2: Weekly Template (Hidden initially) -->
+            <div id="weeklyTemplate" style="display:none;"></div>
+            
+            <!-- Step 3: Yearly Calendar (Hidden initially) -->
+            <div id="yearlyCalendar" style="display:none;"></div>
         </div>
     </main>
+
+    <script>
+        // Common session management function
+        function getCurrentUser() {
+            const savedUser = localStorage.getItem('ustaadDostUser');
+            return savedUser ? JSON.parse(savedUser) : null;
+        }
+        
+        function logout() {
+            console.log("Logging out user..."); // Debug log
+            localStorage.removeItem('ustaadDostUser');
+            sessionStorage.clear();
+            console.log("Local session data cleared"); // Debug log
+            window.location.href = '/logout';
+        }
+        
+        // STEP 2 - WEEKLY TEMPLATE CREATION
+        function createWeeklyTemplate() {
+            const selectedGrade = document.getElementById('teacherGrade').value;
+            const selectedSubjects = [];
+            
+            // Get selected subjects
+            const checkboxes = document.querySelectorAll('.subject-checkboxes input:checked');
+            checkboxes.forEach(cb => selectedSubjects.push(cb.value));
+            
+            if (!selectedGrade || selectedSubjects.length === 0) {
+                alert('Please select grade and at least one subject!');
+                return;
+            }
+            
+            // Hide step 1
+            document.getElementById('step1').style.display = 'none';
+            
+            // Show weekly template builder
+            const templateDiv = document.getElementById('weeklyTemplate');
+            templateDiv.style.display = 'block';
+            templateDiv.innerHTML = `
+                <h3>Step 2: Create Your Weekly Schedule</h3>
+                <p class="grade-subjects-info">Grade: ${selectedGrade} | Subjects: ${selectedSubjects.join(', ')}</p>
+                
+                <div class="weekly-schedule">
+                    ${createDaySchedule('Monday', selectedSubjects)}
+                    ${createDaySchedule('Tuesday', selectedSubjects)}
+                    ${createDaySchedule('Wednesday', selectedSubjects)}
+                    ${createDaySchedule('Thursday', selectedSubjects)}
+                    ${createDaySchedule('Friday', selectedSubjects)}
+                </div>
+                
+                <div class="action-buttons">
+                    <button onclick="goBackToStep1()" class="btn btn-secondary">← Back to Step 1</button>
+                    <button onclick="copyToYear()" class="btn btn-success copy-btn">📅 Copy This Week to Entire Year</button>
+                </div>
+            `;
+        }
+
+        function createDaySchedule(day, subjects) {
+            return `
+                <div class="day-schedule">
+                    <h4>${day}</h4>
+                    <div class="periods">
+                        <div class="period-slot">
+                            <label>Period 1 (8:00-8:40)</label>
+                            <select id="${day}_period1" class="period-select">
+                                <option value="">Select Subject</option>
+                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="period-slot">
+                            <label>Period 2 (8:40-9:20)</label>
+                            <select id="${day}_period2" class="period-select">
+                                <option value="">Select Subject</option>
+                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="period-slot">
+                            <label>Period 3 (9:20-10:00)</label>
+                            <select id="${day}_period3" class="period-select">
+                                <option value="">Select Subject</option>
+                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="break-time">
+                            <p>☕ Break: 10:00-10:20</p>
+                        </div>
+                        
+                        <div class="period-slot">
+                            <label>Period 4 (10:20-11:00)</label>
+                            <select id="${day}_period4" class="period-select">
+                                <option value="">Select Subject</option>
+                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="period-slot">
+                            <label>Period 5 (11:00-11:40)</label>
+                            <select id="${day}_period5" class="period-select">
+                                <option value="">Select Subject</option>
+                                ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function goBackToStep1() {
+            document.getElementById('step1').style.display = 'block';
+            document.getElementById('weeklyTemplate').style.display = 'none';
+            document.getElementById('yearlyCalendar').style.display = 'none';
+        }
+
+        // STEP 3 - COPY TO ENTIRE YEAR
+        function copyToYear() {
+            // Get weekly schedule
+            const weeklySchedule = {};
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            
+            days.forEach(day => {
+                weeklySchedule[day] = {
+                    period1: document.getElementById(`${day}_period1`).value,
+                    period2: document.getElementById(`${day}_period2`).value,
+                    period3: document.getElementById(`${day}_period3`).value,
+                    period4: document.getElementById(`${day}_period4`).value,
+                    period5: document.getElementById(`${day}_period5`).value
+                };
+            });
+            
+            // Get grade and subjects info
+            const selectedGrade = document.getElementById('teacherGrade').value;
+            const selectedSubjects = [];
+            const checkboxes = document.querySelectorAll('.subject-checkboxes input:checked');
+            checkboxes.forEach(cb => selectedSubjects.push(cb.value));
+            
+            // Save to storage
+            localStorage.setItem('yearlyPlan', JSON.stringify({
+                grade: selectedGrade,
+                subjects: selectedSubjects,
+                schedule: weeklySchedule,
+                createdDate: new Date().toISOString()
+            }));
+            
+            // Show success message
+            alert('✅ Weekly plan copied to entire year! You can edit any week individually.');
+            
+            // Show yearly calendar
+            showYearlyCalendar();
+        }
+
+        function showYearlyCalendar() {
+            // Hide other steps
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('weeklyTemplate').style.display = 'none';
+            
+            // Show yearly calendar
+            const calendarDiv = document.getElementById('yearlyCalendar');
+            calendarDiv.style.display = 'block';
+            
+            const savedPlan = JSON.parse(localStorage.getItem('yearlyPlan'));
+            
+            calendarDiv.innerHTML = `
+                <div class="yearly-calendar">
+                    <h3>📅 Your Yearly Schedule</h3>
+                    <p class="plan-info">Grade ${savedPlan.grade} | Subjects: ${savedPlan.subjects.join(', ')}</p>
+                    <p class="calendar-instruction">Click any week to edit individual days:</p>
+                    
+                    <div class="calendar-grid">
+                        ${generateWeekButtons()}
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button onclick="goBackToStep1()" class="btn btn-secondary">← Start Over</button>
+                        <button onclick="downloadSchedule()" class="btn btn-primary">📄 Download Schedule</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateWeekButtons() {
+            let weekButtons = '';
+            for (let week = 1; week <= 52; week++) {
+                weekButtons += `<div class="week-button" onclick="editWeek(${week})">Week ${week} ✏️</div>`;
+            }
+            return weekButtons;
+        }
+
+        function editWeek(weekNumber) {
+            const savedPlan = JSON.parse(localStorage.getItem('yearlyPlan'));
+            
+            alert(`Editing Week ${weekNumber}\\n\\nThis feature allows you to customize individual weeks.\\n\\nCurrent template:\\n${formatScheduleForDisplay(savedPlan.schedule)}`);
+        }
+
+        function formatScheduleForDisplay(schedule) {
+            let display = '';
+            Object.keys(schedule).forEach(day => {
+                display += `\\n${day}:\\n`;
+                Object.keys(schedule[day]).forEach(period => {
+                    if (schedule[day][period]) {
+                        display += `  ${period}: ${schedule[day][period]}\\n`;
+                    }
+                });
+            });
+            return display;
+        }
+
+        function downloadSchedule() {
+            const savedPlan = JSON.parse(localStorage.getItem('yearlyPlan'));
+            if (!savedPlan) {
+                alert('No schedule found!');
+                return;
+            }
+            
+            let scheduleText = `YEARLY SCHEDULE - Grade ${savedPlan.grade}\\n`;
+            scheduleText += `Subjects: ${savedPlan.subjects.join(', ')}\\n`;
+            scheduleText += `Created: ${new Date(savedPlan.createdDate).toLocaleDateString()}\\n\\n`;
+            
+            Object.keys(savedPlan.schedule).forEach(day => {
+                scheduleText += `${day.toUpperCase()}:\\n`;
+                scheduleText += `  Period 1 (8:00-8:40): ${savedPlan.schedule[day].period1 || 'Free'}\\n`;
+                scheduleText += `  Period 2 (8:40-9:20): ${savedPlan.schedule[day].period2 || 'Free'}\\n`;
+                scheduleText += `  Period 3 (9:20-10:00): ${savedPlan.schedule[day].period3 || 'Free'}\\n`;
+                scheduleText += `  Break (10:00-10:20)\\n`;
+                scheduleText += `  Period 4 (10:20-11:00): ${savedPlan.schedule[day].period4 || 'Free'}\\n`;
+                scheduleText += `  Period 5 (11:00-11:40): ${savedPlan.schedule[day].period5 || 'Free'}\\n\\n`;
+            });
+            
+            // Create and download file
+            const blob = new Blob([scheduleText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `yearly-schedule-grade-${savedPlan.grade}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Load existing plan if available
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedPlan = localStorage.getItem('yearlyPlan');
+            if (savedPlan) {
+                const planData = JSON.parse(savedPlan);
+                
+                // Add a "View Existing Plan" button
+                const welcomeSection = document.querySelector('.welcome-section');
+                welcomeSection.innerHTML += `
+                    <div class="existing-plan-notice">
+                        <p>📋 You have an existing yearly plan for Grade ${planData.grade}</p>
+                        <button onclick="showYearlyCalendar()" class="btn btn-success">View Your Schedule</button>
+                        <button onclick="clearPlan()" class="btn btn-secondary">Start Fresh</button>
+                    </div>
+                `;
+            }
+        });
+
+        function clearPlan() {
+            if (confirm('Are you sure you want to delete your existing yearly plan and start fresh?')) {
+                localStorage.removeItem('yearlyPlan');
+                location.reload();
+            }
+        }
+    </script>
     
     <style>
+        :root {
+            --soft-blue: #6c9bd1;
+            --sage-green: #9cbc88;
+            --warm-pink: #f4a6cd;
+            --sunny-yellow: #ffd93d;
+            --lavender: #b19cd9;
+            --mint-green: #98e4d6;
+            --peach: #ffab91;
+            --light-gray: #f5f5f5;
+            --border-gray: #e0e0e0;
+        }
+        
         .navbar {
             background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
-            box-shadow: var(--shadow-md);
-            padding: 15px 0;
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         .nav-container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 2rem;
         }
         
         .nav-title {
-            color: white;
-            font-size: 1.8rem;
-            font-weight: 700;
+            font-size: 1.5rem;
             margin: 0;
         }
         
         .nav-menu {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 1.5rem;
         }
         
         .nav-link {
             color: white;
             text-decoration: none;
-            padding: 8px 16px;
+            padding: 0.5rem 1rem;
             border-radius: 8px;
-            background: rgba(255, 255, 255, 0.2);
-            transition: all 0.3s ease;
+            transition: background-color 0.3s;
         }
         
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-1px);
+            background-color: rgba(255,255,255,0.2);
         }
         
         .nav-welcome {
-            color: white;
             font-weight: 500;
+        }
+        
+        .logout-link {
+            background-color: rgba(255,255,255,0.2);
         }
         
         .main-content {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 30px 20px;
+            padding: 2rem;
+        }
+        
+        .planner-container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         
         .welcome-section {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 2rem;
         }
         
         .welcome-section h1 {
-            color: var(--soft-blue-dark);
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
+            color: var(--soft-blue);
+            margin-bottom: 0.5rem;
         }
         
         .welcome-subtitle {
-            color: var(--gray-600);
-            font-size: 1.2rem;
-            margin-bottom: 0;
+            color: #666;
+            font-size: 1.1rem;
         }
         
-        /* 3-Step Process Flow */
-        .process-flow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 30px;
-            margin-bottom: 50px;
-            flex-wrap: wrap;
+        .step-1 {
+            background: var(--light-gray);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
         }
         
-        .step-card {
-            background: var(--warm-white);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: var(--shadow-md);
-            text-align: center;
-            max-width: 300px;
-            flex: 1;
-            position: relative;
+        .step-1 h3 {
+            color: var(--sage-green);
+            margin-bottom: 1.5rem;
         }
         
-        .step-number {
-            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin: 0 auto 20px auto;
+        .selection-area {
+            max-width: 600px;
+            margin: 0 auto;
         }
         
-        .step-content h3 {
-            color: var(--gray-700);
-            margin-bottom: 15px;
-            font-size: 1.3rem;
+        .form-group {
+            margin-bottom: 1.5rem;
         }
         
-        .step-content p {
-            color: var(--gray-600);
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-        
-        .step-arrow {
-            font-size: 2rem;
-            color: var(--soft-blue);
-            font-weight: bold;
-        }
-        
-        /* Templates Section */
-        .templates-section {
-            margin-bottom: 50px;
-        }
-        
-        .templates-section h2 {
-            color: var(--gray-700);
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        
-        .templates-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-        }
-        
-        .template-card {
-            background: var(--warm-white);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: var(--shadow-md);
-            border: 2px solid var(--gray-200);
-            transition: all 0.3s ease;
-        }
-        
-        .template-card:hover {
-            border-color: var(--soft-blue);
-            transform: translateY(-2px);
-        }
-        
-        .template-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .template-header h3 {
-            color: var(--gray-700);
-            margin: 0;
-            font-size: 1.3rem;
-        }
-        
-        .grade-badge {
-            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
+        .form-group label {
+            display: block;
             font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
         }
         
-        .template-actions {
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+        }
+        
+        .subject-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .checkbox-label {
             display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            align-items: center;
+            padding: 0.5rem;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
         }
         
-        .template-actions .btn {
-            flex: 1;
-            min-width: 120px;
-            font-size: 0.9rem;
-            padding: 10px 16px;
+        .checkbox-label:hover {
+            background: var(--mint-green);
         }
         
-        .template-info {
-            color: var(--gray-500);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--gray-200);
-            padding-top: 15px;
+        .checkbox-label input {
+            margin-right: 0.5rem;
         }
         
         .btn {
-            padding: 12px 24px;
+            padding: 0.75rem 1.5rem;
             border: none;
-            border-radius: 12px;
-            font-weight: 600;
+            border-radius: 8px;
+            font-size: 1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             text-decoration: none;
             display: inline-block;
             text-align: center;
         }
         
         .btn-primary {
-            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            background: var(--soft-blue);
             color: white;
         }
         
-        .btn-success {
-            background: linear-gradient(135deg, var(--sage-green), var(--sage-green-dark));
-            color: white;
+        .btn-primary:hover {
+            background: #5a87c4;
+            transform: translateY(-2px);
         }
         
         .btn-secondary {
-            background: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+            background: var(--border-gray);
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #ccc;
+        }
+        
+        .btn-success {
+            background: var(--sage-green);
             color: white;
         }
         
-        .btn:hover {
+        .btn-success:hover {
+            background: #8aaa76;
             transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
         }
         
-        /* Features Section */
-        .features-section {
-            text-align: center;
+        .next-btn {
+            width: 100%;
+            margin-top: 1rem;
         }
         
-        .features-section h2 {
-            color: var(--gray-700);
-            margin-bottom: 30px;
-        }
-        
-        .features-grid {
+        .weekly-schedule {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
         
-        .feature-item {
-            background: var(--warm-white);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: var(--shadow-md);
+        .day-schedule {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .day-schedule h4 {
+            color: var(--sage-green);
+            margin-bottom: 1rem;
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--light-gray);
+            border-radius: 6px;
+        }
+        
+        .periods {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .period-slot {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .period-slot label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .period-select {
+            padding: 0.5rem;
+            border: 1px solid var(--border-gray);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        
+        .break-time {
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--peach);
+            border-radius: 6px;
+            margin: 0.5rem 0;
+        }
+        
+        .break-time p {
+            margin: 0;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .grade-subjects-info {
+            text-align: center;
+            background: var(--mint-green);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        
+        .yearly-calendar {
+            background: var(--light-gray);
+            padding: 2rem;
+            border-radius: 12px;
+        }
+        
+        .yearly-calendar h3 {
+            color: var(--sage-green);
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .plan-info {
+            text-align: center;
+            background: var(--sunny-yellow);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .calendar-instruction {
+            text-align: center;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .week-button {
+            background: white;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 0.75rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        .week-button:hover {
+            background: var(--soft-blue);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .existing-plan-notice {
+            background: var(--warm-pink);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
             text-align: center;
         }
         
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
+        .existing-plan-notice p {
+            margin-bottom: 1rem;
+            font-weight: 500;
         }
         
-        .feature-item h3 {
-            color: var(--gray-700);
-            margin-bottom: 10px;
-        }
-        
-        .feature-item p {
-            color: var(--gray-600);
-            line-height: 1.5;
+        .existing-plan-notice .btn {
+            margin: 0 0.5rem;
         }
         
         .alert {
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin-bottom: 15px;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
         }
         
         .alert-success {
-            background: rgba(104, 211, 145, 0.1);
-            color: var(--success);
-            border: 1px solid rgba(104, 211, 145, 0.3);
+            background: var(--mint-green);
+            color: #155724;
         }
         
         .alert-error {
-            background: rgba(252, 129, 129, 0.1);
-            color: var(--danger);
-            border: 1px solid rgba(252, 129, 129, 0.3);
+            background: #f8d7da;
+            color: #721c24;
         }
         
         @media (max-width: 768px) {
-            .process-flow {
+            .nav-container {
                 flex-direction: column;
+                gap: 1rem;
+                padding: 0 1rem;
             }
             
-            .step-arrow {
-                transform: rotate(90deg);
+            .nav-menu {
+                flex-direction: column;
+                gap: 0.5rem;
             }
             
-            .templates-grid {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .weekly-schedule {
                 grid-template-columns: 1fr;
             }
             
-            .template-actions {
-                flex-direction: column;
+            .calendar-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
             }
             
-            .template-actions .btn {
-                flex: none;
+            .action-buttons {
+                flex-direction: column;
             }
         }
     </style>
