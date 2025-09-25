@@ -179,7 +179,7 @@
                         <div id="${day}_periods" class="all-periods">
                             ${createEditablePeriod(day, 1, '08:00', '08:40', subjects)}
                             ${createEditablePeriod(day, 2, '08:40', '09:20', subjects)}
-                            ${createEditablePeriod(day, 3, '9:20', '10:00', subjects)}
+                            ${createEditablePeriod(day, 3, '09:20', '10:00', subjects)}
                             
                             <!-- EDITABLE BREAK TIME -->
                             ${createEditableBreak(day, '10:00', '10:20')}
@@ -342,7 +342,7 @@
                 periodsContainer.innerHTML = `
                     ${createEditablePeriod(day, 1, '08:00', '08:40', subjects)}
                     ${createEditablePeriod(day, 2, '08:40', '09:20', subjects)}
-                    ${createEditablePeriod(day, 3, '9:20', '10:00', subjects)}
+                    ${createEditablePeriod(day, 3, '09:20', '10:00', subjects)}
                     ${createEditableBreak(day, '10:00', '10:20')}
                     ${createEditablePeriod(day, 4, '10:20', '11:00', subjects)}
                     ${createEditablePeriod(day, 5, '11:00', '11:40', subjects)}
@@ -398,34 +398,46 @@
                 days.forEach(day => {
                     const dayContainer = document.getElementById(`${day}_periods`);
                     
-                    // Copy all periods from Monday
+                    // Copy all periods from Monday using DOM traversal
                     let newHTML = '';
                     mondayPeriods.forEach((period, index) => {
                         const periodNum = index + 1;
-                        const startTime = document.getElementById(`Monday_period${periodNum}_start`)?.value || '08:00';
-                        const endTime = document.getElementById(`Monday_period${periodNum}_end`)?.value || '08:40';
-                        const subject = document.getElementById(`Monday_period${periodNum}_subject`)?.value || '';
+                        
+                        // Use DOM traversal instead of computed IDs
+                        const startTimeInput = period.querySelector('input[type="time"]:first-of-type');
+                        const endTimeInput = period.querySelector('input[type="time"]:last-of-type');
+                        const subjectSelect = period.querySelector('select');
+                        
+                        const startTime = startTimeInput?.value || '08:00';
+                        const endTime = endTimeInput?.value || '08:40';
+                        const subject = subjectSelect?.value || '';
                         
                         newHTML += createEditablePeriod(day, periodNum, startTime, endTime, subjects);
                     });
                     
-                    // Copy breaks from Monday
+                    // Copy breaks from Monday using DOM traversal
                     mondayBreaks.forEach(breakEl => {
-                        const breakId = breakEl.id.split('_')[1]; // get break type
-                        const startTime = document.getElementById(`Monday_${breakId}_start`)?.value || '10:00';
-                        const endTime = document.getElementById(`Monday_${breakId}_end`)?.value || '10:20';
-                        const breakType = breakId.charAt(0).toUpperCase() + breakId.slice(1);
+                        const timeInputs = breakEl.querySelectorAll('input[type="time"]');
+                        const labelEl = breakEl.querySelector('label');
                         
-                        newHTML += createEditableBreak(day, startTime, endTime, breakType);
+                        if (timeInputs.length >= 2 && labelEl) {
+                            const startTime = timeInputs[0].value || '10:00';
+                            const endTime = timeInputs[1].value || '10:20';
+                            const breakType = labelEl.textContent.replace(' Time:', '');
+                            
+                            newHTML += createEditableBreak(day, startTime, endTime, breakType);
+                        }
                     });
                     
                     dayContainer.innerHTML = newHTML;
                     
-                    // Set subject values after DOM update
+                    // Set subject values after DOM update using DOM traversal
                     setTimeout(() => {
-                        mondayPeriods.forEach((period, index) => {
+                        mondayPeriods.forEach((mondayPeriod, index) => {
                             const periodNum = index + 1;
-                            const subject = document.getElementById(`Monday_period${periodNum}_subject`)?.value;
+                            const mondaySubjectSelect = mondayPeriod.querySelector('select');
+                            const subject = mondaySubjectSelect?.value;
+                            
                             if (subject) {
                                 const daySubjectSelect = document.getElementById(`${day}_period${periodNum}_subject`);
                                 if (daySubjectSelect) {
