@@ -1271,10 +1271,660 @@ document.addEventListener('DOMContentLoaded', function() {
     if (stopCameraButton) {
         stopCameraButton.addEventListener('click', stopCamera);
     }
+    
+    // U-DOST TOPIC UNDERSTANDING SYSTEM - FIX SPECIFIC TOPIC RECOGNITION - FIXED SCOPE
+    let currentUserSelection = {
+        menuChoice: '',
+        grade: '',
+        subject: '',
+        topic: ''
+    };
+
+    // Enhanced menu option processing with correct class targeting - FIXED
+    function processMenuOptions() {
+        // Use event delegation to handle dynamically created option buttons
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('option-btn')) {
+                const menuText = e.target.textContent.trim();
+                
+                // Clean menu choice recognition - FIXED
+                if (menuText.includes('Definition') || menuText.includes('📖')) {
+                    currentUserSelection.menuChoice = 'Definitions';
+                } else if (menuText.includes('Activities') || menuText.includes('🎮')) {
+                    currentUserSelection.menuChoice = 'Activities';  
+                } else if (menuText.includes('Strategies') || menuText.includes('🎯')) {
+                    currentUserSelection.menuChoice = 'Teaching Strategies';
+                } else if (menuText.includes('Assessment') || menuText.includes('📝')) {
+                    currentUserSelection.menuChoice = 'Assessments';
+                } else if (menuText.includes('Lesson') || menuText.includes('📚')) {
+                    currentUserSelection.menuChoice = 'Lesson Plans';
+                } else if (menuText.includes('Hooks') || menuText.includes('🎲')) {
+                    currentUserSelection.menuChoice = 'Hooks/Games';
+                } else if (menuText.includes('Examples') || menuText.includes('💡')) {
+                    currentUserSelection.menuChoice = 'Examples';
+                } else {
+                    // If not a recognized menu option, let normal chat flow continue
+                    return;
+                }
+                
+                console.log(`Menu choice set to: ${currentUserSelection.menuChoice}`);
+                showGradeSelection();
+            }
+        });
+    }
+
+    function showGradeSelection() {
+        addMessage(`
+            <p>You selected: <strong>${currentUserSelection.menuChoice}</strong></p>
+            <p><strong>Select Grade:</strong></p>
+            <div class="grade-buttons">
+                <button onclick="selectGrade('1')" class="selection-btn">Grade 1</button>
+                <button onclick="selectGrade('2')" class="selection-btn">Grade 2</button>
+                <button onclick="selectGrade('3')" class="selection-btn">Grade 3</button>
+                <button onclick="selectGrade('4')" class="selection-btn">Grade 4</button>
+                <button onclick="selectGrade('5')" class="selection-btn">Grade 5</button>
+            </div>
+        `, false);
+    }
+
+    // Make functions globally available so onclick handlers work
+    window.selectGrade = function(grade) {
+        currentUserSelection.grade = grade;
+        showSubjectSelection();
+    }
+
+    function showSubjectSelection() {
+        addMessage(`
+            <p>You selected: <strong>${currentUserSelection.menuChoice}</strong> for <strong>Grade ${currentUserSelection.grade}</strong></p>
+            <p><strong>Select Subject:</strong></p>
+            <div class="subject-buttons">
+                <button onclick="selectSubject('English')" class="selection-btn">📚 English</button>
+                <button onclick="selectSubject('Math')" class="selection-btn">🔢 Math</button>
+                <button onclick="selectSubject('Urdu')" class="selection-btn">🌙 Urdu</button>
+                <button onclick="selectSubject('Islamiyat')" class="selection-btn">🕌 Islamiyat</button>
+                <button onclick="selectSubject('Science')" class="selection-btn">🔬 Science</button>
+                <button onclick="selectSubject('Social Studies')" class="selection-btn">🌍 Social Studies</button>
+                <button onclick="selectSubject('General Knowledge')" class="selection-btn">🧠 General Knowledge</button>
+            </div>
+        `, false);
+    }
+
+    window.selectSubject = function(subject) {
+        currentUserSelection.subject = subject;
+        showTopicInput();
+    }
+
+    function showTopicInput() {
+        addMessage(`
+            <p>You selected: <strong>${currentUserSelection.menuChoice}</strong> for <strong>Grade ${currentUserSelection.grade} ${currentUserSelection.subject}</strong></p>
+            <p><strong>Enter the specific topic you want to teach:</strong></p>
+            <div class="topic-input-section">
+                <input type="text" id="topicInput" placeholder="e.g., Islam, nouns, addition, Prophet Muhammad" class="topic-input" style="width: 70%; padding: 10px; border-radius: 5px; border: 2px solid #ffb6c1;">
+                <button onclick="generateSpecificResponse()" class="generate-btn" style="padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; margin-left: 5px;">🎯 Generate Content</button>
+            </div>
+            <p><small>Examples: Islam, Allah, nouns, verbs, addition, subtraction, Prophet Muhammad, Ramadan, plants, animals, Pakistan...</small></p>
+        `, false);
+        
+        // Focus on the input field and add enter key listener
+        setTimeout(() => {
+            const topicInput = document.getElementById('topicInput');
+            if (topicInput) {
+                topicInput.focus();
+                topicInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        generateSpecificResponse();
+                    }
+                });
+            }
+        }, 100);
+    }
+
+    // FIXED TOPIC RECOGNITION SYSTEM - Make globally available
+    window.generateSpecificResponse = function() {
+    const topicInput = document.getElementById('topicInput');
+    if (!topicInput) return;
+    
+    const topic = topicInput.value.trim().toLowerCase();
+    
+    if (!topic) {
+        alert('Please enter a topic!');
+        return;
+    }
+    
+    console.log(`User entered topic: "${topic}"`); // Debug log
+    console.log(`Menu: ${currentUserSelection.menuChoice}, Grade: ${currentUserSelection.grade}, Subject: ${currentUserSelection.subject}`);
+    
+    // Store the topic
+    currentUserSelection.topic = topic;
+    
+    // DIRECT TOPIC MATCHING - FIXED
+    const specificResponse = generateTopicSpecificContent(
+        currentUserSelection.menuChoice,
+        currentUserSelection.grade, 
+        currentUserSelection.subject,
+        topic  // Use the actual topic, not generic subject
+    );
+    
+    displayUDostResponse(specificResponse);
+    
+    // Add option to generate another or go back to menu
+    setTimeout(() => {
+        addMessage(`
+            <div class="action-buttons" style="text-align: center; margin-top: 15px;">
+                <button onclick="showTopicInput()" class="action-btn" style="padding: 8px 12px; margin: 5px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">🔄 Try Another Topic</button>
+                <button onclick="sendMessage('menu')" class="action-btn" style="padding: 8px 12px; margin: 5px; background: #FF9800; color: white; border: none; border-radius: 5px; cursor: pointer;">📋 Back to Main Menu</button>
+            </div>
+        `, false);
+    }, 1000);
+}
+
+    function generateTopicSpecificContent(menuChoice, grade, subject, topic) {
+    console.log(`Generating ${menuChoice} for topic: "${topic}"`);
+    
+    // DEFINITIONS - SPECIFIC TOPIC RESPONSES
+    if (menuChoice === 'Definitions') {
+        return generateDefinitionForTopic(grade, subject, topic);
+    } else if (menuChoice === 'Activities') {
+        return generateActivitiesForTopic(grade, subject, topic);
+    } else if (menuChoice === 'Teaching Strategies') {
+        return generateStrategiesForTopic(grade, subject, topic);
+    } else if (menuChoice === 'Assessments') {
+        return generateAssessmentsForTopic(grade, subject, topic);
+    } else if (menuChoice === 'Lesson Plans') {
+        return generateLessonPlanForTopic(grade, subject, topic);
+    }
+    
+    return `Error: Could not generate content for topic "${topic}"`;
+}
+
+    // SPECIFIC DEFINITION RESPONSES - CORE FIX
+    function generateDefinitionForTopic(grade, subject, topic) {
+    console.log(`Generating definition for: ${subject} - ${topic} (Grade ${grade})`);
+    
+    // ISLAMIYAT TOPIC DEFINITIONS
+    if (subject === 'Islamiyat') {
+        
+        if (topic.includes('islam') || topic === 'islam') {
+            return generateIslamDefinition(grade);
+        } else if (topic.includes('allah')) {
+            return generateAllahDefinition(grade);
+        } else if (topic.includes('prophet') || topic.includes('muhammad')) {
+            return generateProphetDefinition(grade);
+        } else if (topic.includes('quran')) {
+            return generateQuranDefinition(grade);
+        } else if (topic.includes('namaz') || topic.includes('prayer')) {
+            return generateNamazDefinition(grade);
+        } else if (topic.includes('ramadan') || topic.includes('roza')) {
+            return generateRamadanDefinition(grade);
+        }
+    }
+    
+    // ENGLISH TOPIC DEFINITIONS  
+    if (subject === 'English') {
+        if (topic.includes('noun')) {
+            return generateNounDefinition(grade);
+        } else if (topic.includes('verb')) {
+            return generateVerbDefinition(grade);
+        } else if (topic.includes('adjective')) {
+            return generateAdjectiveDefinition(grade);
+        } else if (topic.includes('sentence')) {
+            return generateSentenceDefinition(grade);
+        }
+    }
+    
+    // MATH TOPIC DEFINITIONS
+    if (subject === 'Math') {
+        if (topic.includes('addition') || topic.includes('add')) {
+            return generateAdditionDefinition(grade);
+        } else if (topic.includes('subtraction') || topic.includes('subtract')) {
+            return generateSubtractionDefinition(grade);
+        } else if (topic.includes('multiplication') || topic.includes('multiply')) {
+            return generateMultiplicationDefinition(grade);
+        } else if (topic.includes('division') || topic.includes('divide')) {
+            return generateDivisionDefinition(grade);
+        }
+    }
+    
+    // FALLBACK - If topic not recognized
+    return `Hello teacher! "${topic}" ke definition ke liye Grade ${grade} ${subject} mein specific content generate kar rahi hun...
+
+📖 DEFINITION - ${topic} (Grade ${grade} ${subject})
+
+Main is topic ko recognize kar rahi hun aur appropriate definition banayungi. Thoda wait kariye teacher! 😊
+
+<small>Note: Specific definitions for "${topic}" will be added soon. For now, please try common topics like Islam, Allah, nouns, verbs, addition, subtraction.</small>`;
+}
+
+    // ISLAMIYAT DEFINITIONS
+    function generateIslamDefinition(grade) {
+    if (grade === '1' || grade === '2') {
+        return `Hello teacher! Grade ${grade} ke liye "Islam" definition:
+
+📖 DEFINITION - Islam (Grade ${grade} Islamiyat)
+
+🔹 ONE LINE:
+English: Islam is our beautiful religion that teaches us to worship Allah.
+Roman Urdu: Islam hamara khoobsurat mazhab hai jo hame Allah ki ibadat sikhata hai.
+
+🔹 TWO LINE:
+English: Islam is our religion. It teaches us to be good and worship only Allah.
+Roman Urdu: Islam hamara mazhab hai. Yeh hame acha banne aur sirf Allah ki ibadat karne ka kehta hai.
+
+🔹 THREE LINE:  
+English: Islam is our peaceful religion that was brought by Prophet Muhammad (PBUH). It teaches us to worship only Allah and be kind to everyone. Muslims follow Islam all around the world.
+Roman Urdu: Islam hamara aman wala mazhab hai jo Hazrat Muhammad (PBUH) laye. Yeh hame sirf Allah ki ibadat aur sab ke saath achay se rehne sikhata hai. Duniya bhar mein Muslim Islam follow karte hain.
+
+Samajh aa gaya teacher? 😊`;
+    }
+    
+    if (grade === '3') {
+        return `Hello teacher! Grade 3 ke liye "Islam" definition:
+
+📖 DEFINITION - Islam (Grade 3 Islamiyat)
+
+🔹 DETAILED DEFINITION:
+English: Islam is the religion of peace and submission to Allah. It has five pillars and teaches us the right way to live.
+Roman Urdu: Islam Allah ke samne jhukne aur aman ka mazhab hai. Iske paanch arkan hain aur yeh hame sahi tarike se jeene sikhata hai.
+
+🔹 FIVE PILLARS:
+1. Shahadah (Declaration of faith)
+2. Namaz (Prayer)  
+3. Zakat (Charity)
+4. Roza (Fasting)
+5. Hajj (Pilgrimage)
+
+Aur detail chahiye teacher? 😊`;
+    }
+    
+    if (grade === '4' || grade === '5') {
+        return `Hello teacher! Grade ${grade} ke liye "Islam" definition:
+
+📖 DEFINITION - Islam (Grade ${grade} Islamiyat)
+
+🔹 COMPREHENSIVE DEFINITION:
+English: Islam is a complete way of life revealed by Allah through Prophet Muhammad (PBUH). It means submission to Allah's will and brings peace to individuals and society.
+Roman Urdu: Islam Allah ki taraf se Hazrat Muhammad (PBUH) ke zariye nazil kiya gaya mukammal nizam-e-zindagi hai. Iska matlab Allah ki marzi ke samne jhukna hai aur yeh logon aur muashre mein aman lata hai.
+
+🔹 KEY TEACHINGS:
+- Worship only Allah (Tawheed)
+- Follow Prophet Muhammad's example (Sunnah)
+- Treat all people with kindness and justice
+- Help the poor and needy
+
+Perfect hai teacher! 😊`;
+    }
+    
+    return `Grade ${grade} ke liye Islam definition ready kar rahi hun teacher!`;
+}
+
+    function generateAllahDefinition(grade) {
+    return `Hello teacher! Grade ${grade} ke liye "Allah" definition:
+
+📖 DEFINITION - Allah (Grade ${grade} Islamiyat)
+
+🔹 ONE LINE:
+English: Allah is our Creator and the only God we worship.
+Roman Urdu: Allah hamare banane wale hain aur hum sirf unki ibadat karte hain.
+
+🔹 DETAILED:
+English: Allah is the one and only God who created everything. He has no partners and is the most merciful and kind.
+Roman Urdu: Allah wahid khuda hain jinhone sab kuch banaya. Unka koi shareek nahi aur woh bohat mehrbaan aur raham wale hain.
+
+🔹 99 NAMES (ASMA-UL-HUSNA):
+Some beautiful names of Allah:
+- Ar-Rahman (The Most Merciful)
+- Ar-Raheem (The Most Kind)
+- Al-Kareem (The Most Generous)
+
+Perfect hai teacher? 😊`;
+}
+
+    function generateProphetDefinition(grade) {
+    return `Hello teacher! Grade ${grade} ke liye "Prophet Muhammad (PBUH)" definition:
+
+📖 DEFINITION - Prophet Muhammad (PBUH) (Grade ${grade} Islamiyat)
+
+🔹 ONE LINE:
+English: Prophet Muhammad (PBUH) is the last messenger of Allah.
+Roman Urdu: Hazrat Muhammad (PBUH) Allah ke aakhri rasool hain.
+
+🔹 DETAILED:
+English: Prophet Muhammad (PBUH) was chosen by Allah to guide all people. He taught us the Quran and showed us how to live as good Muslims.
+Roman Urdu: Hazrat Muhammad (PBUH) ko Allah ne tamam logon ki hidayat ke liye chuna. Unhone hame Quran sikhaya aur ache Muslim ki tarah jeene ka tarika dikhaya.
+
+🔹 QUALITIES:
+- Sadiq (Truthful)
+- Ameen (Trustworthy)
+- Kind to everyone
+- Perfect example for Muslims
+
+Samajh aa gaya teacher? 😊`;
+}
+
+    // ENGLISH DEFINITIONS
+    function generateNounDefinition(grade) {
+    return `Hello teacher! Grade ${grade} English ke liye "Noun" definition:
+
+📖 DEFINITION - Noun (Grade ${grade} English)
+
+🔹 ONE LINE:
+English: A noun is a word that names a person, place, or thing.
+Roman Urdu: Noun aik word hai jo kisi insaan, jagah ya cheez ka naam batata hai.
+
+🔹 WITH EXAMPLES:
+English: A noun names people (Ahmed, teacher), places (school, Pakistan), or things (book, chair).
+Roman Urdu: Noun logo (Ahmed, teacher), jagahon (school, Pakistan), ya cheezon (kitab, chair) ke naam batata hai.
+
+🔹 PAKISTANI EXAMPLES:
+- People: Ahmed, Fatima, teacher, doctor
+- Places: Lahore, school, masjid, market
+- Things: roti, cricket, book, pen
+
+Theek hai teacher? 😊`;
+}
+
+    function generateVerbDefinition(grade) {
+    return `Hello teacher! Grade ${grade} English ke liye "Verb" definition:
+
+📖 DEFINITION - Verb (Grade ${grade} English)
+
+🔹 ONE LINE:
+English: A verb is an action word that tells us what someone does.
+Roman Urdu: Verb action word hai jo batata hai koi kya karta hai.
+
+🔹 WITH EXAMPLES:
+English: Verbs show actions like run, eat, play, study, pray.
+Roman Urdu: Verbs actions dikhate hain jaise run, eat, play, study, pray.
+
+🔹 PAKISTANI EXAMPLES:
+- Ahmed runs in the park
+- Fatima eats biryani
+- Children play cricket
+- Students study hard
+
+Simple hai teacher! 😊`;
+}
+
+    // MATH DEFINITIONS
+    function generateAdditionDefinition(grade) {
+    return `Hello teacher! Grade ${grade} Math ke liye "Addition" definition:
+
+📖 DEFINITION - Addition (Grade ${grade} Math)
+
+🔹 ONE LINE:
+English: Addition means putting numbers together to find the total.
+Roman Urdu: Addition ka matlab numbers ko jor kar total nikalna hai.
+
+🔹 WITH EXAMPLES:
+English: When we add 2 + 3, we get 5. We put 2 and 3 together.
+Roman Urdu: Jab hum 2 + 3 karte hain, to 5 milta hai. Hum 2 aur 3 ko jor dete hain.
+
+🔹 PAKISTANI EXAMPLES:
+- Ahmed has 3 mangoes, Fatima gives 2 more = 5 mangoes
+- 4 rotis + 2 rotis = 6 rotis
+- 5 rupees + 3 rupees = 8 rupees
+
+Easy hai teacher! 😊`;
+}
+
+    function generateSubtractionDefinition(grade) {
+    return `Hello teacher! Grade ${grade} Math ke liye "Subtraction" definition:
+
+📖 DEFINITION - Subtraction (Grade ${grade} Math)
+
+🔹 ONE LINE:
+English: Subtraction means taking away numbers to find what's left.
+Roman Urdu: Subtraction ka matlab numbers ko minus kar ke bacha hua nikalna hai.
+
+🔹 WITH EXAMPLES:
+English: When we subtract 3 - 1, we get 2. We take 1 away from 3.
+Roman Urdu: Jab hum 3 - 1 karte hain, to 2 milta hai. Hum 3 mein se 1 kam kar dete hain.
+
+🔹 PAKISTANI EXAMPLES:
+- Ahmed had 5 cricket balls, lost 2 = 3 balls left
+- 8 rotis - 3 eaten = 5 rotis remaining
+- 10 rupees - 4 spent = 6 rupees left
+
+Samajh aa gaya teacher! 😊`;
+}
+
+    // ACTIVITIES GENERATION
+    function generateActivitiesForTopic(grade, subject, topic) {
+    return `Hello teacher! Grade ${grade} ${subject} ke liye "${topic}" activities:
+
+🎮 ACTIVITIES - ${topic} (Grade ${grade} ${subject})
+
+🔹 GROUP ACTIVITIES:
+- Students ko groups mein divide kariye
+- ${topic} ke bare mein discussion karwaye
+- Interactive games khilwaye
+
+🔹 INDIVIDUAL PRACTICE:
+- Worksheets complete karwaye
+- ${topic} se related questions solve karwaye
+- Practice exercises diye
+
+🔹 FUN ACTIVITIES:
+- ${topic} ke songs ya rhymes sikhaye
+- Role play activities karwaye
+- Creative projects banwaye
+
+Grade ${grade} ke liye perfect activities! Try kariye teacher! 😊`;
+}
+
+    // OTHER CONTENT FUNCTIONS
+    function generateStrategiesForTopic(grade, subject, topic) {
+    return `Hello teacher! Grade ${grade} ${subject} ke liye "${topic}" teaching strategies:
+
+🎯 TEACHING STRATEGIES - ${topic} (Grade ${grade} ${subject})
+
+🔹 EFFECTIVE METHODS:
+- Visual aids use kariye
+- Step by step explain kariye
+- Real examples diye
+- Interactive teaching kariye
+
+🔹 PAKISTANI CONTEXT:
+- Local examples use kariye
+- Cultural references add kariye
+- Urdu words bhi explain kariye
+
+Grade ${grade} ke bachon ke liye perfect strategies! 😊`;
+}
+
+    function generateAssessmentsForTopic(grade, subject, topic) {
+    return `Hello teacher! Grade ${grade} ${subject} ke liye "${topic}" assessments:
+
+📝 ASSESSMENTS - ${topic} (Grade ${grade} ${subject})
+
+🔹 ASSESSMENT OPTIONS:
+- Quick Q&A sessions
+- Written tests
+- Oral presentations
+- Practical activities
+
+🔹 EVALUATION CRITERIA:
+- Understanding check kariye
+- Application skills dekiye
+- Participation note kariye
+
+Grade ${grade} ke liye appropriate assessments! 😊`;
+}
+
+function generateLessonPlanForTopic(grade, subject, topic) {
+    return `Hello teacher! Grade ${grade} ${subject} ke liye "${topic}" lesson plan:
+
+📚 LESSON PLAN - ${topic} (Grade ${grade} ${subject})
+
+🔹 LESSON STRUCTURE:
+1. RECALL: Previous knowledge review
+2. HOOK: Interesting introduction
+3. EXPLAIN: Concept explanation
+4. PRACTICE: Guided activities
+5. ASSESSMENT: Quick evaluation
+6. CONCLUSION: Summary
+
+🔹 TIME: 40 minutes
+🔹 MATERIALS: Textbook, board, charts
+
+Grade ${grade} ke liye ready lesson plan! 😊`;
+}
+
+function displayUDostResponse(response) {
+    addMessage(`<div class="udost-response" style="background: rgba(135, 206, 235, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #87CEEB;">
+        ${response}
+    </div>`, false);
+}
+
+    // Initialize the enhanced U-Dost system - FIXED
+    processMenuOptions();
+    console.log('U-Dost Enhanced Topic Understanding System Loaded');
 });
+
+// Keep the closing for the previous section
 </script>
 
 <style>
+/* U-DOST TOPIC UNDERSTANDING SYSTEM STYLES */
+.selection-btn {
+    display: inline-block;
+    margin: 5px;
+    padding: 10px 15px;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.selection-btn:hover {
+    background: linear-gradient(135deg, #45a049, #4CAF50);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.grade-buttons, .subject-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin: 15px 0;
+}
+
+.topic-input-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.topic-input {
+    flex: 1;
+    min-width: 200px;
+    max-width: 400px;
+    padding: 10px;
+    border: 2px solid #ffb6c1;
+    border-radius: 5px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.topic-input:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.generate-btn {
+    padding: 10px 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.generate-btn:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.action-btn {
+    padding: 8px 12px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.udost-response {
+    background: rgba(135, 206, 235, 0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border-left: 4px solid #87CEEB;
+    margin: 15px 0;
+    line-height: 1.6;
+}
+
+.udost-response h3, .udost-response h4 {
+    color: #4682b4;
+    margin-top: 0;
+}
+
+.udost-response ul {
+    padding-left: 20px;
+}
+
+.udost-response li {
+    margin: 5px 0;
+}
+
+/* Responsive design for mobile */
+@media (max-width: 600px) {
+    .grade-buttons, .subject-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .selection-btn {
+        width: 80%;
+        max-width: 250px;
+    }
+    
+    .topic-input-section {
+        flex-direction: column;
+    }
+    
+    .topic-input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .generate-btn {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
 /* Main Chatbot Page Layout */
 .chatbot-page {
     max-width: 900px;
