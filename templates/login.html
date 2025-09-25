@@ -68,7 +68,36 @@
                 <button type="submit" class="btn btn-primary btn-auth">
                     🚪 Login to USTAAD DOST
                 </button>
+                
+                <!-- ADD FORGET PASSWORD LINK -->
+                <div class="forgot-password-section">
+                    <a href="#" onclick="showForgotPassword()" class="forgot-link">
+                        🔒 Forgot Password?
+                    </a>
+                </div>
             </form>
+            
+            <!-- FORGET PASSWORD FORM (Hidden by default) -->
+            <div id="forgotPasswordForm" style="display:none;" class="forgot-form">
+                <h3>Reset Password</h3>
+                <p>Enter your phone number to reset password:</p>
+                
+                <input type="tel" id="resetPhone" placeholder="Enter your phone number (03XX-XXXXXXX)" pattern="[0-9]{4}-[0-9]{7}">
+                <button onclick="sendResetCode()" class="btn btn-primary">Send Reset Code</button>
+                
+                <div id="codeVerification" style="display:none;">
+                    <input type="text" id="verificationCode" placeholder="Enter 4-digit code" maxlength="4">
+                    <button onclick="verifyResetCode()" class="btn btn-primary">Verify Code</button>
+                </div>
+                
+                <div id="newPasswordSection" style="display:none;">
+                    <input type="password" id="newPassword" placeholder="New Password (min 6 characters)">
+                    <input type="password" id="confirmNewPassword" placeholder="Confirm New Password">
+                    <button onclick="resetPassword()" class="btn btn-primary">Reset Password</button>
+                </div>
+                
+                <button onclick="backToLogin()" class="back-btn">⬅️ Back to Login</button>
+            </div>
             
             <div class="auth-footer">
                 <p>New teacher? <a href="{{ url_for('register') }}" class="auth-link">Create an account</a></p>
@@ -330,6 +359,88 @@
             border: 1px solid rgba(168, 213, 232, 0.3);
         }
         
+        /* FORGET PASSWORD STYLING */
+        .forgot-password-section {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .forgot-link {
+            color: var(--soft-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+            color: var(--sage-green);
+        }
+
+        .forgot-form {
+            background: rgba(156, 188, 136, 0.05);
+            padding: 25px;
+            border-radius: 12px;
+            margin-top: 20px;
+            border: 1px solid rgba(156, 188, 136, 0.2);
+        }
+
+        .forgot-form h3 {
+            color: var(--soft-blue);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .forgot-form p {
+            color: var(--gray-600);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .forgot-form input {
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        .forgot-form input:focus {
+            border-color: var(--soft-blue);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(108, 155, 209, 0.1);
+        }
+
+        .forgot-form button {
+            width: 100%;
+            margin: 8px 0;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn {
+            background: var(--gray-500) !important;
+            color: white !important;
+        }
+
+        .back-btn:hover {
+            background: var(--gray-600) !important;
+        }
+
+        #codeVerification, #newPasswordSection {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(156, 188, 136, 0.2);
+        }
+
         @media (max-width: 480px) {
             .auth-card {
                 padding: 30px 20px;
@@ -338,6 +449,10 @@
             .auth-features {
                 flex-direction: column;
                 gap: 10px;
+            }
+            
+            .forgot-form {
+                padding: 20px 15px;
             }
         }
     </style>
@@ -361,6 +476,162 @@
             }
             e.target.value = value;
         });
+
+        // FORGET PASSWORD FUNCTIONS
+        function showForgotPassword() {
+            // Hide login form, show forgot password form
+            document.querySelector('.auth-form').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+        }
+
+        function backToLogin() {
+            // Show login form, hide forgot password form
+            document.querySelector('.auth-form').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            
+            // Reset forgot password form
+            resetForgotPasswordForm();
+        }
+
+        function resetForgotPasswordForm() {
+            document.getElementById('resetPhone').value = '';
+            document.getElementById('verificationCode').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('codeVerification').style.display = 'none';
+            document.getElementById('newPasswordSection').style.display = 'none';
+        }
+
+        function sendResetCode() {
+            const phone = document.getElementById('resetPhone').value;
+            
+            if (!phone || phone.length < 11) {
+                alert('Please enter a valid phone number!');
+                return;
+            }
+            
+            // Check rate limiting first
+            if (!checkResetAttempts(phone)) {
+                return;
+            }
+            
+            // Check if phone number exists in system
+            const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const userExists = existingUsers.find(user => user.phone_number === phone);
+            
+            if (!userExists) {
+                alert('Phone number not found! Please register first.');
+                return;
+            }
+            
+            // Generate 4-digit verification code
+            const resetCode = Math.floor(1000 + Math.random() * 9000).toString();
+            
+            // Store reset code temporarily (in real app, send via SMS)
+            localStorage.setItem('resetCode', JSON.stringify({
+                phone: phone,
+                code: resetCode,
+                timestamp: Date.now()
+            }));
+            
+            // Show code verification section
+            document.getElementById('codeVerification').style.display = 'block';
+            
+            // Simulate SMS (in real app, integrate SMS service)
+            alert(`Reset code sent to ${phone}: ${resetCode}\n(In real app, this will be sent via SMS)`);
+        }
+
+        function verifyResetCode() {
+            const enteredCode = document.getElementById('verificationCode').value;
+            const storedResetData = JSON.parse(localStorage.getItem('resetCode') || '{}');
+            
+            if (!enteredCode || enteredCode.length !== 4) {
+                alert('Please enter the 4-digit code!');
+                return;
+            }
+            
+            // Check if code matches and is not expired (valid for 10 minutes)
+            const currentTime = Date.now();
+            const codeAge = currentTime - storedResetData.timestamp;
+            const tenMinutes = 10 * 60 * 1000;
+            
+            if (codeAge > tenMinutes) {
+                alert('Reset code expired! Please request a new code.');
+                localStorage.removeItem('resetCode');
+                return;
+            }
+            
+            if (enteredCode === storedResetData.code) {
+                // Code verified, show new password section
+                document.getElementById('newPasswordSection').style.display = 'block';
+                alert('✅ Code verified! Enter your new password.');
+            } else {
+                alert('❌ Invalid code! Please try again.');
+            }
+        }
+
+        function resetPassword() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmNewPassword').value;
+            const resetData = JSON.parse(localStorage.getItem('resetCode') || '{}');
+            
+            // Validation
+            if (!newPassword || newPassword.length < 6) {
+                alert('Password must be at least 6 characters long!');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            // Update user's password
+            const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+            const userIndex = existingUsers.findIndex(user => user.phone_number === resetData.phone);
+            
+            if (userIndex !== -1) {
+                existingUsers[userIndex].password = newPassword;
+                localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
+                
+                // Clear reset code
+                localStorage.removeItem('resetCode');
+                
+                // Show success and return to login
+                alert('✅ Password reset successfully! Please login with your new password.');
+                backToLogin();
+            } else {
+                alert('❌ Error updating password. Please try again.');
+            }
+        }
+
+        // SECURITY ENHANCEMENTS - Rate limiting for reset attempts
+        function checkResetAttempts(phone) {
+            const attempts = JSON.parse(localStorage.getItem('resetAttempts') || '{}');
+            const userAttempts = attempts[phone] || { count: 0, lastAttempt: 0 };
+            
+            const now = Date.now();
+            const oneHour = 60 * 60 * 1000;
+            
+            // Reset attempts after 1 hour
+            if (now - userAttempts.lastAttempt > oneHour) {
+                userAttempts.count = 0;
+            }
+            
+            // Limit to 3 attempts per hour
+            if (userAttempts.count >= 3) {
+                alert('Too many reset attempts. Please try after 1 hour.');
+                return false;
+            }
+            
+            // Increment attempts
+            userAttempts.count++;
+            userAttempts.lastAttempt = now;
+            attempts[phone] = userAttempts;
+            localStorage.setItem('resetAttempts', JSON.stringify(attempts));
+            
+            return true;
+        }
     </script>
 </body>
 </html>
