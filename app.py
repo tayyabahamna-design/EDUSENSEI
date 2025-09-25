@@ -3948,7 +3948,7 @@ def register():
                 session['user_id'] = user_id
                 session['user_name'] = name
                 session['phone_number'] = phone_number
-                flash(f'Registration successful! Welcome to USTAAD DOST, {name}!', 'success')
+                flash(f'Registration successful! Welcome to استاد دوست - آپ کے ساتھ، آپ کی مدد کے لیے, {name}!', 'success')
                 return redirect(url_for('profile_setup'))
             else:
                 flash('Registration failed. Please try again.', 'error')
