@@ -1,0 +1,241 @@
+ITERATION PROMPT - FIX NAVIGATION & REDESIGN GRADING BUDDY:
+Keep all existing features unchanged. Only fix these critical issues:
+FIX 1 - TOP NAVIGATION BUTTONS NOT WORKING
+CURRENT PROBLEM:
+
+Click Grading → Opens something else
+Click Planner → Opens wrong section
+Navigation completely broken
+
+REQUIRED FIX:
+javascriptCopy// Remove ALL existing event listeners first, then add correct ones
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Clear any existing listeners
+    const buttons = document.querySelectorAll('.nav-button');
+    buttons.forEach(btn => {
+        btn.replaceWith(btn.cloneNode(true)); // Removes all listeners
+    });
+    
+    // Add CORRECT listeners
+    document.getElementById('plannerNavBtn').addEventListener('click', function() {
+        console.log('Planner clicked');
+        hideAllSections();
+        document.getElementById('yearlyPlanner').style.display = 'block';
+    });
+    
+    document.getElementById('gradingNavBtn').addEventListener('click', function() {
+        console.log('Grading clicked');
+        hideAllSections();
+        document.getElementById('gradingBuddy').style.display = 'block';
+    });
+    
+    document.getElementById('chatNavBtn').addEventListener('click', function() {
+        console.log('Chat clicked');
+        hideAllSections();
+        document.getElementById('chatbot').style.display = 'block';
+    });
+    
+    document.getElementById('profileNavBtn').addEventListener('click', function() {
+        console.log('Profile clicked');
+        hideAllSections();
+        document.getElementById('profileSection').style.display = 'block';
+    });
+});
+
+function hideAllSections() {
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('yearlyPlanner').style.display = 'none';
+    document.getElementById('gradingBuddy').style.display = 'none';
+    document.getElementById('chatbot').style.display = 'none';
+    document.getElementById('profileSection').style.display = 'none';
+}
+FIX 2 - REDESIGN GRADING BUDDY SYSTEM
+NEW GRADING BUDDY STRUCTURE:
+javascriptCopyfunction loadGradingBuddy() {
+    document.getElementById('gradingBuddy').innerHTML = `
+        <div class="grading-container">
+            <h2>📊 Grading Buddy</h2>
+            
+            <div class="class-management">
+                <h3>Your Classes</h3>
+                <button onclick="addClass()" class="add-btn">➕ Add New Class</button>
+                
+                <div id="classList">
+                    <!-- Classes will appear here -->
+                </div>
+            </div>
+            
+            <div id="addClassForm" style="display:none;">
+                <h3>Create New Class</h3>
+                <input type="text" id="className" placeholder="Class Name (e.g., Grade 3-A)">
+                <input type="text" id="classSubject" placeholder="Subject">
+                <button onclick="saveClass()">Save Class</button>
+                <button onclick="cancelAddClass()">Cancel</button>
+            </div>
+            
+            <div id="classDetails" style="display:none;">
+                <!-- Individual class management will load here -->
+            </div>
+        </div>
+    `;
+    
+    loadExistingClasses();
+}
+
+function addClass() {
+    document.getElementById('addClassForm').style.display = 'block';
+}
+
+function saveClass() {
+    const className = document.getElementById('className').value;
+    const subject = document.getElementById('classSubject').value;
+    
+    if (className && subject) {
+        // Save class to storage
+        const newClass = {
+            id: Date.now(),
+            name: className,
+            subject: subject,
+            students: []
+        };
+        
+        let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+        classes.push(newClass);
+        localStorage.setItem('teacherClasses', JSON.stringify(classes));
+        
+        // Refresh class list
+        loadExistingClasses();
+        document.getElementById('addClassForm').style.display = 'none';
+    }
+}
+
+function loadExistingClasses() {
+    const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+    const classListDiv = document.getElementById('classList');
+    
+    classListDiv.innerHTML = classes.map(cls => `
+        <div class="class-card">
+            <h4>${cls.name} - ${cls.subject}</h4>
+            <p>Students: ${cls.students.length}</p>
+            <button onclick="openClass(${cls.id})">📚 Open Class</button>
+            <button onclick="editClass(${cls.id})">✏️ Edit</button>
+        </div>
+    `).join('');
+}
+FIX 3 - INDIVIDUAL CLASS MANAGEMENT WITH PICTURE UPLOAD
+javascriptCopyfunction openClass(classId) {
+    const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+    const currentClass = classes.find(c => c.id === classId);
+    
+    document.getElementById('classDetails').style.display = 'block';
+    document.getElementById('classDetails').innerHTML = `
+        <div class="class-detail-view">
+            <h3>📚 ${currentClass.name} - ${currentClass.subject}</h3>
+            
+            <div class="student-management">
+                <h4>Students (${currentClass.students.length})</h4>
+                
+                <div class="add-students-options">
+                    <button onclick="manualAddStudent(${classId})">➕ Add Student Manually</button>
+                    <button onclick="uploadStudentPicture(${classId})">📸 Upload Student List Picture</button>
+                </div>
+                
+                <div id="pictureUpload_${classId}" style="display:none;">
+                    <input type="file" id="studentListImage_${classId}" accept="image/*">
+                    <button onclick="extractStudentNames(${classId})">Extract Names from Picture</button>
+                </div>
+                
+                <div id="studentList_${classId}">
+                    ${currentClass.students.map(student => `
+                        <div class="student-profile">
+                            <h5>${student.name}</h5>
+                            <p>Father: ${student.fatherName || 'Not added'}</p>
+                            <p>Mother: ${student.motherName || 'Not added'}</p>
+                            <p>Contact: ${student.contact || 'Not added'}</p>
+                            <button onclick="editStudentProfile(${classId}, ${student.id})">✏️ Edit Profile</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function uploadStudentPicture(classId) {
+    document.getElementById(`pictureUpload_${classId}`).style.display = 'block';
+}
+
+function extractStudentNames(classId) {
+    // Simulate name extraction (you can add OCR later)
+    const extractedNames = [
+        "Ahmed Ali", "Fatima Sheikh", "Hassan Khan", "Ayesha Ahmad", "Ali Raza"
+    ];
+    
+    // Add these students to class
+    let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+    const classIndex = classes.findIndex(c => c.id === classId);
+    
+    extractedNames.forEach(name => {
+        classes[classIndex].students.push({
+            id: Date.now() + Math.random(),
+            name: name,
+            fatherName: '',
+            motherName: '',
+            contact: '',
+            address: ''
+        });
+    });
+    
+    localStorage.setItem('teacherClasses', JSON.stringify(classes));
+    
+    // Refresh class view
+    openClass(classId);
+    alert(`✅ Added ${extractedNames.length} students from picture!`);
+}
+FIX 4 - ADD PROFILE EDIT SECTION
+javascriptCopyfunction loadProfileEdit() {
+    document.getElementById('profileSection').innerHTML = `
+        <div class="profile-edit">
+            <h2>👤 Edit Profile</h2>
+            
+            <div class="profile-form">
+                <label>Phone Number:</label>
+                <input type="text" id="profilePhone" value="${getCurrentUser()?.phone || ''}">
+                
+                <label>CNIC:</label>
+                <input type="text" id="profileCNIC" placeholder="12345-1234567-1">
+                
+                <label>Email:</label>
+                <input type="email" id="profileEmail" placeholder="teacher@email.com">
+                
+                <label>Address:</label>
+                <input type="text" id="profileAddress" placeholder="Your Address">
+                
+                <label>Profile Photo:</label>
+                <input type="file" id="profilePhoto" accept="image/*">
+                
+                <button onclick="saveProfile()">💾 Save Profile</button>
+            </div>
+        </div>
+    `;
+}
+
+function saveProfile() {
+    const profileData = {
+        phone: document.getElementById('profilePhone').value,
+        cnic: document.getElementById('profileCNIC').value,
+        email: document.getElementById('profileEmail').value,
+        address: document.getElementById('profileAddress').value
+    };
+    
+    localStorage.setItem('teacherProfile', JSON.stringify(profileData));
+    alert('✅ Profile updated successfully!');
+}
+TEST EACH BUTTON:
+
+Grading → Should open Grading Buddy only
+Planner → Should open Yearly Planner only
+Profile → Should open Profile Edit only
+
+Keep all other features unchanged.
