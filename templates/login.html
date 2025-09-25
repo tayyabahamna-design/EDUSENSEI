@@ -79,21 +79,25 @@
             
             <!-- FORGET PASSWORD FORM (Hidden by default) -->
             <div id="forgotPasswordForm" style="display:none;" class="forgot-form">
-                <h3>Reset Password</h3>
-                <p>Enter your phone number to reset password:</p>
+                <h3>🔒 Reset Password</h3>
+                <p>Enter your registered phone number:</p>
                 
-                <input type="tel" id="resetPhone" placeholder="Enter your phone number (03XX-XXXXXXX)" pattern="[0-9]{4}-[0-9]{7}">
-                <button onclick="sendResetCode()" class="btn btn-primary">Send Reset Code</button>
+                <input type="tel" id="resetPhone" placeholder="03xxxxxxxxx" pattern="[0-9]{11}">
+                <button onclick="sendResetCodeWithOptions()" class="btn btn-primary">Send Reset Code</button>
+                
+                <div id="resetOptions"></div>
                 
                 <div id="codeVerification" style="display:none;">
+                    <h4>Enter Verification Code:</h4>
                     <input type="text" id="verificationCode" placeholder="Enter 4-digit code" maxlength="4">
                     <button onclick="verifyResetCode()" class="btn btn-primary">Verify Code</button>
                 </div>
                 
                 <div id="newPasswordSection" style="display:none;">
-                    <input type="password" id="newPassword" placeholder="New Password (min 6 characters)">
+                    <h4>Create New Password:</h4>
+                    <input type="password" id="newPassword" placeholder="New Password (min 6 chars)">
                     <input type="password" id="confirmNewPassword" placeholder="Confirm New Password">
-                    <button onclick="resetPassword()" class="btn btn-primary">Reset Password</button>
+                    <button onclick="resetPassword()" class="btn btn-primary">Update Password</button>
                 </div>
                 
                 <button onclick="backToLogin()" class="back-btn">⬅️ Back to Login</button>
@@ -440,6 +444,123 @@
             padding-top: 15px;
             border-top: 1px solid rgba(156, 188, 136, 0.2);
         }
+        
+        /* ENHANCED RESET OPTIONS STYLING */
+        .reset-options {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(156, 188, 136, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(156, 188, 136, 0.1);
+        }
+        
+        .reset-options h4 {
+            margin: 0 0 15px 0;
+            color: var(--soft-blue-dark);
+            text-align: center;
+            font-size: 16px;
+        }
+        
+        .option-btn {
+            display: block;
+            width: 100%;
+            margin: 8px 0;
+            padding: 12px 15px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--sage-green-light), var(--soft-blue-light));
+            color: var(--gray-700);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .option-btn:hover {
+            background: linear-gradient(135deg, var(--sage-green), var(--soft-blue));
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .option-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* SMS SIMULATION OVERLAY */
+        #smsSimulation {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        /* ENHANCED VERIFICATION SECTION */
+        #codeVerification h4, #newPasswordSection h4 {
+            color: var(--soft-blue-dark);
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        #verificationCode {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+        
+        /* WHATSAPP INTEGRATION STYLING */
+        .whatsapp-option {
+            margin: 15px 0;
+            padding: 15px;
+            background: #25D366;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .whatsapp-option a {
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: inline-block;
+            margin: 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .whatsapp-option a:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        /* RESPONSIVE IMPROVEMENTS */
+        @media (max-width: 480px) {
+            .reset-options {
+                padding: 10px;
+            }
+            
+            .option-btn {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            #smsSimulation {
+                width: 90%;
+                max-width: none;
+                left: 5%;
+                transform: translateY(-50%);
+            }
+        }
 
         @media (max-width: 480px) {
             .auth-card {
@@ -498,11 +619,16 @@
             document.getElementById('verificationCode').value = '';
             document.getElementById('newPassword').value = '';
             document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('resetOptions').innerHTML = '';
             document.getElementById('codeVerification').style.display = 'none';
             document.getElementById('newPasswordSection').style.display = 'none';
+            
+            // Clear any stored reset data
+            localStorage.removeItem('resetCode');
         }
 
-        function sendResetCode() {
+        // ENHANCED FORGET PASSWORD SYSTEM WITH MULTIPLE DELIVERY OPTIONS
+        function sendResetCodeWithOptions() {
             const phone = document.getElementById('resetPhone').value;
             
             if (!phone || phone.length < 11) {
@@ -520,33 +646,140 @@
             const userExists = existingUsers.find(user => user.phone_number === phone);
             
             if (!userExists) {
-                alert('Phone number not found! Please register first.');
+                alert('❌ Phone number not found! Please register first.');
                 return;
             }
             
             // Generate 4-digit verification code
             const resetCode = Math.floor(1000 + Math.random() * 9000).toString();
             
-            // Store reset code temporarily (in real app, send via SMS)
+            // Store reset code temporarily
             localStorage.setItem('resetCode', JSON.stringify({
                 phone: phone,
                 code: resetCode,
                 timestamp: Date.now()
             }));
             
-            // Show code verification section
+            // Show multiple delivery options
+            document.getElementById('resetOptions').innerHTML = `
+                <div class="reset-options">
+                    <h4>Choose how to receive your reset code:</h4>
+                    
+                    <button onclick="sendViaSMS('${phone}', '${resetCode}')" class="option-btn">
+                        📱 Simulate SMS
+                    </button>
+                    
+                    <button onclick="sendViaWhatsApp('${phone}', '${resetCode}')" class="option-btn">
+                        💬 WhatsApp Message
+                    </button>
+                    
+                    <button onclick="showCodeDirectly('${resetCode}')" class="option-btn">
+                        👁️ Show Code Directly
+                    </button>
+                </div>
+            `;
+        }
+        
+        // SMS SIMULATION WITH REALISTIC POPUP
+        function sendViaSMS(phone, code) {
+            showSMSSimulation(phone, code);
             document.getElementById('codeVerification').style.display = 'block';
+        }
+        
+        function showSMSSimulation(phone, code) {
+            // Create SMS popup that looks like real SMS
+            const smsPopup = `
+                <div id="smsSimulation" style="
+                    position: fixed; 
+                    top: 50%; 
+                    left: 50%; 
+                    transform: translate(-50%, -50%);
+                    background: #25D366; 
+                    color: white; 
+                    padding: 20px; 
+                    border-radius: 10px; 
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    max-width: 350px;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                ">
+                    <div style="background: white; color: black; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <h4 style="margin: 0 0 10px 0; color: #25D366;">📱 SMS Received</h4>
+                        <p style="margin: 5px 0;"><strong>From:</strong> Ustaad Dost</p>
+                        <p style="margin: 5px 0;"><strong>To:</strong> ${phone}</p>
+                        <hr style="margin: 10px 0;">
+                        <p style="margin: 5px 0;"><strong>Message:</strong></p>
+                        <p style="font-size: 16px; color: #25D366; font-weight: bold;">Your password reset code is: ${code}</p>
+                        <p style="margin: 5px 0; font-size: 12px; color: #666;">Valid for 10 minutes only.</p>
+                        <small style="color: #999;">Reply STOP to unsubscribe</small>
+                    </div>
+                    <button onclick="closeSMSSimulation()" style="background: white; color: #25D366; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+                        ✅ Got it!
+                    </button>
+                </div>
+            `;
             
-            // Simulate SMS (in real app, integrate SMS service)
-            alert(`Reset code sent to ${phone}: ${resetCode}\n(In real app, this will be sent via SMS)`);
+            document.body.innerHTML += smsPopup;
+            
+            // Auto close after 5 seconds
+            setTimeout(() => {
+                closeSMSSimulation();
+            }, 5000);
+        }
+        
+        function closeSMSSimulation() {
+            const popup = document.getElementById('smsSimulation');
+            if (popup) {
+                popup.remove();
+            }
+        }
+        
+        // WHATSAPP MESSAGE OPTION
+        function sendViaWhatsApp(phone, code) {
+            // Create WhatsApp message link
+            const message = `Your Ustaad Dost password reset code is: ${code}. Valid for 10 minutes.`;
+            const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+            
+            // Show WhatsApp option
+            const whatsappOption = `
+                <div style="margin: 15px 0; padding: 15px; background: #25D366; color: white; border-radius: 8px; text-align: center;">
+                    <p style="margin: 0 0 10px 0; font-weight: bold;">📱 We've prepared your reset code!</p>
+                    <p style="margin: 0 0 15px 0; font-size: 18px; background: rgba(255,255,255,0.2); padding: 8px; border-radius: 5px;"><strong>Code: ${code}</strong></p>
+                    <a href="${whatsappUrl}" target="_blank" style="color: white; text-decoration: none; background: rgba(255,255,255,0.2); padding: 10px 15px; border-radius: 5px; display: inline-block; margin: 5px;">
+                        💬 Send via WhatsApp
+                    </a>
+                    <p style="margin: 10px 0 0 0; font-size: 12px;"><small>Or manually note down the code above</small></p>
+                </div>
+            `;
+            
+            document.getElementById('resetOptions').innerHTML += whatsappOption;
+            document.getElementById('codeVerification').style.display = 'block';
+        }
+        
+        // SHOW CODE DIRECTLY
+        function showCodeDirectly(code) {
+            alert(`Your reset code is: ${code}\n\nValid for 10 minutes only.`);
+            document.getElementById('codeVerification').style.display = 'block';
+        }
+        
+        // LEGACY FUNCTION FOR BACKWARD COMPATIBILITY
+        function sendResetCode() {
+            sendResetCodeWithOptions();
         }
 
+        // ENHANCED CODE VERIFICATION WITH BETTER FEEDBACK
         function verifyResetCode() {
             const enteredCode = document.getElementById('verificationCode').value;
             const storedResetData = JSON.parse(localStorage.getItem('resetCode') || '{}');
             
-            if (!enteredCode || enteredCode.length !== 4) {
-                alert('Please enter the 4-digit code!');
+            if (!enteredCode) {
+                alert('❌ Please enter the verification code!');
+                return;
+            }
+            
+            if (enteredCode.length !== 4) {
+                alert('❌ Please enter the complete 4-digit code!');
                 return;
             }
             
@@ -556,33 +789,57 @@
             const tenMinutes = 10 * 60 * 1000;
             
             if (codeAge > tenMinutes) {
-                alert('Reset code expired! Please request a new code.');
+                alert('⏰ Code expired! Please request a new one.');
                 localStorage.removeItem('resetCode');
+                // Reset the form to allow new code request
+                document.getElementById('resetOptions').innerHTML = '';
+                document.getElementById('codeVerification').style.display = 'none';
                 return;
             }
             
             if (enteredCode === storedResetData.code) {
                 // Code verified, show new password section
                 document.getElementById('newPasswordSection').style.display = 'block';
-                alert('✅ Code verified! Enter your new password.');
+                alert('✅ Code verified! Create your new password.');
+                
+                // Track successful verification
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('password_reset_code_verified');
+                }
             } else {
-                alert('❌ Invalid code! Please try again.');
+                alert('❌ Wrong code! Please check and try again.');
+                
+                // Track failed verification
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('password_reset_code_failed');
+                }
             }
         }
 
+        // ENHANCED PASSWORD RESET WITH BETTER VALIDATION
         function resetPassword() {
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmNewPassword').value;
             const resetData = JSON.parse(localStorage.getItem('resetCode') || '{}');
             
-            // Validation
-            if (!newPassword || newPassword.length < 6) {
-                alert('Password must be at least 6 characters long!');
+            // Enhanced validation
+            if (!newPassword) {
+                alert('❌ Please enter a new password!');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                alert('❌ Password must be at least 6 characters long!');
+                return;
+            }
+            
+            if (!confirmPassword) {
+                alert('❌ Please confirm your new password!');
                 return;
             }
             
             if (newPassword !== confirmPassword) {
-                alert('Passwords do not match!');
+                alert('❌ Passwords do not match! Please try again.');
                 return;
             }
             
@@ -591,6 +848,89 @@
             const userIndex = existingUsers.findIndex(user => user.phone_number === resetData.phone);
             
             if (userIndex !== -1) {
+                // Update password
+                existingUsers[userIndex].password = newPassword;
+                localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
+                
+                // Clear reset data
+                localStorage.removeItem('resetCode');
+                
+                // Track successful password reset
+                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                    posthog.capture('password_reset_completed');
+                }
+                
+                // Success message with better UX
+                alert('✅ Password updated successfully! You can now login with your new password.');
+                
+                // Automatically return to login
+                setTimeout(() => {
+                    backToLogin();
+                }, 1000);
+            } else {
+                alert('❌ Error updating password. Please try again.');
+            }
+        }
+        
+        // RATE LIMITING FOR RESET ATTEMPTS
+        function checkResetAttempts(phone) {
+            const attempts = JSON.parse(localStorage.getItem('resetAttempts') || '{}');
+            const currentTime = Date.now();
+            const oneHour = 60 * 60 * 1000;
+            
+            // Clean old attempts
+            Object.keys(attempts).forEach(phoneKey => {
+                if (currentTime - attempts[phoneKey].lastAttempt > oneHour) {
+                    delete attempts[phoneKey];
+                }
+            });
+            
+            // Check current phone attempts
+            if (attempts[phone]) {
+                if (attempts[phone].count >= 3) {
+                    alert('⚠️ Too many reset attempts. Please wait 1 hour before trying again.');
+                    return false;
+                }
+                attempts[phone].count++;
+                attempts[phone].lastAttempt = currentTime;
+            } else {
+                attempts[phone] = { count: 1, lastAttempt: currentTime };
+            }
+            
+            localStorage.setItem('resetAttempts', JSON.stringify(attempts));
+            return true;
+        }
+        
+        // REAL SMS INTEGRATION FRAMEWORK (For Production)
+        async function sendRealSMS(phone, code) {
+            try {
+                // Example with a real SMS API
+                const response = await fetch('/api/send-reset-sms', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer YOUR_SMS_API_KEY'
+                    },
+                    body: JSON.stringify({
+                        to: phone,
+                        message: `Your Ustaad Dost password reset code is: ${code}. Valid for 10 minutes.`,
+                        from: 'UstaadDost'
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('✅ Reset code sent to your phone!');
+                    return true;
+                } else {
+                    throw new Error('SMS service unavailable');
+                }
+            } catch (error) {
+                console.error('SMS Error:', error);
+                // Fallback to simulation
+                showSMSSimulation(phone, code);
+                return false;
+            }
+        }
                 existingUsers[userIndex].password = newPassword;
                 localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
                 
