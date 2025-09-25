@@ -39,8 +39,11 @@
                 <a href="{{ url_for('yearly_planner') }}" class="nav-link">📅 Yearly Planner</a>
                 <a href="{{ url_for('grading_buddy') }}" class="nav-link">📊 Grading Buddy</a>
                 <a href="{{ url_for('chatbot') }}" class="nav-link">🤖 U-Dost Chat</a>
-                <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
-                <a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a>
+                <div class="user-status">
+                    <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
+                    <span class="session-indicator" id="sessionIndicator"></span>
+                </div>
+                <a href="#" onclick="logout()" class="nav-link logout-link">🚪 Logout</a>
             </div>
         </div>
     </nav>
@@ -454,16 +457,19 @@
             alert('Profile editing will be available soon!');
         }
         
-        // Navigation functions
+        // Navigation functions with debug logging
         function showYearlyPlanner() {
+            console.log("Opening Yearly Planner..."); // Debug log
             window.location.href = '{{ url_for("yearly_planner") }}';
         }
 
         function showChatbot() {
+            console.log("Opening U-Dost Chatbot..."); // Debug log
             window.location.href = '{{ url_for("chatbot") }}';
         }
 
         function showGradingBuddy() {
+            console.log("Opening Grading Buddy..."); // Debug log
             window.location.href = '{{ url_for("grading_buddy") }}';
         }
 
@@ -510,6 +516,121 @@
                 }
             });
         });
+        
+        // Session management functions
+        function getCurrentUser() {
+            const savedUser = localStorage.getItem('ustaadDostUser');
+            return savedUser ? JSON.parse(savedUser) : null;
+        }
+        
+        function logout() {
+            console.log("Logging out user..."); // Debug log
+            
+            // Clear saved session from localStorage
+            localStorage.removeItem('ustaadDostUser');
+            
+            // Clear any session storage too
+            sessionStorage.clear();
+            
+            console.log("Local session data cleared"); // Debug log
+            
+            // Redirect to logout endpoint (which will clear server session)
+            window.location.href = '/logout';
+        }
+        
+        function updateSessionIndicator() {
+            const user = getCurrentUser();
+            const indicator = document.getElementById('sessionIndicator');
+            
+            if (user && indicator) {
+                const loginTime = new Date(user.loginTime);
+                const timeAgo = formatTimeAgo(loginTime);
+                indicator.textContent = `(Session: ${timeAgo})`;
+                indicator.style.color = '#28a745';
+                console.log("Session indicator updated:", timeAgo); // Debug log
+            }
+        }
+        
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            
+            if (diffDays > 0) return `${diffDays}d ago`;
+            if (diffHours > 0) return `${diffHours}h ago`;
+            return 'Just now';
+        }
+        
+        function checkSessionStatus() {
+            const user = getCurrentUser();
+            
+            if (user) {
+                const loginTime = user.loginTime;
+                const currentTime = new Date().getTime();
+                const sevenDays = 7 * 24 * 60 * 60 * 1000;
+                
+                if (currentTime - loginTime > sevenDays) {
+                    console.log("Session expired, redirecting to login"); // Debug log
+                    localStorage.removeItem('ustaadDostUser');
+                    window.location.href = '/login';
+                    return false;
+                }
+                
+                // Update session time in localStorage
+                user.loginTime = currentTime;
+                localStorage.setItem('ustaadDostUser', JSON.stringify(user));
+                updateSessionIndicator();
+                return true;
+            }
+            
+            console.log("No session found in localStorage"); // Debug log
+            return false;
+        }
+        
+        // Store login info in localStorage when dashboard loads
+        function handleDashboardLoad() {
+            console.log("Dashboard loaded, checking session..."); // Debug log
+            
+            // Always sync localStorage with Flask session if Flask session exists
+            const userPhone = "{{ session.get('phone_number', '') }}";
+            const userName = "{{ session.get('user_name', '') }}";
+            const loginTime = "{{ session.get('login_time', '') }}";
+            
+            if (userPhone) {
+                console.log("Syncing localStorage with Flask session"); // Debug log
+                
+                // Parse login time or use current time as fallback
+                let sessionStartTime = new Date().getTime();
+                if (loginTime) {
+                    try {
+                        sessionStartTime = new Date(loginTime).getTime();
+                    } catch (e) {
+                        console.log("Could not parse login_time, using current time"); // Debug log
+                    }
+                }
+                
+                // Create or update localStorage session
+                localStorage.setItem('ustaadDostUser', JSON.stringify({
+                    phone: userPhone,
+                    loginTime: sessionStartTime,
+                    userData: { name: userName }
+                }));
+                
+                console.log("localStorage session synchronized with server"); // Debug log
+            } else {
+                console.log("No Flask session found, clearing localStorage"); // Debug log
+                localStorage.removeItem('ustaadDostUser');
+            }
+            
+            checkSessionStatus();
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', handleDashboardLoad);
+        
+        // Check session status every 5 minutes
+        setInterval(checkSessionStatus, 5 * 60 * 1000);
     </script>
 </body>
 </html>

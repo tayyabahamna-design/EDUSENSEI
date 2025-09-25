@@ -176,8 +176,8 @@ if not SESSION_SECRET:
 app.secret_key = SESSION_SECRET
 app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 
-# Session configuration for proper persistence
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+# Session configuration for proper persistence - 7 days to match localStorage
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
@@ -3883,6 +3883,8 @@ def login():
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
                 session['phone_number'] = phone_number
+                session['login_time'] = datetime.now().isoformat()
+                session.permanent = True  # Enable permanent session
                 flash(f'Welcome back, {user["name"]}!', 'success')
                 return redirect(url_for('index'))
             else:
@@ -4059,8 +4061,21 @@ def yearly_planner():
     
     # Check if user has any active templates
     user_id = session['user_id']
-    cursor.execute("SELECT * FROM weekly_templates WHERE user_id = %s AND is_active = true ORDER BY created_at DESC", (user_id,))
-    templates = cursor.fetchall()
+    templates = []
+    
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM weekly_templates WHERE user_id = %s AND is_active = true ORDER BY created_at DESC", (user_id,))
+            templates = cursor.fetchall()
+        except Exception as e:
+            print(f"Database error in yearly_planner: {e}")
+            flash('Error loading templates', 'error')
+        finally:
+            conn.close()
+    else:
+        flash('Database connection error', 'error')
     
     return render_template('yearly_planner.html', templates=templates, posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
 
@@ -4079,7 +4094,13 @@ def create_weekly_template():
             flash('Please select a valid grade (1-5)', 'error')
             return redirect(url_for('create_weekly_template'))
         
+        conn = get_db_connection()
+        if not conn:
+            flash('Database connection error', 'error')
+            return redirect(url_for('yearly_planner'))
+        
         try:
+            cursor = conn.cursor()
             # Create the weekly template
             cursor.execute(
                 "INSERT INTO weekly_templates (user_id, grade, template_name) VALUES (%s, %s, %s) RETURNING id",
@@ -4092,8 +4113,11 @@ def create_weekly_template():
             
         except Exception as e:
             conn.rollback()
+            print(f"Database error in create_weekly_template: {e}")
             flash('Error creating template. Please try again.', 'error')
             return redirect(url_for('yearly_planner'))
+        finally:
+            conn.close()
     
     return render_template('create_template.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
 
@@ -4105,15 +4129,36 @@ def edit_template_periods(template_id):
     
     user_id = session['user_id']
     
-    # Verify template belongs to user
-    cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
-    template = cursor.fetchone()
+    # First verify template belongs to user
+    conn = get_db_connection()
+    if not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('yearly_planner'))
+    
+    template = None
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
+        template = cursor.fetchone()
+    except Exception as e:
+        print(f"Database error in edit_template_periods (verify): {e}")
+        flash('Database error', 'error')
+        return redirect(url_for('yearly_planner'))
+    finally:
+        conn.close()
+    
     if not template:
         flash('Template not found', 'error')
         return redirect(url_for('yearly_planner'))
     
     if request.method == 'POST':
+        conn = get_db_connection()
+        if not conn:
+            flash('Database connection error', 'error')
+            return redirect(url_for('yearly_planner'))
+        
         try:
+            cursor = conn.cursor()
             # Clear existing periods for this template
             cursor.execute("DELETE FROM weekly_template_periods WHERE template_id = %s", (template_id,))
             
@@ -4144,15 +4189,27 @@ def edit_template_periods(template_id):
             
         except Exception as e:
             conn.rollback()
+            print(f"Database error in edit_template_periods (save): {e}")
             flash('Error saving template. Please try again.', 'error')
+        finally:
+            conn.close()
     
     # Get existing periods if any
-    cursor.execute(
-        """SELECT day_of_week, period_number, subject FROM weekly_template_periods 
-           WHERE template_id = %s ORDER BY day_of_week, period_number""", 
-        (template_id,)
-    )
-    existing_periods = cursor.fetchall()
+    existing_periods = []
+    conn = get_db_connection()
+    if conn:
+        try:
+            cursor = conn.cursor()
+            cursor.execute(
+                """SELECT day_of_week, period_number, subject FROM weekly_template_periods 
+                   WHERE template_id = %s ORDER BY day_of_week, period_number""", 
+                (template_id,)
+            )
+            existing_periods = cursor.fetchall()
+        except Exception as e:
+            print(f"Database error in edit_template_periods (periods): {e}")
+        finally:
+            conn.close()
     
     return render_template('edit_template_periods.html', 
                          template=template, 
@@ -4986,6 +5043,64 @@ Zainab Ahmed"""
     except Exception as e:
         print(f"Name extraction error: {str(e)}")
         return jsonify({'error': 'Failed to extract names from the uploaded file'}), 500
+
+@app.route('/api/openai-vision', methods=['POST'])
+def openai_vision_analyze():
+    """Handle image analysis using OpenAI Vision API"""
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data or 'prompt' not in data:
+            return jsonify({'error': 'Missing image or prompt data'}), 400
+        
+        image_data = data['image']
+        prompt = data['prompt']
+        
+        if not openai_client:
+            return jsonify({
+                'response': 'Hello teacher! Image upload kar diya hai lekin OpenAI nahi chal raha. Main text mein help kar sakti hun!'
+            })
+        
+        try:
+            # Extract base64 data from data URL
+            if 'base64,' in image_data:
+                image_data = image_data.split('base64,')[1]
+            
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": prompt
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{image_data}"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                max_tokens=500
+            )
+            
+            ai_response = response.choices[0].message.content
+            return jsonify({'response': ai_response})
+            
+        except Exception as e:
+            print(f"OpenAI Vision error: {e}")
+            return jsonify({
+                'response': 'Hello teacher! Image dekh kar response dene mein problem aa rahi hai. Text mein batayiye kya chahiye?'
+            })
+    
+    except Exception as e:
+        print(f"Vision API error: {e}")
+        return jsonify({
+            'response': 'Hello teacher! Image processing mein technical issue hai. Text mein type kar sakte hain!'
+        })
 
 def generate_math_chapters(grade):
     """Generate Mathematics chapter structure"""

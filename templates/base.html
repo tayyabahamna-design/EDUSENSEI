@@ -32,6 +32,81 @@
         }, 1000);
     </script>
     
+    <!-- Common session management script -->
+    <script>
+        // Session management functions (available on all pages)
+        function getCurrentUser() {
+            const savedUser = localStorage.getItem('ustaadDostUser');
+            return savedUser ? JSON.parse(savedUser) : null;
+        }
+        
+        function checkSessionValidity() {
+            const user = getCurrentUser();
+            
+            if (user) {
+                const loginTime = user.loginTime;
+                const currentTime = new Date().getTime();
+                const sevenDays = 7 * 24 * 60 * 60 * 1000;
+                
+                if (currentTime - loginTime > sevenDays) {
+                    console.log("localStorage session expired, clearing data"); // Debug log
+                    localStorage.removeItem('ustaadDostUser');
+                    return false;
+                }
+                
+                // Keep localStorage fresh but don't redirect - let server decide
+                user.loginTime = currentTime;
+                localStorage.setItem('ustaadDostUser', JSON.stringify(user));
+                return true;
+            }
+            
+            // No localStorage found - this is fine, server session may still be valid
+            console.log("No localStorage session found - server session will handle auth"); // Debug log
+            return false;
+        }
+        
+        function logout() {
+            console.log("Logging out user..."); // Debug log
+            
+            // Clear saved session from localStorage
+            localStorage.removeItem('ustaadDostUser');
+            
+            // Clear any session storage too
+            sessionStorage.clear();
+            
+            console.log("Local session data cleared"); // Debug log
+            
+            // Redirect to logout endpoint (which will clear server session)
+            window.location.href = '/logout';
+        }
+        
+        // Initialize session management on any page load
+        function initSessionManagement() {
+            // Don't check sessions on login/register pages
+            const currentPath = window.location.pathname;
+            if (currentPath === '/login' || currentPath === '/register') {
+                return;
+            }
+            
+            console.log("Initializing session management..."); // Debug log
+            
+            // Just validate localStorage if it exists, but don't redirect
+            // Let server handle actual authentication
+            checkSessionValidity();
+        }
+        
+        // Auto-initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', initSessionManagement);
+        
+        // Check session status every 5 minutes
+        setInterval(function() {
+            const currentPath = window.location.pathname;
+            if (currentPath !== '/login' && currentPath !== '/register') {
+                checkSessionValidity();
+            }
+        }, 5 * 60 * 1000);
+    </script>
+    
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -44,7 +119,7 @@
                 <li><a href="{{ url_for('yearly_planner') }}" class="nav-link">📅 Yearly Planner</a></li>
                 <li><a href="{{ url_for('grading_buddy') }}" class="nav-link">📊 Grading Buddy</a></li>
                 <li><span class="nav-welcome">Welcome, {{ session.user_name }}!</span></li>
-                <li><a href="{{ url_for('logout') }}" class="nav-link logout-link">🚪 Logout</a></li>
+                <li><a href="#" onclick="logout()" class="nav-link logout-link">🚪 Logout</a></li>
             </ul>
         </div>
     </nav>

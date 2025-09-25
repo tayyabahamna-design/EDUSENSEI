@@ -483,27 +483,86 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     async function uploadFile(file) {
+        console.log("Processing uploaded file:", file.name, "Size:", file.size, "Type:", file.type); // Debug log
         const formData = new FormData();
         formData.append('file', file);
         
         try {
+            console.log("Sending file to server..."); // Debug log
             const response = await fetch('/upload_file', {
                 method: 'POST',
                 body: formData
             });
             
             if (!response.ok) {
+                console.log("Upload failed with status:", response.status); // Debug log
                 throw new Error('Upload failed');
             }
             
             const result = await response.json();
+            console.log("File upload successful:", result); // Debug log
             uploadedFiles.push(result);
             updateUploadDisplay();
+            console.log("Upload display updated, file ready for chat"); // Debug log
             
         } catch (error) {
             console.error('File upload error:', error);
+            console.log('Upload error details:', {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                error: error.message
+            }); // Debug log
             alert('Failed to upload file: ' + file.name);
         }
+    }
+    
+    // Image analysis function for chatbot
+    function handleImageUpload(file) {
+        console.log("Processing uploaded image for chat analysis..."); // Debug log
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const imageData = e.target.result;
+            console.log("Image loaded, sending to AI for analysis..."); // Debug log
+            
+            // Send to OpenAI with vision capability
+            const prompt = `
+            Teacher has uploaded an image. Please analyze this image and provide helpful teaching suggestions.
+            Respond as U-Dost in Roman Urdu mixed with English.
+            Be specific about what you see in the image.
+            `;
+            
+            // Call OpenAI API with image analysis
+            analyzeImageWithAI(imageData, prompt);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function analyzeImageWithAI(imageData, prompt) {
+        console.log("Calling OpenAI Vision API..."); // Debug log
+        
+        // Show processing message
+        addMessage('🖼️ Analyzing image... Please wait', false);
+        
+        // OpenAI API call with image
+        fetch('/api/openai-vision', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                image: imageData,
+                prompt: prompt
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log("OpenAI Vision analysis complete:", data); // Debug log
+            addMessage(data.response, false);
+        })
+        .catch(error => {
+            console.error('Image analysis error:', error); // Debug log
+            addMessage("Hello teacher! Image upload kar diya hai lekin main process nahi kar pa rahi. Text mein batayiye kya chahiye?", false);
+        });
     }
     
     function updateUploadDisplay() {
@@ -746,17 +805,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Voice recording functions
     async function startRecording() {
+        console.log("Starting voice recording..."); // Debug log
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             audioChunks = [];
             
+            console.log("Microphone access granted, creating MediaRecorder..."); // Debug log
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.ondataavailable = (event) => {
+                console.log("Audio data available, chunk size:", event.data.size); // Debug log
                 audioChunks.push(event.data);
             };
             
             mediaRecorder.onstop = async () => {
+                console.log("Recording stopped, processing audio..."); // Debug log
                 audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                console.log("Audio blob created, size:", audioBlob.size); // Debug log
                 await uploadAudio(audioBlob);
                 stream.getTracks().forEach(track => track.stop());
             };
@@ -766,10 +830,26 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('recordButton').style.display = 'none';
             document.getElementById('stopButton').style.display = 'inline-block';
             document.getElementById('recordingStatus').textContent = '🔴 Recording...';
+            console.log("Recording UI updated, recording started"); // Debug log
             
         } catch (error) {
-            console.error('Recording error:', error);
-            alert('Could not access microphone. Please check permissions.');
+            console.error('Voice recording failed:', error);
+            console.log('Error details:', {
+                name: error.name,
+                message: error.message,
+                constraint: error.constraint
+            }); // Debug log
+            
+            let errorMessage = 'Could not access microphone. ';
+            if (error.name === 'NotAllowedError') {
+                errorMessage += 'Please allow microphone access and try again.';
+            } else if (error.name === 'NotFoundError') {
+                errorMessage += 'No microphone found. Please check your device.';
+            } else {
+                errorMessage += 'Please check permissions.';
+            }
+            
+            alert(errorMessage);
         }
     }
     

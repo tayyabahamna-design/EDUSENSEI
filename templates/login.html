@@ -81,6 +81,101 @@
         </div>
     </div>
     
+    <script>
+        // Session management functions
+        function handleSuccessfulLogin(userPhone, userData) {
+            console.log("Handling successful login for:", userPhone); // Debug log
+            
+            // Store login session in localStorage
+            localStorage.setItem('ustaadDostUser', JSON.stringify({
+                phone: userPhone,
+                loginTime: new Date().getTime(),
+                userData: userData || { name: userPhone }
+            }));
+            
+            console.log("Session stored in localStorage"); // Debug log
+            
+            // Redirect to dashboard (Flask will handle server-side session)
+            window.location.href = '/';
+        }
+        
+        // Check if user already logged in on page load
+        window.onload = function() {
+            console.log("Login page loaded, checking session status..."); // Debug log
+            
+            // Just clean up expired localStorage, but don't auto-redirect
+            // Let server session handle actual authentication
+            const savedUser = localStorage.getItem('ustaadDostUser');
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                const loginTime = userData.loginTime;
+                const currentTime = new Date().getTime();
+                const sevenDays = 7 * 24 * 60 * 60 * 1000;
+                
+                if (currentTime - loginTime > sevenDays) {
+                    console.log("localStorage session expired, clearing storage"); // Debug log
+                    localStorage.removeItem('ustaadDostUser');
+                } else {
+                    console.log("Valid localStorage session exists"); // Debug log
+                }
+            } else {
+                console.log("No localStorage session found"); // Debug log
+            }
+            
+            // Check if we just logged in successfully (from flash message or URL)
+            checkForSuccessfulLogin();
+        };
+        
+        // Check if login was successful and store session
+        function checkForSuccessfulLogin() {
+            // Look for success flash message or check if we're being redirected from login
+            const flashMessages = document.querySelectorAll('.alert-success');
+            const loginAttemptPhone = sessionStorage.getItem('loginAttemptPhone');
+            
+            if (flashMessages.length > 0 && loginAttemptPhone) {
+                console.log("Successful login detected, storing localStorage session"); // Debug log
+                
+                // Store login session in localStorage
+                localStorage.setItem('ustaadDostUser', JSON.stringify({
+                    phone: loginAttemptPhone,
+                    loginTime: new Date().getTime(),
+                    userData: { name: loginAttemptPhone }
+                }));
+                
+                // Clear temporary storage
+                sessionStorage.removeItem('loginAttemptPhone');
+                
+                console.log("localStorage session created after successful login"); // Debug log
+                
+                // Redirect to dashboard after a short delay
+                setTimeout(function() {
+                    window.location.href = '/';
+                }, 1000);
+            }
+        }
+        
+        // Get current user info
+        function getCurrentUser() {
+            const savedUser = localStorage.getItem('ustaadDostUser');
+            return savedUser ? JSON.parse(savedUser) : null;
+        }
+        
+        // Enhance form submission to handle localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('.auth-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    const phoneInput = document.getElementById('phone_number');
+                    if (phoneInput && phoneInput.value) {
+                        // Store the phone number temporarily for successful login handling
+                        sessionStorage.setItem('loginAttemptPhone', phoneInput.value);
+                        console.log("Login attempt for phone:", phoneInput.value); // Debug log
+                    }
+                });
+            }
+        });
+    </script>
+    
     <style>
         .auth-container {
             display: flex;
