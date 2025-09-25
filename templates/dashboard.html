@@ -449,6 +449,232 @@
             border: 1px solid rgba(168, 213, 232, 0.3);
         }
         
+        /* Grading Buddy Styles */
+        .grading-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .class-management {
+            background: var(--warm-white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+        }
+        
+        .add-btn {
+            background: var(--sage-green);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .add-btn:hover {
+            background: var(--sage-green-dark);
+            transform: translateY(-2px);
+        }
+        
+        .class-card {
+            background: white;
+            border: 2px solid var(--border-gray);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .class-card:hover {
+            border-color: var(--soft-blue);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .class-card h4 {
+            color: var(--soft-blue-dark);
+            margin-bottom: 10px;
+        }
+        
+        .class-card button {
+            background: var(--soft-blue);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .class-card button:hover {
+            background: var(--soft-blue-dark);
+            transform: translateY(-1px);
+        }
+        
+        #addClassForm {
+            background: var(--light-gray);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        #addClassForm input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        
+        #addClassForm button {
+            background: var(--sage-green);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .class-detail-view {
+            background: var(--warm-white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+            margin-top: 20px;
+        }
+        
+        .add-students-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .add-students-options button {
+            background: var(--mint-green);
+            color: var(--gray-700);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .student-profile {
+            background: white;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .student-profile h5 {
+            color: var(--soft-blue-dark);
+            margin-bottom: 8px;
+        }
+        
+        .student-profile button {
+            background: var(--warm-pink);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        /* Profile Edit Styles */
+        .profile-edit {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .profile-form {
+            background: var(--warm-white);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .profile-form label {
+            display: block;
+            color: var(--gray-700);
+            font-weight: 600;
+            margin-bottom: 8px;
+            margin-top: 15px;
+        }
+        
+        .profile-form input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .profile-form input:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+        }
+        
+        .profile-form button {
+            background: var(--soft-blue);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-form button:hover {
+            background: var(--soft-blue-dark);
+            transform: translateY(-2px);
+        }
+        
+        /* Section Styles */
+        .planner-section, .chatbot-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .planner-section h2, .chatbot-section h2 {
+            color: var(--soft-blue-dark);
+            margin-bottom: 20px;
+        }
+        
+        .planner-section button, .chatbot-section button {
+            background: var(--soft-blue);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .planner-section button:hover, .chatbot-section button:hover {
+            background: var(--soft-blue-dark);
+            transform: translateY(-2px);
+        }
+        
         @media (max-width: 768px) {
             .large-card {
                 grid-column: span 1;
@@ -474,6 +700,14 @@
             
             .stats-grid {
                 grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .add-students-options {
+                flex-direction: column;
+            }
+            
+            .grading-container, .profile-edit {
+                padding: 10px;
             }
         }
     </style>
@@ -723,8 +957,82 @@
             localStorage.setItem('teacherProfile', JSON.stringify(profileData));
             alert('✅ Profile updated successfully!');
         }
+        
+        // Yearly Planner Loading Function
+        function loadYearlyPlanner() {
+            document.getElementById('yearlyPlanner').innerHTML = `
+                <div class="planner-section">
+                    <h2>📅 Yearly Planner</h2>
+                    <p>This is your yearly planning section. Plan your academic year with weekly schedules for all subjects.</p>
+                    <button onclick="redirectToPlanner()">📅 Open Full Planner</button>
+                </div>
+            `;
+        }
+        
+        function redirectToPlanner() {
+            window.location.href = '{{ url_for("yearly_planner") }}';
+        }
+        
+        // Chatbot Loading Function
+        function loadChatbot() {
+            document.getElementById('chatbot').innerHTML = `
+                <div class="chatbot-section">
+                    <h2>🤖 U-Dost Chat</h2>
+                    <p>AI-powered assistant for Pakistani curriculum, lesson plans, and teaching strategies.</p>
+                    <button onclick="redirectToChatbot()">🤖 Open Full Chat</button>
+                </div>
+            `;
+        }
+        
+        function redirectToChatbot() {
+            window.location.href = '{{ url_for("chatbot") }}';
+        }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Add CORRECT listeners for navigation
+            setTimeout(function() {
+                const plannerBtn = document.getElementById('plannerNavBtn');
+                const gradingBtn = document.getElementById('gradingNavBtn');
+                const chatBtn = document.getElementById('chatNavBtn');
+                const profileBtn = document.getElementById('profileNavBtn');
+                
+                if (plannerBtn) {
+                    plannerBtn.onclick = function() {
+                        console.log('Planner clicked');
+                        hideAllSections();
+                        document.getElementById('yearlyPlanner').style.display = 'block';
+                        loadYearlyPlanner();
+                    };
+                }
+                
+                if (gradingBtn) {
+                    gradingBtn.onclick = function() {
+                        console.log('Grading clicked');
+                        hideAllSections();
+                        document.getElementById('gradingBuddy').style.display = 'block';
+                        loadGradingBuddy();
+                    };
+                }
+                
+                if (chatBtn) {
+                    chatBtn.onclick = function() {
+                        console.log('Chat clicked');
+                        hideAllSections();
+                        document.getElementById('chatbot').style.display = 'block';
+                        loadChatbot();
+                    };
+                }
+                
+                if (profileBtn) {
+                    profileBtn.onclick = function() {
+                        console.log('Profile clicked');
+                        hideAllSections();
+                        document.getElementById('profileSection').style.display = 'block';
+                        loadProfileEdit();
+                    };
+                }
+            }, 100);
+            
             // Track dashboard page view
             setTimeout(function() {
                 if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
@@ -734,7 +1042,9 @@
             
             // Fix button click handlers for proper navigation
             document.getElementById('yearlyPlannerBtn').addEventListener('click', function() {
-                showYearlyPlanner(); // Should open planner, NOT grading buddy
+                hideAllSections();
+                document.getElementById('yearlyPlanner').style.display = 'block';
+                loadYearlyPlanner();
                 if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
                     posthog.capture('feature_accessed', {
                         feature: 'Yearly Planner',
@@ -744,7 +1054,9 @@
             });
 
             document.getElementById('chatbotBtn').addEventListener('click', function() {
-                showChatbot(); // Should open U-Dost chat, NOT grading buddy
+                hideAllSections();
+                document.getElementById('chatbot').style.display = 'block';
+                loadChatbot();
                 if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
                     posthog.capture('feature_accessed', {
                         feature: 'AI Chatbot',
@@ -754,7 +1066,9 @@
             });
 
             document.getElementById('gradingBuddyBtn').addEventListener('click', function() {
-                showGradingBuddy(); // Only this should open grading buddy
+                hideAllSections();
+                document.getElementById('gradingBuddy').style.display = 'block';
+                loadGradingBuddy();
                 if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
                     posthog.capture('feature_accessed', {
                         feature: 'Grading Buddy',
