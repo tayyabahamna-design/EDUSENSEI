@@ -5,7 +5,7 @@ integrations = ["python_openai:1.0.0"]
 
 [nix]
 channel = "stable-25_05"
-packages = ["cargo", "file", "freetype", "glibcLocales", "lcms2", "libGL", "libGLU", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "poppler_utils", "rustc", "tcl", "tesseract", "tk", "zlib", "poppler-utils"]
+packages = ["cargo", "file", "freetype", "glibcLocales", "lcms2", "libGL", "libGLU", "libiconv", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "poppler-utils", "poppler_utils", "rustc", "tcl", "tesseract", "tk", "zlib"]
 
 [workflows]
 runButton = "Project"
@@ -76,4 +76,5 @@ localPort = 46303
 externalPort = 4200
 
 [deployment]
-deploymentTarget = "cloudrun"
+deploymentTarget = "autoscale"
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "app:app"]
