@@ -3986,18 +3986,20 @@ def forgot_password():
     try:
         cursor = conn.cursor()
         
-        # Check if phone number exists in users table
-        cursor.execute("SELECT id, name FROM users WHERE phone_number = %s", (phone_number,))
+        # Check if phone number exists in users table (handle both formats)
+        formatted_phone = f"{phone_number[:4]}-{phone_number[4:]}" if len(phone_number) == 11 else phone_number
+        cursor.execute("SELECT id, name, phone_number FROM users WHERE phone_number = %s OR phone_number = %s", (phone_number, formatted_phone))
         user = cursor.fetchone()
         
         if not user:
             return jsonify({'success': False, 'message': 'Phone number not found in our system'})
         
-        # Check rate limiting - max 3 attempts per hour
+        # Check rate limiting - max 3 attempts per hour (use the format we found)
+        found_phone = user['phone_number'] if 'phone_number' in user else phone_number
         cursor.execute("""
             SELECT COUNT(*) FROM password_reset_codes 
             WHERE phone_number = %s AND created_at > NOW() - INTERVAL '1 hour'
-        """, (phone_number,))
+        """, (found_phone,))
         
         recent_attempts = cursor.fetchone()['count']
         if recent_attempts >= 3:
@@ -4011,7 +4013,7 @@ def forgot_password():
         cursor.execute("""
             INSERT INTO password_reset_codes (phone_number, reset_code, expires_at) 
             VALUES (%s, %s, NOW() + INTERVAL '10 minutes')
-        """, (phone_number, reset_code))
+        """, (found_phone, reset_code))
         
         conn.commit()
         
