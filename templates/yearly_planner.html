@@ -50,26 +50,23 @@
                 <p class="welcome-subtitle">Create your teaching schedule in 2 simple steps</p>
             </div>
             
-            <!-- Step 1: Grade Selection Only -->
-            <div class="step-1" id="step1">
-                <h3>Step 1: Select Your Grade</h3>
-                
-                <div class="grade-selection">
+            <!-- Frontend-Only Yearly Planner System -->
+            <div id="yearlyPlannerSection">
+                <div id="gradeSelection" class="planner-step">
+                    <h2>Select Your Grade</h2>
                     <div class="grade-buttons">
-                        <button onclick="selectGrade(1)" class="grade-btn" data-grade="1">Grade 1</button>
-                        <button onclick="selectGrade(2)" class="grade-btn" data-grade="2">Grade 2</button>
-                        <button onclick="selectGrade(3)" class="grade-btn" data-grade="3">Grade 3</button>
-                        <button onclick="selectGrade(4)" class="grade-btn" data-grade="4">Grade 4</button>
-                        <button onclick="selectGrade(5)" class="grade-btn" data-grade="5">Grade 5</button>
+                        <button onclick="selectGrade(1)" class="grade-btn">Grade 1</button>
+                        <button onclick="selectGrade(2)" class="grade-btn">Grade 2</button>
+                        <button onclick="selectGrade(3)" class="grade-btn">Grade 3</button>
+                        <button onclick="selectGrade(4)" class="grade-btn">Grade 4</button>
+                        <button onclick="selectGrade(5)" class="grade-btn">Grade 5</button>
                     </div>
                 </div>
+                
+                <div id="weeklyPlanner" class="planner-step" style="display:none;">
+                    <!-- Weekly planner will load here -->
+                </div>
             </div>
-            
-            <!-- Step 2: Weekly Template (Hidden initially) -->
-            <div id="weeklyTemplate" style="display:none;"></div>
-            
-            <!-- Step 3: Yearly Calendar (Hidden initially) -->
-            <div id="yearlyCalendar" style="display:none;"></div>
         </div>
     </main>
 
@@ -88,1212 +85,101 @@
             window.location.href = '/logout';
         }
         
-        // QUICK ACTIONS FUNCTIONS (moved before createWeeklyTemplate)
-        // Quick Actions for the table-based interface
-        function copyMondayToAll() {
-            if (confirm('Copy Monday schedule to all other days?')) {
-                const days = ['tuesday', 'wednesday', 'thursday', 'friday'];
-                
-                days.forEach(day => {
-                    for (let i = 1; i <= 8; i++) {
-                        const mondaySelect = document.getElementById(`monday_period${i}`);
-                        const daySelect = document.getElementById(`${day}_period${i}`);
-                        
-                        if (mondaySelect && daySelect) {
-                            daySelect.value = mondaySelect.value;
-                        }
-                    }
-                });
-                
-                alert('✅ Monday schedule copied to all days!');
-            }
-        }
+        // ===========================================
+        // FRONTEND-ONLY YEARLY PLANNER SYSTEM
+        // ===========================================
         
-        function clearAllSchedules() {
-            if (confirm('Clear all subject assignments?')) {
-                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-                
-                days.forEach(day => {
-                    for (let i = 1; i <= 8; i++) {
-                        const select = document.getElementById(`${day}_period${i}`);
-                        if (select) {
-                            select.value = '';
-                        }
-                    }
-                });
-                
-                alert('✅ All schedules cleared!');
-            }
-        }
-        
-        function autoFillSubjects() {
-            if (confirm('Auto-fill subjects evenly across all periods?')) {
-                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-                let subjectIndex = 0;
-                
-                days.forEach(day => {
-                    for (let i = 1; i <= 8; i++) {
-                        const select = document.getElementById(`${day}_period${i}`);
-                        if (select) {
-                            select.value = availableSubjects[subjectIndex % availableSubjects.length];
-                            subjectIndex++;
-                        }
-                    }
-                });
-                
-                alert('✅ Subjects auto-filled across all periods!');
-            }
-        }
-        
-        // Store selected grade globally
-        let selectedGrade = null;
-        
-        // Available subjects for all grades
-        const availableSubjects = ['English', 'Urdu', 'Islamiyat', 'General Knowledge', 'Science', 'Social Studies', 'Math'];
-        
-        // STEP 1 - GRADE SELECTION
+        // GRADE SELECTION FUNCTION
         function selectGrade(grade) {
-            console.log('🎯 Grade selected:', grade);
+            // Store selected grade
+            localStorage.setItem('selectedGrade', grade);
             
-            try {
-                // Update button styles
-                const gradeBtns = document.querySelectorAll('.grade-btn');
-                console.log('Found grade buttons:', gradeBtns.length);
-                
-                gradeBtns.forEach(btn => {
-                    btn.classList.remove('active');
-                });
-                
-                const selectedBtn = document.querySelector(`[data-grade="${grade}"]`);
-                if (selectedBtn) {
-                    selectedBtn.classList.add('active');
-                    console.log('✅ Button activated for grade:', grade);
-                } else {
-                    console.error('❌ Could not find button for grade:', grade);
-                }
-                
-                selectedGrade = grade;
-                console.log('✅ selectedGrade set to:', selectedGrade);
-                
-                // Automatically proceed to weekly planner
-                console.log('⏰ Starting 300ms timeout to show weekly planner...');
-                setTimeout(() => {
-                    console.log('⚡ Timeout complete, calling createWeeklyTemplate()');
-                    createWeeklyTemplate();
-                }, 300);
-                
-            } catch (error) {
-                console.error('❌ Error in selectGrade:', error);
-                alert('Error selecting grade: ' + error.message);
-            }
+            // Hide grade selection
+            document.getElementById('gradeSelection').style.display = 'none';
+            
+            // Show weekly planner
+            document.getElementById('weeklyPlanner').style.display = 'block';
+            
+            // Load weekly planner interface
+            loadWeeklyPlanner(grade);
         }
         
-        // STEP 2 - WEEKLY TEMPLATE CREATION (SIMPLIFIED)
-        function createWeeklyTemplate() {
-            console.log('🚀 createWeeklyTemplate called with selectedGrade:', selectedGrade);
-            
-            if (!selectedGrade) {
-                console.error('❌ No grade selected!');
-                alert('Please select a grade first!');
-                return;
-            }
-            
-            try {
-                console.log('✅ Creating weekly template for Grade:', selectedGrade);
-                
-                // Hide step 1
-                const step1 = document.getElementById('step1');
-                if (step1) {
-                    step1.style.display = 'none';
-                    console.log('✅ Step 1 hidden successfully');
-                } else {
-                    console.error('❌ Could not find step1 element');
-                }
-                
-                // Show weekly template builder
-                const templateDiv = document.getElementById('weeklyTemplate');
-                if (templateDiv) {
-                    templateDiv.style.display = 'block';
-                    console.log('✅ Weekly template div shown');
-                    
-                    const tableHTML = createWeeklyPlannerTable();
-                    console.log('✅ Generated table HTML (length):', tableHTML.length);
-                    templateDiv.innerHTML = tableHTML;
-                    console.log('✅ Weekly planner table inserted into DOM');
-                } else {
-                    console.error('❌ Could not find weeklyTemplate element');
-                }
-                
-                // Store grade globally
-                localStorage.setItem('selectedGrade', selectedGrade);
-                console.log('✅ Grade saved to localStorage');
-                
-            } catch (error) {
-                console.error('❌ Error in createWeeklyTemplate:', error);
-                alert('Error creating weekly template: ' + error.message);
-            }
-        }
-
-        // CREATE CLEAN TABLE-BASED WEEKLY PLANNER
-        function createWeeklyPlannerTable() {
+        // WEEKLY PLANNER INTERFACE
+        function loadWeeklyPlanner(grade) {
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            const periods = [
-                {num: 1, defaultStart: '08:00', defaultEnd: '08:40'},
-                {num: 2, defaultStart: '08:40', defaultEnd: '09:20'},
-                {num: 3, defaultStart: '09:20', defaultEnd: '10:00'},
-                {num: 4, defaultStart: '10:20', defaultEnd: '11:00'},
-                {num: 5, defaultStart: '11:00', defaultEnd: '11:40'},
-                {num: 6, defaultStart: '11:40', defaultEnd: '12:20'},
-                {num: 7, defaultStart: '12:20', defaultEnd: '13:00'},
-                {num: 8, defaultStart: '13:40', defaultEnd: '14:20'}
-            ];
+            const subjects = ['English', 'Urdu', 'Islamiyat', 'General Knowledge', 'Science', 'Social Studies', 'Math'];
             
-            return `
-                <div class="weekly-planner-header">
-                    <h3>Step 2: Create Your Weekly Schedule</h3>
-                    <p class="grade-info">Grade: ${selectedGrade}</p>
-                </div>
-                
-                <div class="weekly-table-container">
-                    <table class="weekly-schedule-table">
-                        <!-- Header Row -->
-                        <thead>
-                            <tr>
-                                <th class="period-header">Period</th>
-                                <th class="time-header">Time</th>
-                                ${days.map(day => `<th class="day-header">${day}</th>`).join('')}
-                            </tr>
-                        </thead>
-                        
-                        <tbody>
-                            ${periods.map(period => `
-                                <tr>
-                                    <td class="period-cell">Period ${period.num}</td>
-                                    <td class="time-cell">
-                                        <div class="time-inputs">
-                                            <input type="time" id="period${period.num}_start" value="${period.defaultStart}" class="time-input">
-                                            <span class="time-separator">to</span>
-                                            <input type="time" id="period${period.num}_end" value="${period.defaultEnd}" class="time-input">
-                                        </div>
-                                    </td>
-                                    ${days.map(day => `
-                                        <td class="subject-cell">
-                                            <select id="${day.toLowerCase()}_period${period.num}" class="subject-dropdown">
-                                                <option value="">Select Subject</option>
-                                                ${availableSubjects.map(subject => `<option value="${subject}">${subject}</option>`).join('')}
-                                            </select>
-                                        </td>
-                                    `).join('')}
-                                </tr>
-                            `).join('')}
-                            
-                            <!-- Break Time Row -->
-                            <tr class="break-row">
-                                <td class="period-cell break-label">Break Time</td>
-                                <td class="time-cell">
-                                    <div class="time-inputs">
-                                        <input type="time" id="break_start" value="10:00" class="time-input break-input">
-                                        <span class="time-separator">to</span>
-                                        <input type="time" id="break_end" value="10:20" class="time-input break-input">
-                                    </div>
-                                </td>
-                                <td colspan="5" class="break-span">Morning Break (applies to all days)</td>
-                            </tr>
-                            
-                            <!-- Lunch Break Row -->
-                            <tr class="break-row">
-                                <td class="period-cell break-label">Lunch Break</td>
-                                <td class="time-cell">
-                                    <div class="time-inputs">
-                                        <input type="time" id="lunch_start" value="13:00" class="time-input break-input">
-                                        <span class="time-separator">to</span>
-                                        <input type="time" id="lunch_end" value="13:40" class="time-input break-input">
-                                    </div>
-                                </td>
-                                <td colspan="5" class="break-span">Lunch Break (applies to all days)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="action-buttons">
-                    <button onclick="goBackToStep1()" class="btn btn-secondary">← Back to Grade Selection</button>
-                    <button onclick="saveWeeklyTemplate()" class="btn btn-success">💾 Save Weekly Template</button>
-                </div>
-            `;
-        }
-
-        // Remove old complex period creation functions - they're replaced by the table interface
-
-        function goBackToStep1() {
-            document.getElementById('step1').style.display = 'block';
-            document.getElementById('weeklyTemplate').style.display = 'none';
-            document.getElementById('yearlyCalendar').style.display = 'none';
-            
-            // Reset grade selection
-            selectedGrade = null;
-            document.querySelectorAll('.grade-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-        }
-        
-        function saveWeeklyTemplate() {
-            console.log('Saving weekly template...');
-            
-            // Collect all schedule data
-            const weeklySchedule = {
-                grade: selectedGrade,
-                periods: {},
-                breaks: {
-                    morning: {
-                        start: document.getElementById('break_start').value,
-                        end: document.getElementById('break_end').value
-                    },
-                    lunch: {
-                        start: document.getElementById('lunch_start').value,
-                        end: document.getElementById('lunch_end').value
-                    }
-                }
-            };
-            
-            // Collect period times
-            for (let i = 1; i <= 8; i++) {
-                weeklySchedule.periods[`period${i}`] = {
-                    start: document.getElementById(`period${i}_start`).value,
-                    end: document.getElementById(`period${i}_end`).value
-                };
-            }
-            
-            // Collect subjects for each day and period
-            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-            weeklySchedule.subjects = {};
+            let plannerHTML = `<h2>Weekly Planner - Grade ${grade}</h2>`;
             
             days.forEach(day => {
-                weeklySchedule.subjects[day] = {};
-                for (let i = 1; i <= 8; i++) {
-                    const subjectElement = document.getElementById(`${day}_period${i}`);
-                    if (subjectElement) {
-                        weeklySchedule.subjects[day][`period${i}`] = subjectElement.value;
-                    }
-                }
-            });
-            
-            // Save to localStorage
-            localStorage.setItem('weeklyTemplate', JSON.stringify(weeklySchedule));
-            
-            // Count assigned periods
-            let assignedPeriods = 0;
-            Object.keys(weeklySchedule.subjects).forEach(day => {
-                Object.keys(weeklySchedule.subjects[day]).forEach(period => {
-                    if (weeklySchedule.subjects[day][period]) {
-                        assignedPeriods++;
-                    }
-                });
-            });
-            
-            alert(`✅ Weekly template saved successfully!\n\nGrade: ${selectedGrade}\nAssigned periods: ${assignedPeriods} out of 40\nBreak time: ${weeklySchedule.breaks.morning.start} - ${weeklySchedule.breaks.morning.end}\nLunch time: ${weeklySchedule.breaks.lunch.start} - ${weeklySchedule.breaks.lunch.end}`);
-            
-            // Show yearly calendar option
-            const templateDiv = document.getElementById('weeklyTemplate');
-            templateDiv.innerHTML += `
-                <div class="success-message">
-                    <h4>✅ Template Saved Successfully!</h4>
-                    <p>Your weekly template has been created. You can now:</p>
-                    <div class="next-steps">
-                        <button onclick="copyToYear()" class="btn btn-success">📅 Apply to Entire Year</button>
-                        <button onclick="downloadTemplate()" class="btn btn-primary">📥 Download Template</button>
-                        <button onclick="editTemplate()" class="btn btn-secondary">✏️ Edit Template</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function editTemplate() {
-            // Simply scroll back to the table
-            document.querySelector('.weekly-table-container').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        function downloadTemplate() {
-            const savedTemplate = localStorage.getItem('weeklyTemplate');
-            if (savedTemplate) {
-                const templateData = JSON.parse(savedTemplate);
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(templateData, null, 2));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", `Grade_${templateData.grade}_Weekly_Template.json`);
-                document.body.appendChild(downloadAnchorNode);
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-                alert('✅ Template downloaded successfully!');
-            } else {
-                alert('❌ No template found to download!');
-            }
-        }
-
-        // Quick actions functions are simplified above
-
-        // QUICK ACTIONS FUNCTIONS (moved above)
-
-        function addPeriodToAllDays() {
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            days.forEach(day => addNewPeriod(day));
-            alert('✅ New period added to all days!');
-        }
-
-        function addBreakToAllDays() {
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            days.forEach(day => {
-                const periodsContainer = document.getElementById(`${day}_periods`);
-                const newBreakHTML = createEditableBreak(day, '15:00', '15:15', 'Evening');
-                periodsContainer.innerHTML += newBreakHTML;
-            });
-            alert('✅ Evening break added to all days!');
-        }
-
-        function copyMondayToAll() {
-            if (confirm('Copy Monday schedule to all other days?')) {
-                const mondayPeriods = document.querySelectorAll('#Monday_periods .period-row');
-                const mondayBreaks = document.querySelectorAll('#Monday_periods .break-row');
-                const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu"]');
+                plannerHTML += `<div class="day-column">
+                    <h3>${day}</h3>`;
                 
-                const days = ['Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-                
-                days.forEach(day => {
-                    const dayContainer = document.getElementById(`${day}_periods`);
-                    
-                    // Copy all periods from Monday using DOM traversal
-                    let newHTML = '';
-                    mondayPeriods.forEach((period, index) => {
-                        const periodNum = index + 1;
-                        
-                        // Use DOM traversal instead of computed IDs
-                        const startTimeInput = period.querySelector('input[type="time"]:first-of-type');
-                        const endTimeInput = period.querySelector('input[type="time"]:last-of-type');
-                        const subjectSelect = period.querySelector('select');
-                        
-                        const startTime = startTimeInput?.value || '08:00';
-                        const endTime = endTimeInput?.value || '08:40';
-                        const subject = subjectSelect?.value || '';
-                        
-                        newHTML += createEditablePeriod(day, periodNum, startTime, endTime, subjects);
-                    });
-                    
-                    // Copy breaks from Monday using DOM traversal
-                    mondayBreaks.forEach(breakEl => {
-                        const timeInputs = breakEl.querySelectorAll('input[type="time"]');
-                        const labelEl = breakEl.querySelector('label');
-                        
-                        if (timeInputs.length >= 2 && labelEl) {
-                            const startTime = timeInputs[0].value || '10:00';
-                            const endTime = timeInputs[1].value || '10:20';
-                            const breakType = labelEl.textContent.replace(' Time:', '');
-                            
-                            newHTML += createEditableBreak(day, startTime, endTime, breakType);
-                        }
-                    });
-                    
-                    dayContainer.innerHTML = newHTML;
-                    
-                    // Set subject values after DOM update using DOM traversal
-                    setTimeout(() => {
-                        mondayPeriods.forEach((mondayPeriod, index) => {
-                            const periodNum = index + 1;
-                            const mondaySubjectSelect = mondayPeriod.querySelector('select');
-                            const subject = mondaySubjectSelect?.value;
-                            
-                            if (subject) {
-                                const daySubjectSelect = document.getElementById(`${day}_period${periodNum}_subject`);
-                                if (daySubjectSelect) {
-                                    daySubjectSelect.value = subject;
-                                }
-                            }
-                        });
-                    }, 100);
-                });
-                
-                alert('✅ Monday schedule copied to all days!');
-            }
-        }
-
-        function clearAllSchedules() {
-            if (confirm('Clear all schedules? This will remove all periods and breaks from all days.')) {
-                const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-                days.forEach(day => {
-                    const dayContainer = document.getElementById(`${day}_periods`);
-                    dayContainer.innerHTML = '<p style="padding: 20px; text-align: center; color: #6c757d;">No periods scheduled</p>';
-                });
-                alert('✅ All schedules cleared!');
-            }
-        }
-
-        function autoFillSubjects() {
-            const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu"]');
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-            
-            days.forEach(day => {
-                const periodRows = document.querySelectorAll(`#${day}_periods .period-row`);
-                periodRows.forEach((row, index) => {
-                    const subjectSelect = row.querySelector('select');
-                    if (subjectSelect && !subjectSelect.value) {
-                        // Auto-assign subjects cyclically
-                        const subjectIndex = index % subjects.length;
-                        subjectSelect.value = subjects[subjectIndex];
-                    }
-                });
-            });
-            
-            alert('✅ Subjects auto-filled across all days!');
-        }
-
-        // COPY WEEKLY TEMPLATE TO ENTIRE YEAR (UPDATED FOR TABLE FORMAT)
-        function copyToYear() {
-            const savedTemplate = localStorage.getItem('weeklyTemplate');
-            
-            if (!savedTemplate) {
-                alert('❌ Please save your weekly template first!');
-                return;
-            }
-            
-            const templateData = JSON.parse(savedTemplate);
-            
-            // Create yearly plan
-            const yearlyPlan = {
-                grade: templateData.grade,
-                template: templateData,
-                createdDate: new Date().toISOString(),
-                academicYear: '2024-2025'
-            };
-            
-            // Save yearly plan
-            localStorage.setItem('yearlyPlan', JSON.stringify(yearlyPlan));
-            
-            // Count total assigned periods
-            let totalAssigned = 0;
-            Object.keys(templateData.subjects).forEach(day => {
-                Object.keys(templateData.subjects[day]).forEach(period => {
-                    if (templateData.subjects[day][period]) {
-                        totalAssigned++;
-                    }
-                });
-            });
-            
-            const totalWeeks = 52;
-            const totalPeriods = totalAssigned * totalWeeks;
-            
-            alert(`🎉 SUCCESS! Your weekly template has been copied to the entire academic year!
-
-📊 Summary:
-• Grade: ${templateData.grade}
-• Weeks: ${totalWeeks}
-• Assigned periods per week: ${totalAssigned}
-• Total periods for year: ${totalPeriods}
-• Break times: ${templateData.breaks.morning.start}-${templateData.breaks.morning.end} & ${templateData.breaks.lunch.start}-${templateData.breaks.lunch.end}`);
-            
-            // Show success interface
-            showYearlyCalendar();
-        }
-
-        function showYearlyCalendar() {
-            const yearlyDiv = document.getElementById('yearlyCalendar');
-            yearlyDiv.style.display = 'block';
-            
-            const savedPlan = localStorage.getItem('yearlyPlan');
-            if (!savedPlan) {
-                yearlyDiv.innerHTML = '<p>❌ No yearly plan found!</p>';
-                return;
-            }
-            
-            const planData = JSON.parse(savedPlan);
-            
-            yearlyDiv.innerHTML = `
-                <div class="yearly-summary">
-                    <h3>📅 Your Academic Year Plan</h3>
-                    <div class="plan-summary">
-                        <p><strong>Grade:</strong> ${planData.grade}</p>
-                        <p><strong>Academic Year:</strong> ${planData.academicYear}</p>
-                        <p><strong>Created:</strong> ${new Date(planData.createdDate).toLocaleDateString()}</p>
-                    </div>
-                    
-                    <div class="yearly-actions">
-                        <button onclick="downloadYearlyPlan()" class="btn btn-success">📥 Download PDF Plan</button>
-                        <button onclick="viewWeeklyTemplate()" class="btn btn-primary">👀 View Weekly Template</button>
-                        <button onclick="editYearlyPlan()" class="btn btn-secondary">✏️ Edit Plan</button>
-                        <button onclick="clearYearlyPlan()" class="btn btn-danger">🗑️ Delete Plan</button>
-                    </div>
-                    
-                    <div class="template-preview">
-                        <h4>📋 Weekly Template Preview</h4>
-                        ${generateTemplatePreview(planData.template)}
-                    </div>
-                </div>
-            `;
-            
-            // Hide other steps
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('weeklyTemplate').style.display = 'none';
-        }
-        
-        function generateTemplatePreview(template) {
-            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-            let html = '<div class="template-preview-grid">';
-            
-            days.forEach(day => {
-                html += `<div class="day-preview">`;
-                html += `<h5>${day.charAt(0).toUpperCase() + day.slice(1)}</h5>`;
-                
-                for (let i = 1; i <= 8; i++) {
-                    const subject = template.subjects[day][`period${i}`] || 'Free';
-                    const period = template.periods[`period${i}`];
-                    html += `<div class="period-preview">P${i} (${period.start}-${period.end}): ${subject}</div>`;
-                }
-                
-                html += `</div>`;
-            });
-            
-            html += '</div>';
-            return html;
-        }
-        
-        function viewWeeklyTemplate() {
-            document.getElementById('yearlyCalendar').style.display = 'none';
-            document.getElementById('weeklyTemplate').style.display = 'block';
-        }
-        
-        function editYearlyPlan() {
-            document.getElementById('yearlyCalendar').style.display = 'none';
-            document.getElementById('step1').style.display = 'block';
-        }
-        
-        function clearYearlyPlan() {
-            if (confirm('⚠️ Are you sure you want to delete your entire yearly plan? This cannot be undone!')) {
-                localStorage.removeItem('yearlyPlan');
-                localStorage.removeItem('weeklyTemplate');
-                alert('✅ Yearly plan deleted successfully!');
-                location.reload();
-            }
-        }
-
-        function generateWeekButtons() {
-            let weekButtons = '';
-            for (let week = 1; week <= 52; week++) {
-                weekButtons += `<div class="week-button" onclick="editWeek(${week})">Week ${week} ✏️</div>`;
-            }
-            return weekButtons;
-        }
-
-        // WORKING editWeek function
-        function editWeek(weekNumber) {
-            console.log(`Opening Week ${weekNumber} editor`);
-            
-            // Get current plan and any saved week overrides
-            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
-            const baseSchedule = yearlyPlan.schedule || {};
-            const savedWeekData = JSON.parse(localStorage.getItem(`week_${weekNumber}_plan`) || '{}');
-            
-            // Merge base schedule with saved week overrides
-            const weekSchedule = {};
-            ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].forEach(day => {
-                weekSchedule[day] = savedWeekData[day] || baseSchedule[day] || {};
-            });
-            
-            // Hide other sections
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('weeklyTemplate').style.display = 'none';
-            document.getElementById('yearlyCalendar').style.display = 'none';
-            
-            // Create working week editor
-            const weekEditor = `
-                <div class="week-editor-container" style="padding: 20px;">
-                    <h2>📝 Edit Week ${weekNumber}</h2>
-                    <button onclick="showYearlyCalendar()" class="back-btn" style="background: #007bff; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-bottom: 20px;">
-                        ⬅️ Back to Calendar
-                    </button>
-                    
-                    <div class="edit-days">
-                        ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map(day => 
-                            createEditableDay(day, weekSchedule[day] || {}, weekNumber)
-                        ).join('')}
-                    </div>
-                    
-                    <button onclick="saveWeekEdits(${weekNumber})" style="background: green; color: white; padding: 15px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; margin-top: 20px;">
-                        💾 Save Week ${weekNumber} Changes
-                    </button>
-                </div>
-            `;
-            
-            document.querySelector('.planner-container').innerHTML = weekEditor;
-        }
-        
-        function createEditableDay(day, dayData, weekNumber) {
-            // Handle both old format (period1, period2, etc.) and new format (periods array)
-            const periodsData = dayData.periods || [];
-            const breaksData = dayData.breaks || [];
-            
-            // Convert old format to new format if needed
-            if (dayData.period1 && !dayData.periods) {
-                for (let i = 1; i <= 8; i++) {
-                    if (dayData[`period${i}`]) {
-                        periodsData.push({
-                            number: i,
-                            startTime: getDefaultPeriodTime(i, 'start'),
-                            endTime: getDefaultPeriodTime(i, 'end'),
-                            subject: dayData[`period${i}`]
-                        });
-                    }
-                }
-                if (dayData.breakStart) {
-                    breaksData.push({ type: 'Break', start: dayData.breakStart, end: dayData.breakEnd });
-                }
-            }
-            
-            // If no periods, use default 8-period structure
-            if (periodsData.length === 0) {
-                for (let i = 1; i <= 8; i++) {
-                    periodsData.push({
-                        number: i,
-                        startTime: getDefaultPeriodTime(i, 'start'),
-                        endTime: getDefaultPeriodTime(i, 'end'),
-                        subject: ''
-                    });
-                }
-                breaksData.push(
-                    { type: 'Break', start: '10:00', end: '10:20' },
-                    { type: 'Lunch', start: '13:00', end: '13:40' }
-                );
-            }
-            
-            return `
-                <div class="editable-day" style="border: 2px solid #333; margin: 10px; padding: 15px; border-radius: 8px; background: #f9f9f9;">
-                    <h3>${day} - Week ${weekNumber}</h3>
-                    
-                    <div class="enhanced-period-editor">
-                        <div class="period-header" style="margin-bottom: 15px;">
-                            <button onclick="addNewPeriodToWeekDay('${day}', ${weekNumber})" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">➕ Add Period</button>
-                            <button onclick="resetWeekDaySchedule('${day}', ${weekNumber})" style="background: #ffc107; color: black; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">🔄 Reset Day</button>
-                        </div>
-                        
-                        <div id="edit_${weekNumber}_${day}_periods_container">
-                            ${periodsData.map(period => `
-                                <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
-                                    <div style="flex: 1;">
-                                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${period.number}:</label>
-                                        
-                                        <div style="margin: 5px 0;">
-                                            <input type="time" id="edit_${weekNumber}_${day}_period${period.number}_start" value="${period.startTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                            <span style="margin: 0 5px;">to</span>
-                                            <input type="time" id="edit_${weekNumber}_${day}_period${period.number}_end" value="${period.endTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                        </div>
-                                        
-                                        <select id="edit_${weekNumber}_${day}_period${period.number}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                            <option value="">Select Subject</option>
-                                            <option value="English" ${period.subject === 'English' ? 'selected' : ''}>English</option>
-                                            <option value="Math" ${period.subject === 'Math' ? 'selected' : ''}>Math</option>
-                                            <option value="Urdu" ${period.subject === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                            <option value="Science" ${period.subject === 'Science' ? 'selected' : ''}>Science</option>
-                                            <option value="Islamiyat" ${period.subject === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                            <option value="Social Studies" ${period.subject === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                            <option value="General Knowledge" ${period.subject === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                                        <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${period.number})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                                        <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${period.number})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                            
-                            ${breaksData.map(breakItem => `
-                                <div class="edit-break-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
-                                    <div style="flex: 1;">
-                                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">${breakItem.type} Time:</label>
-                                        
-                                        <div style="margin: 5px 0;">
-                                            <input type="time" id="edit_${weekNumber}_${day}_${breakItem.type.toLowerCase()}_start" value="${breakItem.start}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                            <span style="margin: 0 5px;">to</span>
-                                            <input type="time" id="edit_${weekNumber}_${day}_${breakItem.type.toLowerCase()}_end" value="${breakItem.end}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <button onclick="deleteWeekBreak('${day}', ${weekNumber}, '${breakItem.type.toLowerCase()}')" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function getDefaultPeriodTime(periodNumber, type) {
-            const times = {
-                1: { start: '08:00', end: '08:40' },
-                2: { start: '08:40', end: '09:20' },
-                3: { start: '09:20', end: '10:00' },
-                4: { start: '10:20', end: '11:00' },
-                5: { start: '11:00', end: '11:40' },
-                6: { start: '11:40', end: '12:20' },
-                7: { start: '12:20', end: '13:00' },
-                8: { start: '13:40', end: '14:20' }
-            };
-            return times[periodNumber] ? times[periodNumber][type] : '08:00';
-        }
-        
-        // Additional functions for week editing
-        function addNewPeriodToWeekDay(day, weekNumber) {
-            const container = document.getElementById(`edit_${weekNumber}_${day}_periods_container`);
-            const currentPeriods = container.querySelectorAll('.edit-period-row').length;
-            const newPeriodNumber = currentPeriods + 1;
-            
-            const newPeriodHTML = `
-                <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
-                    <div style="flex: 1;">
-                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${newPeriodNumber}:</label>
-                        
-                        <div style="margin: 5px 0;">
-                            <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_start" value="14:20" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            <span style="margin: 0 5px;">to</span>
-                            <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_end" value="15:00" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                        </div>
-                        
-                        <select id="edit_${weekNumber}_${day}_period${newPeriodNumber}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            <option value="">Select Subject</option>
-                            <option value="English">English</option>
-                            <option value="Math">Math</option>
-                            <option value="Urdu">Urdu</option>
-                            <option value="Science">Science</option>
-                            <option value="Islamiyat">Islamiyat</option>
-                            <option value="Social Studies">Social Studies</option>
-                            <option value="General Knowledge">General Knowledge</option>
-                        </select>
-                    </div>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 5px;">
-                        <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                        <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
-                    </div>
-                </div>
-            `;
-            
-            container.innerHTML += newPeriodHTML;
-            alert(`✅ New period added to ${day}!`);
-        }
-        
-        function deleteWeekPeriod(day, weekNumber, periodNumber) {
-            if (confirm(`Delete Period ${periodNumber} from ${day}?`)) {
-                const periodRow = document.querySelector(`#edit_${weekNumber}_${day}_periods_container .edit-period-row:nth-child(${periodNumber})`);
-                if (periodRow) {
-                    periodRow.remove();
-                    alert(`✅ Period ${periodNumber} deleted!`);
-                }
-            }
-        }
-        
-        function duplicateWeekPeriod(day, weekNumber, periodNumber) {
-            const startTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNumber}_start`);
-            const endTimeEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNumber}_end`);
-            const subjectEl = document.getElementById(`edit_${weekNumber}_${day}_period${periodNumber}_subject`);
-            
-            if (startTimeEl && endTimeEl && subjectEl) {
-                const container = document.getElementById(`edit_${weekNumber}_${day}_periods_container`);
-                const currentPeriods = container.querySelectorAll('.edit-period-row').length;
-                const newPeriodNumber = currentPeriods + 1;
-                
-                const newPeriodHTML = `
-                    <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
-                        <div style="flex: 1;">
-                            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${newPeriodNumber}:</label>
-                            
-                            <div style="margin: 5px 0;">
-                                <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_start" value="${startTimeEl.value}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                <span style="margin: 0 5px;">to</span>
-                                <input type="time" id="edit_${weekNumber}_${day}_period${newPeriodNumber}_end" value="${endTimeEl.value}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            </div>
-                            
-                            <select id="edit_${weekNumber}_${day}_period${newPeriodNumber}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
+                for (let period = 1; period <= 8; period++) {
+                    plannerHTML += `
+                        <div class="period-row">
+                            <label>Period ${period}:</label>
+                            <select id="${day}_period${period}">
                                 <option value="">Select Subject</option>
-                                <option value="English" ${subjectEl.value === 'English' ? 'selected' : ''}>English</option>
-                                <option value="Math" ${subjectEl.value === 'Math' ? 'selected' : ''}>Math</option>
-                                <option value="Urdu" ${subjectEl.value === 'Urdu' ? 'selected' : ''}>Urdu</option>
-                                <option value="Science" ${subjectEl.value === 'Science' ? 'selected' : ''}>Science</option>
-                                <option value="Islamiyat" ${subjectEl.value === 'Islamiyat' ? 'selected' : ''}>Islamiyat</option>
-                                <option value="Social Studies" ${subjectEl.value === 'Social Studies' ? 'selected' : ''}>Social Studies</option>
-                                <option value="General Knowledge" ${subjectEl.value === 'General Knowledge' ? 'selected' : ''}>General Knowledge</option>
+                                ${subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('')}
                             </select>
-                        </div>
-                        
-                        <div style="display: flex; flex-direction: column; gap: 5px;">
-                            <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                            <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${newPeriodNumber})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
-                        </div>
-                    </div>
-                `;
-                
-                container.innerHTML += newPeriodHTML;
-                alert(`✅ Period duplicated on ${day}!`);
-            }
-        }
-        
-        function deleteWeekBreak(day, weekNumber, breakType) {
-            if (confirm(`Delete ${breakType} time from ${day}?`)) {
-                const breakRow = document.querySelector(`#edit_${weekNumber}_${day}_periods_container .edit-break-row`);
-                if (breakRow) {
-                    breakRow.remove();
-                    alert(`✅ ${breakType} break deleted!`);
-                }
-            }
-        }
-        
-        function resetWeekDaySchedule(day, weekNumber) {
-            if (confirm(`Reset ${day} schedule to default 8-period structure?`)) {
-                const container = document.getElementById(`edit_${weekNumber}_${day}_periods_container`);
-                
-                let resetHTML = '';
-                for (let i = 1; i <= 8; i++) {
-                    const times = getDefaultPeriodTime(i);
-                    resetHTML += `
-                        <div class="edit-period-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
-                            <div style="flex: 1;">
-                                <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${i}:</label>
-                                
-                                <div style="margin: 5px 0;">
-                                    <input type="time" id="edit_${weekNumber}_${day}_period${i}_start" value="${times.start}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                    <span style="margin: 0 5px;">to</span>
-                                    <input type="time" id="edit_${weekNumber}_${day}_period${i}_end" value="${times.end}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                </div>
-                                
-                                <select id="edit_${weekNumber}_${day}_period${i}_subject" style="width: 150px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                    <option value="">Select Subject</option>
-                                    <option value="English">English</option>
-                                    <option value="Math">Math</option>
-                                    <option value="Urdu">Urdu</option>
-                                    <option value="Science">Science</option>
-                                    <option value="Islamiyat">Islamiyat</option>
-                                    <option value="Social Studies">Social Studies</option>
-                                    <option value="General Knowledge">General Knowledge</option>
-                                </select>
-                            </div>
-                            
-                            <div style="display: flex; flex-direction: column; gap: 5px;">
-                                <button onclick="deleteWeekPeriod('${day}', ${weekNumber}, ${i})" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                                <button onclick="duplicateWeekPeriod('${day}', ${weekNumber}, ${i})" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
-                            </div>
-                        </div>
-                    `;
+                            <input type="time" id="${day}_period${period}_start" value="08:00">
+                            <input type="time" id="${day}_period${period}_end" value="08:40">
+                        </div>`;
                 }
                 
-                // Add default breaks
-                resetHTML += `
-                    <div class="edit-break-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
-                        <div style="flex: 1;">
-                            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Break Time:</label>
-                            
-                            <div style="margin: 5px 0;">
-                                <input type="time" id="edit_${weekNumber}_${day}_break_start" value="10:00" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                <span style="margin: 0 5px;">to</span>
-                                <input type="time" id="edit_${weekNumber}_${day}_break_end" value="10:20" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <button onclick="deleteWeekBreak('${day}', ${weekNumber}, 'break')" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                        </div>
+                plannerHTML += `
+                    <div class="break-row">
+                        <label>Break:</label>
+                        <input type="time" id="${day}_break_start" value="10:00">
+                        <input type="time" id="${day}_break_end" value="10:20">
                     </div>
-                    
-                    <div class="edit-break-row" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
-                        <div style="flex: 1;">
-                            <label style="font-weight: bold; margin-bottom: 5px; display: block;">Lunch Time:</label>
-                            
-                            <div style="margin: 5px 0;">
-                                <input type="time" id="edit_${weekNumber}_${day}_lunch_start" value="13:00" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                                <span style="margin: 0 5px;">to</span>
-                                <input type="time" id="edit_${weekNumber}_${day}_lunch_end" value="13:40" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            </div>
-                        </div>
-                        
-                        <div>
-                            <button onclick="deleteWeekBreak('${day}', ${weekNumber}, 'lunch')" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                        </div>
-                    </div>
-                `;
-                
-                container.innerHTML = resetHTML;
-                alert(`✅ ${day} schedule reset to default 8-period structure!`);
-            }
-        }
-                        
-        }
-        
-        function saveWeekEdits(weekNumber) {
-            console.log(`Saving Week ${weekNumber} edits`);
+                </div>`;
+            });
             
-            const editedWeek = {};
+            plannerHTML += `<button onclick="saveWeeklyPlan()" class="btn btn-success save-btn">Save Weekly Plan</button>`;
+            
+            document.getElementById('weeklyPlanner').innerHTML = plannerHTML;
+        }
+        
+        // SAVE FUNCTION
+        function saveWeeklyPlan() {
+            const weeklyPlan = {};
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             
             days.forEach(day => {
-                const daySchedule = {
-                    periods: [],
-                    breaks: []
-                };
-                
-                // Get all periods for this day using robust DOM traversal
-                const periodRows = document.querySelectorAll(`#edit_${weekNumber}_${day}_periods_container .edit-period-row`);
-                periodRows.forEach((row, index) => {
-                    const startTimeInput = row.querySelector('input[type="time"]:first-of-type');
-                    const endTimeInput = row.querySelector('input[type="time"]:last-of-type');
-                    const subjectSelect = row.querySelector('select');
-                    
-                    if (startTimeInput && endTimeInput) {
-                        const startTime = startTimeInput.value;
-                        const endTime = endTimeInput.value;
-                        const subject = subjectSelect ? subjectSelect.value : '';
-                        
-                        if (startTime && endTime) {
-                            daySchedule.periods.push({
-                                number: index + 1,
-                                startTime: startTime,
-                                endTime: endTime,
-                                subject: subject || 'Free Period'
-                            });
-                        }
-                    }
-                });
-                
-                // Get break times using robust DOM traversal
-                const breakRows = document.querySelectorAll(`#edit_${weekNumber}_${day}_periods_container .edit-break-row`);
-                breakRows.forEach(breakRow => {
-                    const timeInputs = breakRow.querySelectorAll('input[type="time"]');
-                    const labelEl = breakRow.querySelector('label');
-                    
-                    if (timeInputs.length >= 2 && labelEl) {
-                        const startTime = timeInputs[0].value;
-                        const endTime = timeInputs[1].value;
-                        const breakType = labelEl.textContent.replace(' Time:', '');
-                        
-                        if (startTime && endTime && breakType) {
-                            daySchedule.breaks.push({ 
-                                type: breakType, 
-                                start: startTime, 
-                                end: endTime 
-                            });
-                        }
-                    }
-                });
-                
-                editedWeek[day] = daySchedule;
-            });
-            
-            // Save this specific week
-            localStorage.setItem(`week_${weekNumber}_plan`, JSON.stringify(editedWeek));
-            
-            const totalPeriods = Object.values(editedWeek).reduce((total, day) => total + day.periods.length, 0);
-            const totalBreaks = Object.values(editedWeek).reduce((total, day) => total + day.breaks.length, 0);
-            alert(`✅ Week ${weekNumber} saved successfully with ${totalPeriods} total periods and ${totalBreaks} breaks!`);
-            
-            // Show yearly calendar
-            showYearlyCalendar();
-        }
-
-        function formatScheduleForDisplay(schedule) {
-            let display = '';
-            Object.keys(schedule).forEach(day => {
-                display += `\\n${day}:\\n`;
-                Object.keys(schedule[day]).forEach(period => {
-                    if (schedule[day][period]) {
-                        display += `  ${period}: ${schedule[day][period]}\\n`;
-                    }
-                });
-            });
-            return display;
-        }
-
-        function downloadSchedule() {
-            downloadYearlyPlan();
-        }
-        
-        // Add PDF generation functionality
-        function downloadYearlyPlan() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            
-            // Get saved plan
-            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
-            const schedule = yearlyPlan.schedule || {};
-            
-            if (!yearlyPlan.grade) {
-                alert('No yearly plan found! Please create a plan first.');
-                return;
-            }
-            
-            // Generate PDF content
-            doc.setFontSize(20);
-            doc.text('Yearly Teaching Plan', 20, 30);
-            
-            doc.setFontSize(14);
-            doc.text(`Grade: ${yearlyPlan.grade}`, 20, 45);
-            doc.text(`Subjects: ${yearlyPlan.subjects.join(', ')}`, 20, 55);
-            doc.text(`Created: ${new Date(yearlyPlan.createdDate).toLocaleDateString()}`, 20, 65);
-            
-            doc.setFontSize(12);
-            let yPosition = 85;
-            
-            Object.keys(schedule).forEach(day => {
-                if (yPosition > 250) {
-                    doc.addPage();
-                    yPosition = 30;
+                weeklyPlan[day] = {};
+                for (let period = 1; period <= 8; period++) {
+                    weeklyPlan[day][`period${period}`] = {
+                        subject: document.getElementById(`${day}_period${period}`).value,
+                        startTime: document.getElementById(`${day}_period${period}_start`).value,
+                        endTime: document.getElementById(`${day}_period${period}_end`).value
+                    };
                 }
-                
-                doc.setFont(undefined, 'bold');
-                doc.text(`${day}:`, 20, yPosition);
-                doc.setFont(undefined, 'normal');
-                
-                doc.text(`Period 1 (8:00-8:40): ${schedule[day].period1 || 'Not assigned'}`, 30, yPosition + 10);
-                doc.text(`Period 2 (8:40-9:20): ${schedule[day].period2 || 'Not assigned'}`, 30, yPosition + 20);
-                doc.text(`Period 3 (9:20-10:00): ${schedule[day].period3 || 'Not assigned'}`, 30, yPosition + 30);
-                doc.text(`Break: ${schedule[day].breakStart || '10:00'} - ${schedule[day].breakEnd || '10:20'}`, 30, yPosition + 40);
-                doc.text(`Period 4 (After Break): ${schedule[day].period4 || 'Not assigned'}`, 30, yPosition + 50);
-                doc.text(`Period 5 (Last Period): ${schedule[day].period5 || 'Not assigned'}`, 30, yPosition + 60);
-                
-                yPosition += 80;
+                weeklyPlan[day].break = {
+                    startTime: document.getElementById(`${day}_break_start`).value,
+                    endTime: document.getElementById(`${day}_break_end`).value
+                };
             });
             
-            // Download PDF
-            doc.save(`Yearly_Teaching_Plan_Grade_${yearlyPlan.grade}.pdf`);
-            alert('✅ Yearly plan downloaded as PDF!');
-        }
-
-        // Load existing plan if available
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedPlan = localStorage.getItem('yearlyPlan');
-            if (savedPlan) {
-                const planData = JSON.parse(savedPlan);
-                
-                // Add a "View Existing Plan" button
-                const welcomeSection = document.querySelector('.welcome-section');
-                welcomeSection.innerHTML += `
-                    <div class="existing-plan-notice">
-                        <p>📋 You have an existing yearly plan for Grade ${planData.grade}</p>
-                        <button onclick="showYearlyCalendar()" class="btn btn-success">View Your Schedule</button>
-                        <button onclick="clearPlan()" class="btn btn-secondary">Start Fresh</button>
-                    </div>
-                `;
-            }
-        });
-
-        function clearPlan() {
-            if (confirm('Are you sure you want to delete your existing yearly plan and start fresh?')) {
-                localStorage.removeItem('yearlyPlan');
-                location.reload();
-            }
+            localStorage.setItem('yearlyPlan', JSON.stringify(weeklyPlan));
+            alert('Weekly plan saved successfully!');
         }
     </script>
     
     <style>
-        :root {
-            --soft-blue: #6c9bd1;
-            --sage-green: #9cbc88;
-            --warm-pink: #f4a6cd;
-            --sunny-yellow: #ffd93d;
-            --lavender: #b19cd9;
-            --mint-green: #98e4d6;
-            --peach: #ffab91;
-            --light-gray: #f5f5f5;
-            --border-gray: #e0e0e0;
-        }
-        
-        .navbar {
-            background: linear-gradient(135deg, var(--soft-blue), var(--sage-green));
-            color: white;
-            padding: 1rem 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 2rem;
-        }
-        
-        .nav-title {
-            font-size: 1.5rem;
-            margin: 0;
-        }
-        
-        .nav-menu {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-        
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            transition: background-color 0.3s;
-        }
-        
-        .nav-link:hover {
-            background-color: rgba(255,255,255,0.2);
-        }
-        
-        .nav-welcome {
-            font-weight: 500;
-        }
-        
-        .logout-link {
-            background-color: rgba(255,255,255,0.2);
-        }
-        
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        .planner-container {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        .welcome-section {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .welcome-section h1 {
-            color: var(--soft-blue);
-            margin-bottom: 0.5rem;
-        }
-        
-        .welcome-subtitle {
-            color: #666;
-            font-size: 1.1rem;
-        }
-        
-        .step-1 {
+        /* Frontend-Only Yearly Planner Styles */
+        .planner-step {
             background: var(--light-gray);
             padding: 2rem;
             border-radius: 12px;
             margin-bottom: 2rem;
         }
         
-        .step-1 h3 {
+        .planner-step h2 {
             color: var(--sage-green);
+            text-align: center;
             margin-bottom: 1.5rem;
-            text-align: center;
-        }
-        
-        .grade-selection {
-            max-width: 800px;
-            margin: 0 auto;
-            text-align: center;
         }
         
         .grade-buttons {
@@ -1323,445 +209,113 @@
             box-shadow: 0 4px 12px rgba(108, 155, 209, 0.3);
         }
         
-        .grade-btn.active {
-            background: var(--sage-green);
-            border-color: var(--sage-green);
-            color: white;
-            transform: translateY(-3px);
-            box-shadow: 0 4px 12px rgba(156, 188, 136, 0.4);
+        /* Weekly Planner Styles */
+        #weeklyPlanner {
+            background: white;
         }
         
-        .form-group {
-            margin-bottom: 1.5rem;
+        #weeklyPlanner h2 {
+            color: var(--sage-green);
+            text-align: center;
+            margin-bottom: 2rem;
         }
         
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #333;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
+        .day-column {
+            background: var(--light-gray);
             border: 2px solid var(--border-gray);
             border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            padding: 1rem;
+            margin: 1rem;
+            display: inline-block;
+            vertical-align: top;
+            width: 280px;
         }
         
-        .form-control:focus {
-            outline: none;
-            border-color: var(--soft-blue);
-        }
-        
-        /* Weekly Planner Table Styles */
-        .weekly-planner-header {
+        .day-column h3 {
+            color: var(--soft-blue);
             text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .weekly-planner-header h3 {
-            color: var(--sage-green);
-            margin-bottom: 0.5rem;
-        }
-        
-        .grade-info {
-            background: var(--sunny-yellow);
-            padding: 0.75rem;
-            border-radius: 8px;
-            font-weight: 600;
-            color: #333;
             margin-bottom: 1rem;
-        }
-        
-        .weekly-table-container {
-            overflow-x: auto;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 2rem;
+            padding: 0.5rem;
+            border-radius: 6px;
         }
         
-        .weekly-schedule-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        
-        .weekly-schedule-table th,
-        .weekly-schedule-table td {
-            padding: 12px 8px;
-            text-align: center;
+        .period-row {
+            background: white;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
             border: 1px solid var(--border-gray);
         }
         
-        .weekly-schedule-table th {
-            background: var(--soft-blue);
-            color: white;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-        }
-        
-        .period-header {
-            width: 80px;
-            font-weight: 600;
-        }
-        
-        .time-header {
-            width: 160px;
-            font-weight: 600;
-        }
-        
-        .day-header {
-            width: 140px;
-            font-weight: 600;
-        }
-        
-        .period-cell {
-            background: var(--light-gray);
+        .period-row label {
             font-weight: 600;
             color: #333;
-        }
-        
-        .time-cell {
-            background: #f8f9fa;
-        }
-        
-        .subject-cell {
-            background: white;
-        }
-        
-        .time-inputs {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .time-input {
-            width: 60px;
-            padding: 4px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-align: center;
-            font-size: 0.85rem;
-        }
-        
-        .time-separator {
-            font-weight: 600;
-            color: #666;
-        }
-        
-        .subject-dropdown {
-            width: 100%;
-            padding: 6px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            background: white;
-        }
-        
-        .subject-dropdown:focus {
-            outline: none;
-            border-color: var(--soft-blue);
-        }
-        
-        .break-row {
-            background: var(--peach) !important;
-        }
-        
-        .break-row td {
-            background: var(--peach) !important;
-        }
-        
-        .break-label {
-            font-weight: 600;
-            color: #333;
-        }
-        
-        .break-input {
-            background: #fff3cd;
-        }
-        
-        .break-span {
-            font-style: italic;
-            color: #666;
-            font-weight: 500;
-        }
-        
-        .success-message {
-            background: var(--mint-green);
-            padding: 1.5rem;
-            border-radius: 12px;
-            text-align: center;
-            margin-top: 2rem;
-        }
-        
-        .success-message h4 {
-            color: #155724;
-            margin-bottom: 1rem;
-        }
-        
-        .success-message p {
-            color: #155724;
-            margin-bottom: 1rem;
-        }
-        
-        .next-steps {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        /* Yearly Summary Styles */
-        .yearly-summary {
-            background: var(--light-gray);
-            padding: 2rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-        }
-        
-        .yearly-summary h3 {
-            color: var(--sage-green);
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .plan-summary {
-            background: var(--sunny-yellow);
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .plan-summary p {
-            margin: 0.5rem 0;
-            font-weight: 500;
-        }
-        
-        .yearly-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-        }
-        
-        .template-preview {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-        }
-        
-        .template-preview h4 {
-            color: var(--sage-green);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-        
-        .template-preview-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-        }
-        
-        .day-preview {
-            background: var(--light-gray);
-            border-radius: 6px;
-            padding: 1rem;
-        }
-        
-        .day-preview h5 {
-            color: var(--soft-blue);
+            display: block;
             margin-bottom: 0.5rem;
-            text-align: center;
-            background: white;
-            padding: 0.5rem;
-            border-radius: 4px;
         }
         
-        .period-preview {
-            font-size: 0.8rem;
-            padding: 0.25rem;
-            margin: 0.25rem 0;
-            background: white;
-            border-radius: 3px;
-            color: #333;
-        }
-        
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            text-align: center;
-        }
-        
-        .btn-primary {
-            background: var(--soft-blue);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background: #5a87c4;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: var(--border-gray);
-            color: #333;
-        }
-        
-        .btn-secondary:hover {
-            background: #ccc;
-        }
-        
-        .btn-success {
-            background: var(--sage-green);
-            color: white;
-        }
-        
-        .btn-success:hover {
-            background: #8aaa76;
-            transform: translateY(-2px);
-        }
-        
-        .next-btn {
+        .period-row select {
             width: 100%;
-            margin-top: 1rem;
-        }
-        
-        /* Remove old day-schedule styles - replaced with table */
-        
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            margin-top: 2rem;
-        }
-        
-        .grade-subjects-info {
-            text-align: center;
-            background: var(--mint-green);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            font-weight: 500;
-        }
-        
-        .yearly-calendar {
-            background: var(--light-gray);
-            padding: 2rem;
-            border-radius: 12px;
-        }
-        
-        .yearly-calendar h3 {
-            color: var(--sage-green);
-            text-align: center;
-            margin-bottom: 1rem;
-        }
-        
-        .plan-info {
-            text-align: center;
-            background: var(--sunny-yellow);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-        
-        .calendar-instruction {
-            text-align: center;
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-        
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            max-height: 400px;
-            overflow-y: auto;
-            padding: 1rem;
-            background: white;
-            border-radius: 8px;
-        }
-        
-        .week-button {
-            background: white;
-            border: 2px solid var(--border-gray);
-            border-radius: 8px;
-            padding: 0.75rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
             font-size: 0.9rem;
         }
         
-        .week-button:hover {
-            background: var(--soft-blue);
-            color: white;
-            transform: translateY(-2px);
+        .period-row input[type="time"] {
+            width: 48%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
         
-        .existing-plan-notice {
-            background: var(--warm-pink);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            text-align: center;
+        .period-row input[type="time"]:first-of-type {
+            margin-right: 4%;
         }
         
-        .existing-plan-notice p {
-            margin-bottom: 1rem;
-            font-weight: 500;
+        .break-row {
+            background: var(--peach);
+            padding: 0.75rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+            border: 1px solid #ffeaa7;
         }
         
-        .existing-plan-notice .btn {
-            margin: 0 0.5rem;
+        .break-row label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 0.5rem;
         }
         
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
+        .break-row input[type="time"] {
+            width: 48%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
         }
         
-        .alert-success {
-            background: var(--mint-green);
-            color: #155724;
+        .break-row input[type="time"]:first-of-type {
+            margin-right: 4%;
         }
         
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
+        .save-btn {
+            display: block;
+            margin: 2rem auto;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
         
+        /* Mobile Responsive */
         @media (max-width: 768px) {
-            .nav-container {
-                flex-direction: column;
-                gap: 1rem;
-                padding: 0 1rem;
-            }
-            
-            .nav-menu {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .main-content {
-                padding: 1rem;
+            .day-column {
+                width: 100%;
+                margin: 1rem 0;
             }
             
             .grade-buttons {
@@ -1773,50 +327,12 @@
                 width: 100%;
                 max-width: 200px;
             }
-            
-            .weekly-table-container {
-                font-size: 0.8rem;
-            }
-            
-            .weekly-schedule-table th,
-            .weekly-schedule-table td {
-                padding: 8px 4px;
-            }
-            
-            .time-inputs {
-                flex-direction: column;
-                gap: 4px;
-            }
-            
-            .time-input {
-                width: 50px;
-            }
-            
-            .subject-dropdown {
-                font-size: 0.75rem;
-            }
-            
-            .calendar-grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            .next-steps {
-                flex-direction: column;
-            }
-            
-            .yearly-actions {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .template-preview-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
+    
+    <!-- Include existing CSS variables and common styles -->
+        
+        function autoFillSubjects() {
+            if (confirm('Auto-fill subjects evenly across all periods?')) {
 </body>
 </html>
