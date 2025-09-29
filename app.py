@@ -5176,26 +5176,18 @@ def extract_student_names():
                     )
                     extracted_text = response.choices[0].message.content
                 else:
-                    # Fallback simulation
-                    extracted_text = """Ahmed Ali Khan
-Fatima Sheikh
-Muhammad Hassan
-Ayesha Malik
-Ali Raza
-Zainab Ahmed
-Usman Tariq
-Khadija Batool
-Omar Siddique
-Maryam Noor"""
+                    # No OCR service available
+                    return jsonify({
+                        'success': False, 
+                        'message': 'OCR service not available. Please add students manually.'
+                    })
             except Exception as e:
                 print(f"OCR extraction error: {e}")
-                # Fallback to simulated names
-                extracted_text = """Ahmed Ali Khan
-Fatima Sheikh
-Muhammad Hassan
-Ayesha Malik
-Ali Raza
-Zainab Ahmed"""
+                # No fake names - return error
+                return jsonify({
+                    'success': False, 
+                    'message': 'OCR failed. Please try again with a clearer image or add students manually.'
+                })
         
         # Parse names from extracted text
         student_names = []
