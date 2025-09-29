@@ -158,7 +158,7 @@
                             <input type="tel" id="guardian-phone" class="form-input" placeholder="03XX-XXXXXXX">
                         </div>
                     </div>
-                    <button class="btn btn-success">💾 Save Student</button>
+                    <button class="btn btn-success" onclick="addNewStudent()">💾 Save Student</button>
                 </div>
             </div>
 
@@ -557,6 +557,234 @@
             box-shadow: var(--shadow-md);
         }
         
+        /* NEW GRADING SYSTEM STYLES */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .class-detail-view {
+            padding: 20px;
+        }
+        
+        .class-actions {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+        
+        .action-btn.primary {
+            background: var(--sage-green);
+            color: white;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .students-summary {
+            margin: 20px 0;
+        }
+        
+        .student-list-preview {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .student-tag {
+            background: var(--soft-blue);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .more-students {
+            background: var(--gray-400);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+        
+        .test-preview {
+            background: var(--warm-white);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 4px solid var(--sage-green);
+        }
+        
+        .create-test-form {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .assessment-options {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .assessment-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .save-btn {
+            background: var(--sage-green);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .cancel-btn {
+            background: var(--gray-500);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .scoresheet, .exercise-checklist {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        .scores-table, .checklist-table {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .scores-table table, .checklist-table table, .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .scores-table th, .checklist-table th, .results-table th,
+        .scores-table td, .checklist-table td, .results-table td {
+            padding: 12px;
+            border: 1px solid var(--gray-300);
+            text-align: left;
+        }
+        
+        .scores-table th, .checklist-table th, .results-table th {
+            background: var(--sage-green);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .scores-table input[type="number"], .checklist-table input[type="checkbox"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+        }
+        
+        .checklist-table input[type="checkbox"] {
+            width: auto;
+            transform: scale(1.2);
+        }
+        
+        .test-results, .exercise-results {
+            max-width: 100%;
+            margin: 20px 0;
+        }
+        
+        .results-summary {
+            background: var(--mint-green);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .grade-a, .grade-a\+ {
+            background: #d4edda;
+            color: #155724;
+            font-weight: 700;
+        }
+        
+        .grade-b {
+            background: #fff3cd;
+            color: #856404;
+            font-weight: 600;
+        }
+        
+        .grade-c {
+            background: #ffeaa7;
+            color: #6c6c00;
+            font-weight: 600;
+        }
+        
+        .grade-d {
+            background: #fdcb6e;
+            color: #8b4513;
+            font-weight: 600;
+        }
+        
+        .grade-f {
+            background: #f8d7da;
+            color: #721c24;
+            font-weight: 700;
+        }
+        
+        .no-classes {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--warm-white);
+            border-radius: 15px;
+            color: var(--gray-600);
+        }
+        
         .features-section {
             text-align: center;
             margin-top: 50px;
@@ -798,20 +1026,658 @@
             }
         }
         
+        // ENHANCED CLASS MANAGEMENT SYSTEM
         function addNewClass() {
-            alert('Class creation functionality will be implemented with database integration');
+            const classFormHTML = `
+                <div id="addClassForm" class="modal-overlay">
+                    <div class="modal-content">
+                        <h3>➕ Add New Class</h3>
+                        <div class="form-group">
+                            <label>Class Name:</label>
+                            <input type="text" id="className" placeholder="e.g., Grade 4 - Section A" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Subject:</label>
+                            <select id="classSubject" required>
+                                <option value="">Select Subject</option>
+                                <option value="English">English</option>
+                                <option value="Math">Math</option>
+                                <option value="Urdu">Urdu</option>
+                                <option value="Islamiyat">Islamiyat</option>
+                                <option value="Science">Science</option>
+                                <option value="Social Studies">Social Studies</option>
+                                <option value="General Knowledge">General Knowledge</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button onclick="saveClass()" class="btn btn-success">💾 Save Class</button>
+                            <button onclick="closeClassForm()" class="btn btn-secondary">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', classFormHTML);
         }
-        
+
+        function saveClass() {
+            const className = document.getElementById('className').value;
+            const subject = document.getElementById('classSubject').value;
+            
+            if (className && subject) {
+                const newClass = {
+                    id: Date.now(),
+                    name: className,
+                    subject: subject,
+                    students: [],
+                    scoresheets: [] // Add scoresheets array
+                };
+                
+                // Get existing classes or create empty array
+                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+                classes.push(newClass);
+                
+                // ACTUALLY SAVE TO LOCALSTORAGE
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                console.log('Class saved:', newClass); // Debug log
+                
+                alert('✅ Class saved successfully!');
+                loadExistingClasses();
+                closeClassForm();
+            } else {
+                alert('Please fill all fields!');
+            }
+        }
+
+        function closeClassForm() {
+            const form = document.getElementById('addClassForm');
+            if (form) form.remove();
+        }
+
+        function loadExistingClasses() {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classesGrid = document.querySelector('.classes-grid');
+            
+            if (classes.length === 0) {
+                classesGrid.innerHTML = `
+                    <div class="no-classes">
+                        <p>📚 No classes created yet. Click "Add New Class" to get started!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            classesGrid.innerHTML = classes.map(classItem => `
+                <div class="class-card">
+                    <div class="class-header">
+                        <h3>${classItem.name}</h3>
+                        <span class="student-count">${classItem.students.length} Students</span>
+                    </div>
+                    <div class="class-details">
+                        <div class="detail-item">
+                            <span class="label">Subject:</span>
+                            <span class="value">${classItem.subject}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="label">Tests:</span>
+                            <span class="value">${classItem.scoresheets ? classItem.scoresheets.length : 0} assessments</span>
+                        </div>
+                    </div>
+                    <div class="class-actions">
+                        <button class="btn btn-sm btn-primary" onclick="openClass(${classItem.id})">🏫 Open Class</button>
+                        <button class="btn btn-sm btn-secondary" onclick="addStudents(${classItem.id})">👥 Students</button>
+                        <button class="btn btn-sm btn-accent" onclick="deleteClass(${classItem.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteClass(classId) {
+            if (confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
+                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+                classes = classes.filter(c => c.id !== classId);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                loadExistingClasses();
+                alert('✅ Class deleted successfully!');
+            }
+        }
+
+        function addStudents(classId) {
+            document.getElementById('students-section').style.display = 'block';
+            document.getElementById('students-section').scrollIntoView({ behavior: 'smooth' });
+            
+            // Store current class ID for student addition
+            window.currentClassId = classId;
+        }
+
         function addNewStudent() {
-            alert('Student addition functionality will be implemented with database integration');
+            if (!window.currentClassId) {
+                alert('Please select a class first by clicking "👥 Students" from a class card.');
+                return;
+            }
+            
+            const studentName = document.getElementById('student-name').value;
+            const studentClass = document.getElementById('student-class').value;
+            const studentRoll = document.getElementById('student-roll').value;
+            const guardianName = document.getElementById('guardian-name').value;
+            const guardianCnic = document.getElementById('guardian-cnic').value;
+            const guardianPhone = document.getElementById('guardian-phone').value;
+            
+            if (!studentName) {
+                alert('Please enter student name!');
+                return;
+            }
+            
+            const newStudent = {
+                id: Date.now(),
+                name: studentName,
+                class: studentClass,
+                rollNumber: studentRoll,
+                guardian: {
+                    name: guardianName,
+                    cnic: guardianCnic,
+                    phone: guardianPhone
+                }
+            };
+            
+            // Add student to class
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === window.currentClassId);
+            
+            if (classIndex !== -1) {
+                classes[classIndex].students.push(newStudent);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                
+                alert('✅ Student added successfully!');
+                
+                // Clear form
+                document.getElementById('student-name').value = '';
+                document.getElementById('student-class').value = '';
+                document.getElementById('student-roll').value = '';
+                document.getElementById('guardian-name').value = '';
+                document.getElementById('guardian-cnic').value = '';
+                document.getElementById('guardian-phone').value = '';
+                
+                loadExistingClasses();
+            }
         }
-        
+
         function createScoresheet() {
-            alert('Scoresheet creation functionality will be implemented with database integration');
+            if (!window.currentClassId) {
+                alert('Please select a class first!');
+                return;
+            }
+            createNewTest(window.currentClassId);
         }
-        
+
         function generateReport() {
-            alert('Report generation functionality will be implemented with PDF libraries');
+            alert('📊 Report generation feature coming soon! Will generate PDF reports for individual students and classes.');
+        }
+
+        // ENHANCED CLASS DETAIL VIEW WITH MULTIPLE TESTS
+        function openClass(classId) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            
+            if (!currentClass) {
+                alert('Class not found!');
+                return;
+            }
+            
+            // Create class detail section if it doesn't exist
+            let classDetailSection = document.getElementById('classDetails');
+            if (!classDetailSection) {
+                classDetailSection = document.createElement('div');
+                classDetailSection.id = 'classDetails';
+                classDetailSection.className = 'content-section';
+                document.querySelector('.grading-container').appendChild(classDetailSection);
+            }
+            
+            classDetailSection.style.display = 'block';
+            classDetailSection.innerHTML = `
+                <div class="class-detail-view">
+                    <h3>📚 ${currentClass.name} - ${currentClass.subject}</h3>
+                    
+                    <div class="class-actions">
+                        <button onclick="addStudents(${classId})" class="action-btn">👥 Manage Students</button>
+                        <button onclick="createNewTest(${classId})" class="action-btn primary">📝 Create New Test</button>
+                        <button onclick="viewAllTests(${classId})" class="action-btn">📊 View All Tests</button>
+                    </div>
+                    
+                    <div class="students-summary">
+                        <h4>Students in this class: ${currentClass.students.length}</h4>
+                        <div class="student-list-preview">
+                            ${currentClass.students.slice(0, 5).map(student => `<span class="student-tag">${student.name}</span>`).join('')}
+                            ${currentClass.students.length > 5 ? `<span class="more-students">+${currentClass.students.length - 5} more</span>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="tests-summary">
+                        <h4>Recent Tests: ${currentClass.scoresheets ? currentClass.scoresheets.length : 0}</h4>
+                        <div id="recentTests"></div>
+                    </div>
+                </div>
+            `;
+            
+            loadRecentTests(classId);
+            classDetailSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function loadRecentTests(classId) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            const recentTestsDiv = document.getElementById('recentTests');
+            
+            if (!currentClass.scoresheets || currentClass.scoresheets.length === 0) {
+                recentTestsDiv.innerHTML = '<p>No tests created yet. Click "Create New Test" to get started!</p>';
+                return;
+            }
+            
+            const recentTests = currentClass.scoresheets.slice(-3).reverse(); // Show last 3 tests
+            recentTestsDiv.innerHTML = recentTests.map(test => `
+                <div class="test-preview">
+                    <h5>${test.subject} - ${test.topic}</h5>
+                    <p><strong>Type:</strong> ${test.type} | <strong>Date:</strong> ${test.date}</p>
+                    <button onclick="viewTestResults(${classId}, ${test.id})" class="btn btn-sm btn-primary">📊 View Results</button>
+                </div>
+            `).join('');
+        }
+
+        function viewAllTests(classId) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            
+            alert(`📊 All Tests for ${currentClass.name}:\n\nTotal Tests: ${currentClass.scoresheets ? currentClass.scoresheets.length : 0}\n\nDetailed test history viewer coming soon!`);
+        }
+
+        // CREATE NEW TEST WITH SUBJECT SELECTION
+        function createNewTest(classId) {
+            const subjects = ['English', 'Math', 'Urdu', 'Islamiyat', 'Science', 'Social Studies', 'General Knowledge'];
+            const testTypes = ['Written Test', 'Oral Test', 'Quiz', 'Assignment', 'Exercise Check', 'Class Work', 'Homework'];
+            
+            const testFormHTML = `
+                <div class="create-test-form">
+                    <h3>📝 Create New Test</h3>
+                    
+                    <div class="form-group">
+                        <label>Test Subject:</label>
+                        <select id="testSubject" required>
+                            <option value="">Select Subject</option>
+                            ${subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Test Type:</label>
+                        <select id="testType" required>
+                            <option value="">Select Type</option>
+                            ${testTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Test Topic:</label>
+                        <input type="text" id="testTopic" placeholder="e.g., Chapter 5 - Nouns" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Total Marks:</label>
+                        <input type="number" id="totalMarks" placeholder="100" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Assessment Type:</label>
+                        <div class="assessment-options">
+                            <label><input type="radio" name="assessmentType" value="marks" checked> Marks (0-100)</label>
+                            <label><input type="radio" name="assessmentType" value="exercises"> Exercise Checklist (7 tasks)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button onclick="proceedToScoring(${classId})" class="save-btn">Next: Add Scores</button>
+                        <button onclick="cancelTestCreation(${classId})" class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('classDetails').innerHTML = testFormHTML;
+        }
+
+        function proceedToScoring(classId) {
+            const subject = document.getElementById('testSubject').value;
+            const testType = document.getElementById('testType').value;
+            const topic = document.getElementById('testTopic').value;
+            const totalMarks = document.getElementById('totalMarks').value;
+            const assessmentType = document.querySelector('input[name="assessmentType"]:checked').value;
+            
+            if (!subject || !testType || !topic || !totalMarks) {
+                alert('Please fill all required fields!');
+                return;
+            }
+            
+            const testData = {
+                id: Date.now(),
+                subject: subject,
+                type: testType,
+                topic: topic,
+                totalMarks: parseInt(totalMarks),
+                assessmentType: assessmentType,
+                date: new Date().toLocaleDateString(),
+                scores: []
+            };
+            
+            if (assessmentType === 'marks') {
+                createMarksScoresheet(classId, testData);
+            } else {
+                createExerciseChecklist(classId, testData);
+            }
+        }
+
+        function cancelTestCreation(classId) {
+            openClass(classId);
+        }
+
+        // MARKS SCORESHEET SYSTEM
+        function createMarksScoresheet(classId, testData) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            
+            if (currentClass.students.length === 0) {
+                alert('Please add students first!');
+                addStudents(classId);
+                return;
+            }
+            
+            let scoresheetHTML = `
+                <div class="scoresheet">
+                    <h3>📊 ${testData.subject} - ${testData.topic}</h3>
+                    <p><strong>Type:</strong> ${testData.type} | <strong>Total Marks:</strong> ${testData.totalMarks} | <strong>Date:</strong> ${testData.date}</p>
+                    
+                    <div class="scores-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Obtained Marks</th>
+                                    <th>Percentage</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${currentClass.students.map(student => `
+                                    <tr>
+                                        <td>${student.name}</td>
+                                        <td><input type="number" id="marks_${student.id}" max="${testData.totalMarks}" min="0" onchange="calculateGrade(${student.id}, ${testData.totalMarks})"></td>
+                                        <td><span id="percentage_${student.id}">-</span></td>
+                                        <td><span id="grade_${student.id}">-</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button onclick="saveScoresheet(${classId}, ${JSON.stringify(testData).replace(/"/g, '&quot;')})" class="save-btn">💾 Save Test Results</button>
+                        <button onclick="openClass(${classId})" class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('classDetails').innerHTML = scoresheetHTML;
+        }
+
+        function calculateGrade(studentId, totalMarks) {
+            const obtainedMarks = document.getElementById(`marks_${studentId}`).value;
+            if (obtainedMarks) {
+                const percentage = Math.round((obtainedMarks / totalMarks) * 100);
+                document.getElementById(`percentage_${studentId}`).textContent = percentage + '%';
+                
+                let grade = 'F';
+                if (percentage >= 90) grade = 'A+';
+                else if (percentage >= 80) grade = 'A';
+                else if (percentage >= 70) grade = 'B';
+                else if (percentage >= 60) grade = 'C';
+                else if (percentage >= 50) grade = 'D';
+                
+                document.getElementById(`grade_${studentId}`).textContent = grade;
+            }
+        }
+
+        // EXERCISE CHECKLIST (7 TASKS) SYSTEM
+        function createExerciseChecklist(classId, testData) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            
+            if (currentClass.students.length === 0) {
+                alert('Please add students first!');
+                addStudents(classId);
+                return;
+            }
+            
+            const exercises = [
+                'Reading Comprehension', 
+                'Writing Task', 
+                'Vocabulary', 
+                'Grammar Exercise', 
+                'Speaking/Oral', 
+                'Problem Solving', 
+                'Creative Work'
+            ];
+            
+            let checklistHTML = `
+                <div class="exercise-checklist">
+                    <h3>✅ ${testData.subject} - ${testData.topic}</h3>
+                    <p><strong>Type:</strong> Exercise Checklist | <strong>Date:</strong> ${testData.date}</p>
+                    
+                    <div class="checklist-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    ${exercises.map(exercise => `<th>${exercise}</th>`).join('')}
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${currentClass.students.map(student => `
+                                    <tr>
+                                        <td>${student.name}</td>
+                                        ${exercises.map((exercise, index) => `
+                                            <td><input type="checkbox" id="exercise_${student.id}_${index}" onchange="updateExerciseTotal(${student.id})"></td>
+                                        `).join('')}
+                                        <td><span id="total_${student.id}">0/7</span></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button onclick="saveExerciseChecklist(${classId}, ${JSON.stringify(testData).replace(/"/g, '&quot;')})" class="save-btn">💾 Save Exercise Results</button>
+                        <button onclick="openClass(${classId})" class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('classDetails').innerHTML = checklistHTML;
+        }
+
+        function updateExerciseTotal(studentId) {
+            let checkedCount = 0;
+            for (let i = 0; i < 7; i++) {
+                const checkbox = document.getElementById(`exercise_${studentId}_${i}`);
+                if (checkbox && checkbox.checked) {
+                    checkedCount++;
+                }
+            }
+            document.getElementById(`total_${studentId}`).textContent = `${checkedCount}/7`;
+        }
+
+        // SAVE SCORESHEET FUNCTIONS
+        function saveScoresheet(classId, testData) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            const currentClass = classes[classIndex];
+            
+            // Collect all scores
+            const scores = [];
+            currentClass.students.forEach(student => {
+                const obtainedMarks = document.getElementById(`marks_${student.id}`)?.value || 0;
+                const percentage = Math.round((obtainedMarks / testData.totalMarks) * 100);
+                let grade = 'F';
+                if (percentage >= 90) grade = 'A+';
+                else if (percentage >= 80) grade = 'A';
+                else if (percentage >= 70) grade = 'B';
+                else if (percentage >= 60) grade = 'C';
+                else if (percentage >= 50) grade = 'D';
+                
+                scores.push({
+                    studentId: student.id,
+                    studentName: student.name,
+                    obtainedMarks: parseInt(obtainedMarks) || 0,
+                    percentage: percentage,
+                    grade: grade
+                });
+            });
+            
+            testData.scores = scores;
+            
+            // Add scoresheet to class
+            if (!currentClass.scoresheets) {
+                currentClass.scoresheets = [];
+            }
+            currentClass.scoresheets.push(testData);
+            
+            // Save to localStorage
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            
+            alert('✅ Test scores saved successfully!');
+            openClass(classId);
+        }
+
+        function saveExerciseChecklist(classId, testData) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            const currentClass = classes[classIndex];
+            
+            // Collect exercise results
+            const exerciseResults = [];
+            currentClass.students.forEach(student => {
+                let checkedCount = 0;
+                const exercises = [];
+                
+                for (let i = 0; i < 7; i++) {
+                    const checkbox = document.getElementById(`exercise_${student.id}_${i}`);
+                    const isChecked = checkbox && checkbox.checked;
+                    exercises.push(isChecked);
+                    if (isChecked) checkedCount++;
+                }
+                
+                exerciseResults.push({
+                    studentId: student.id,
+                    studentName: student.name,
+                    exercises: exercises,
+                    total: `${checkedCount}/7`,
+                    completionRate: Math.round((checkedCount / 7) * 100) + '%'
+                });
+            });
+            
+            testData.exerciseResults = exerciseResults;
+            
+            // Add to class scoresheets
+            if (!currentClass.scoresheets) {
+                currentClass.scoresheets = [];
+            }
+            currentClass.scoresheets.push(testData);
+            
+            // Save to localStorage
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            
+            alert('✅ Exercise checklist saved successfully!');
+            openClass(classId);
+        }
+
+        function viewTestResults(classId, testId) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            const test = currentClass.scoresheets.find(t => t.id === testId);
+            
+            if (!test) {
+                alert('Test not found!');
+                return;
+            }
+            
+            let resultsHTML = '';
+            if (test.assessmentType === 'marks') {
+                resultsHTML = `
+                    <div class="test-results">
+                        <h3>📊 ${test.subject} - ${test.topic} Results</h3>
+                        <p><strong>Type:</strong> ${test.type} | <strong>Date:</strong> ${test.date}</p>
+                        
+                        <div class="results-summary">
+                            <h4>Class Performance:</h4>
+                            <p>Average: ${calculateClassAverage(test.scores)}% | Highest: ${getHighestScore(test.scores)}% | Lowest: ${getLowestScore(test.scores)}%</p>
+                        </div>
+                        
+                        <table class="results-table">
+                            <thead>
+                                <tr><th>Student</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr>
+                            </thead>
+                            <tbody>
+                                ${test.scores.map(score => `
+                                    <tr>
+                                        <td>${score.studentName}</td>
+                                        <td>${score.obtainedMarks}/${test.totalMarks}</td>
+                                        <td>${score.percentage}%</td>
+                                        <td class="grade-${score.grade.toLowerCase()}">${score.grade}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
+                    </div>
+                `;
+            } else {
+                resultsHTML = `
+                    <div class="exercise-results">
+                        <h3>✅ ${test.subject} - ${test.topic} Results</h3>
+                        <p><strong>Type:</strong> Exercise Checklist | <strong>Date:</strong> ${test.date}</p>
+                        
+                        <table class="results-table">
+                            <thead>
+                                <tr><th>Student</th><th>Completed Tasks</th><th>Completion Rate</th></tr>
+                            </thead>
+                            <tbody>
+                                ${test.exerciseResults.map(result => `
+                                    <tr>
+                                        <td>${result.studentName}</td>
+                                        <td>${result.total}</td>
+                                        <td>${result.completionRate}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('classDetails').innerHTML = resultsHTML;
+        }
+
+        function calculateClassAverage(scores) {
+            if (scores.length === 0) return 0;
+            const total = scores.reduce((sum, score) => sum + score.percentage, 0);
+            return Math.round(total / scores.length);
+        }
+
+        function getHighestScore(scores) {
+            return scores.length > 0 ? Math.max(...scores.map(s => s.percentage)) : 0;
+        }
+
+        function getLowestScore(scores) {
+            return scores.length > 0 ? Math.min(...scores.map(s => s.percentage)) : 0;
         }
         
         // Picture upload functionality for student lists
@@ -970,7 +1836,7 @@
             document.getElementById('extractBtn').style.display = 'none';
         }
         
-        // Handle file selection
+        // Handle file selection and page initialization
         document.addEventListener('DOMContentLoaded', function() {
             const fileInput = document.getElementById('studentListImage');
             if (fileInput) {
@@ -982,6 +1848,9 @@
                     }
                 });
             }
+            
+            // Initialize classes display
+            loadExistingClasses();
         });
     </script>
 </body>
