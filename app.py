@@ -4050,13 +4050,14 @@ def verify_reset_code():
     try:
         cursor = conn.cursor()
         
-        # Find valid reset code
+        # Find valid reset code (handle both phone formats)
+        formatted_phone = f"{phone_number[:4]}-{phone_number[4:]}" if len(phone_number) == 11 else phone_number
         cursor.execute("""
             SELECT id FROM password_reset_codes 
-            WHERE phone_number = %s AND reset_code = %s 
+            WHERE (phone_number = %s OR phone_number = %s) AND reset_code = %s 
             AND expires_at > NOW() AND used = FALSE
             ORDER BY created_at DESC LIMIT 1
-        """, (phone_number, code))
+        """, (phone_number, formatted_phone, code))
         
         reset_record = cursor.fetchone()
         
@@ -4117,13 +4118,14 @@ def reset_password():
     try:
         cursor = conn.cursor()
         
-        # Check if there's a recent verified reset code for this phone
+        # Check if there's a recent verified reset code for this phone (handle both formats)
+        formatted_phone = f"{phone_number[:4]}-{phone_number[4:]}" if len(phone_number) == 11 else phone_number
         cursor.execute("""
             SELECT id FROM password_reset_codes 
-            WHERE phone_number = %s AND used = TRUE 
+            WHERE (phone_number = %s OR phone_number = %s) AND used = TRUE 
             AND created_at > NOW() - INTERVAL '1 hour'
             ORDER BY created_at DESC LIMIT 1
-        """, (phone_number,))
+        """, (phone_number, formatted_phone))
         
         if not cursor.fetchone():
             return jsonify({'success': False, 'message': 'No valid password reset session found'})
@@ -4131,12 +4133,12 @@ def reset_password():
         # Hash new password
         password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         
-        # Update user password
+        # Update user password (handle both phone formats)
         cursor.execute("""
             UPDATE users 
             SET password_hash = %s 
-            WHERE phone_number = %s
-        """, (password_hash, phone_number))
+            WHERE phone_number = %s OR phone_number = %s
+        """, (password_hash, phone_number, formatted_phone))
         
         if cursor.rowcount == 0:
             return jsonify({'success': False, 'message': 'User not found'})
