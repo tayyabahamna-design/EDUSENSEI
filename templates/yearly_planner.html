@@ -471,6 +471,25 @@
             }
         }
 
+        function autoFillSubjects() {
+            const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu"]');
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            
+            days.forEach(day => {
+                const periodRows = document.querySelectorAll(`#${day}_periods .period-row`);
+                periodRows.forEach((row, index) => {
+                    const subjectSelect = row.querySelector('select');
+                    if (subjectSelect && !subjectSelect.value) {
+                        // Auto-assign subjects cyclically
+                        const subjectIndex = index % subjects.length;
+                        subjectSelect.value = subjects[subjectIndex];
+                    }
+                });
+            });
+            
+            alert('✅ Subjects auto-filled across all days!');
+        }
+
         // STEP 3 - COPY TO ENTIRE YEAR (ENHANCED)
         function copyToYear() {
             const weeklySchedule = {};
