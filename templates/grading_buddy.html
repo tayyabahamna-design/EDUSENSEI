@@ -1026,31 +1026,18 @@
             }
         }
         
-        // ENHANCED CLASS MANAGEMENT SYSTEM
+        // SIMPLIFIED CLASS CREATION (ONE-TIME SETUP)
         function addNewClass() {
             const classFormHTML = `
                 <div id="addClassForm" class="modal-overlay">
                     <div class="modal-content">
-                        <h3>➕ Add New Class</h3>
+                        <h3>➕ Create New Class</h3>
                         <div class="form-group">
                             <label>Class Name:</label>
-                            <input type="text" id="className" placeholder="e.g., Grade 4 - Section A" required>
-                        </div>
-                        <div class="form-group">
-                            <label>Subject:</label>
-                            <select id="classSubject" required>
-                                <option value="">Select Subject</option>
-                                <option value="English">English</option>
-                                <option value="Math">Math</option>
-                                <option value="Urdu">Urdu</option>
-                                <option value="Islamiyat">Islamiyat</option>
-                                <option value="Science">Science</option>
-                                <option value="Social Studies">Social Studies</option>
-                                <option value="General Knowledge">General Knowledge</option>
-                            </select>
+                            <input type="text" id="className" placeholder="Class Name (e.g., Grade 3-A)" required>
                         </div>
                         <div class="form-actions">
-                            <button onclick="saveClass()" class="btn btn-success">💾 Save Class</button>
+                            <button onclick="saveClass()" class="btn btn-success">Create Class</button>
                             <button onclick="closeClassForm()" class="btn btn-secondary">Cancel</button>
                         </div>
                     </div>
@@ -1058,33 +1045,32 @@
             `;
             document.body.insertAdjacentHTML('beforeend', classFormHTML);
         }
+        
+        // Alias for compatibility
+        function addClass() {
+            addNewClass();
+        }
 
         function saveClass() {
             const className = document.getElementById('className').value;
-            const subject = document.getElementById('classSubject').value;
             
-            if (className && subject) {
+            if (className) {
                 const newClass = {
                     id: Date.now(),
-                    name: className,
-                    subject: subject,
+                    name: className, // Just class name, no subject restriction
                     students: [],
-                    scoresheets: [] // Add scoresheets array
+                    scoresheets: [] // Will contain tests for all subjects
                 };
                 
-                // Get existing classes or create empty array
                 let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
                 classes.push(newClass);
-                
-                // ACTUALLY SAVE TO LOCALSTORAGE
                 localStorage.setItem('teacherClasses', JSON.stringify(classes));
-                console.log('Class saved:', newClass); // Debug log
                 
-                alert('✅ Class saved successfully!');
+                alert('✅ Class created successfully!');
                 loadExistingClasses();
                 closeClassForm();
             } else {
-                alert('Please fill all fields!');
+                alert('Please enter class name!');
             }
         }
 
@@ -1114,17 +1100,13 @@
                     </div>
                     <div class="class-details">
                         <div class="detail-item">
-                            <span class="label">Subject:</span>
-                            <span class="value">${classItem.subject}</span>
-                        </div>
-                        <div class="detail-item">
                             <span class="label">Tests:</span>
                             <span class="value">${classItem.scoresheets ? classItem.scoresheets.length : 0} assessments</span>
                         </div>
                     </div>
                     <div class="class-actions">
                         <button class="btn btn-sm btn-primary" onclick="openClass(${classItem.id})">🏫 Open Class</button>
-                        <button class="btn btn-sm btn-secondary" onclick="addStudents(${classItem.id})">👥 Students</button>
+                        <button class="btn btn-sm btn-secondary" onclick="addStudentsOptions(${classItem.id})">👥 Students</button>
                         <button class="btn btn-sm btn-accent" onclick="deleteClass(${classItem.id})">🗑️ Delete</button>
                     </div>
                 </div>
@@ -1213,7 +1195,7 @@
             alert('📊 Report generation feature coming soon! Will generate PDF reports for individual students and classes.');
         }
 
-        // ENHANCED CLASS DETAIL VIEW WITH MULTIPLE TESTS
+        // ENHANCED CLASS INTERFACE WITH NEW TEST BUTTON
         function openClass(classId) {
             const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
@@ -1235,25 +1217,38 @@
             classDetailSection.style.display = 'block';
             classDetailSection.innerHTML = `
                 <div class="class-detail-view">
-                    <h3>📚 ${currentClass.name} - ${currentClass.subject}</h3>
+                    <h3>📚 ${currentClass.name}</h3>
                     
-                    <div class="class-actions">
-                        <button onclick="addStudents(${classId})" class="action-btn">👥 Manage Students</button>
-                        <button onclick="createNewTest(${classId})" class="action-btn primary">📝 Create New Test</button>
-                        <button onclick="viewAllTests(${classId})" class="action-btn">📊 View All Tests</button>
+                    <!-- PROMINENT NEW TEST BUTTON -->
+                    <div class="new-test-section">
+                        <button onclick="createNewTest(${classId})" class="new-test-btn">
+                            ➕ Create New Test
+                        </button>
                     </div>
                     
-                    <div class="students-summary">
-                        <h4>Students in this class: ${currentClass.students.length}</h4>
-                        <div class="student-list-preview">
-                            ${currentClass.students.slice(0, 5).map(student => `<span class="student-tag">${student.name}</span>`).join('')}
-                            ${currentClass.students.length > 5 ? `<span class="more-students">+${currentClass.students.length - 5} more</span>` : ''}
+                    <div class="class-stats">
+                        <div class="stat-card">
+                            <h4>${currentClass.students.length}</h4>
+                            <p>Students</p>
+                        </div>
+                        <div class="stat-card">
+                            <h4>${currentClass.scoresheets ? currentClass.scoresheets.length : 0}</h4>
+                            <p>Tests Conducted</p>
                         </div>
                     </div>
                     
-                    <div class="tests-summary">
-                        <h4>Recent Tests: ${currentClass.scoresheets ? currentClass.scoresheets.length : 0}</h4>
-                        <div id="recentTests"></div>
+                    <div class="class-sections">
+                        <div class="section">
+                            <h4>👥 Students Management</h4>
+                            <button onclick="addStudentsOptions(${classId})" class="action-btn">Add Students</button>
+                            <button onclick="viewAllStudents(${classId})" class="action-btn">View All Students</button>
+                        </div>
+                        
+                        <div class="section">
+                            <h4>📊 Tests & Assessments</h4>
+                            <div id="recentTests_${classId}"></div>
+                            <button onclick="viewAllTests(${classId})" class="action-btn">View All Tests</button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -1265,7 +1260,7 @@
         function loadRecentTests(classId) {
             const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
-            const recentTestsDiv = document.getElementById('recentTests');
+            const recentTestsDiv = document.getElementById(`recentTests_${classId}`);
             
             if (!currentClass.scoresheets || currentClass.scoresheets.length === 0) {
                 recentTestsDiv.innerHTML = '<p>No tests created yet. Click "Create New Test" to get started!</p>';
@@ -1287,6 +1282,106 @@
             const currentClass = classes.find(c => c.id === classId);
             
             alert(`📊 All Tests for ${currentClass.name}:\n\nTotal Tests: ${currentClass.scoresheets ? currentClass.scoresheets.length : 0}\n\nDetailed test history viewer coming soon!`);
+        }
+
+        // STUDENT ADDITION WITH MANUAL & PICTURE OPTIONS
+        function addStudentsOptions(classId) {
+            document.getElementById('classDetails').innerHTML = `
+                <div class="add-students-container">
+                    <h3>👥 Add Students to Class</h3>
+                    
+                    <div class="student-add-options">
+                        <div class="option-card" onclick="manualStudentAdd(${classId})">
+                            <div class="option-icon">✏️</div>
+                            <h4>Manual Entry</h4>
+                            <p>Add students one by one</p>
+                        </div>
+                        
+                        <div class="option-card" onclick="pictureStudentAdd(${classId})">
+                            <div class="option-icon">📸</div>
+                            <h4>Picture Upload</h4>
+                            <p>Upload student list photo</p>
+                        </div>
+                    </div>
+                    
+                    <div id="studentAddInterface"></div>
+                    
+                    <button onclick="openClass(${classId})" class="back-btn">⬅️ Back to Class</button>
+                </div>
+            `;
+        }
+
+        function manualStudentAdd(classId) {
+            document.getElementById('studentAddInterface').innerHTML = `
+                <div class="manual-add-form">
+                    <h4>✏️ Add Student Manually</h4>
+                    <input type="text" id="studentName" placeholder="Student Name" required>
+                    <button onclick="addSingleStudent(${classId})" class="add-btn">Add Student</button>
+                    
+                    <div class="bulk-add">
+                        <h5>Or add multiple students (one per line):</h5>
+                        <textarea id="bulkStudents" placeholder="Ahmed Ali&#10;Fatima Khan&#10;Hassan Ahmed" rows="5"></textarea>
+                        <button onclick="addBulkStudents(${classId})" class="add-btn">Add All</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addSingleStudent(classId) {
+            const studentName = document.getElementById('studentName').value.trim();
+            if (!studentName) {
+                alert('Please enter student name!');
+                return;
+            }
+            
+            const newStudent = {
+                id: Date.now(),
+                name: studentName,
+                fatherName: '',
+                motherName: '',
+                contact: '',
+                address: '',
+                gender: ''
+            };
+            
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            classes[classIndex].students.push(newStudent);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            
+            document.getElementById('studentName').value = '';
+            alert(`✅ ${studentName} added successfully!`);
+        }
+
+        function addBulkStudents(classId) {
+            const bulkText = document.getElementById('bulkStudents').value.trim();
+            if (!bulkText) {
+                alert('Please enter student names!');
+                return;
+            }
+            
+            const studentNames = bulkText.split('\n').map(name => name.trim()).filter(name => name);
+            
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            
+            studentNames.forEach(name => {
+                const newStudent = {
+                    id: Date.now() + Math.random(),
+                    name: name,
+                    fatherName: '',
+                    motherName: '',
+                    contact: '',
+                    address: '',
+                    gender: ''
+                };
+                classes[classIndex].students.push(newStudent);
+            });
+            
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            
+            document.getElementById('bulkStudents').value = '';
+            alert(`✅ ${studentNames.length} students added successfully!`);
         }
 
         // CREATE NEW TEST WITH SUBJECT SELECTION
