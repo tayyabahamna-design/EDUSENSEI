@@ -501,110 +501,132 @@
             alert('✅ Subjects auto-filled across all days!');
         }
 
-        // STEP 3 - COPY TO ENTIRE YEAR (ENHANCED)
+        // COPY WEEKLY TEMPLATE TO ENTIRE YEAR (UPDATED FOR TABLE FORMAT)
         function copyToYear() {
-            const weeklySchedule = {};
-            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            const savedTemplate = localStorage.getItem('weeklyTemplate');
             
-            days.forEach(day => {
-                const daySchedule = {
-                    periods: [],
-                    breaks: []
-                };
-                
-                // Get all periods for this day using robust DOM traversal
-                const periodRows = document.querySelectorAll(`#${day}_periods .period-row`);
-                periodRows.forEach((row, index) => {
-                    const startTimeInput = row.querySelector('input[type="time"]:first-of-type');
-                    const endTimeInput = row.querySelector('input[type="time"]:last-of-type');
-                    const subjectSelect = row.querySelector('select');
-                    
-                    if (startTimeInput && endTimeInput) {
-                        const startTime = startTimeInput.value;
-                        const endTime = endTimeInput.value;
-                        const subject = subjectSelect ? subjectSelect.value : '';
-                        
-                        if (startTime && endTime) {
-                            daySchedule.periods.push({
-                                number: index + 1,
-                                startTime: startTime,
-                                endTime: endTime,
-                                subject: subject || 'Free Period'
-                            });
-                        }
+            if (!savedTemplate) {
+                alert('❌ Please save your weekly template first!');
+                return;
+            }
+            
+            const templateData = JSON.parse(savedTemplate);
+            
+            // Create yearly plan
+            const yearlyPlan = {
+                grade: templateData.grade,
+                template: templateData,
+                createdDate: new Date().toISOString(),
+                academicYear: '2024-2025'
+            };
+            
+            // Save yearly plan
+            localStorage.setItem('yearlyPlan', JSON.stringify(yearlyPlan));
+            
+            // Count total assigned periods
+            let totalAssigned = 0;
+            Object.keys(templateData.subjects).forEach(day => {
+                Object.keys(templateData.subjects[day]).forEach(period => {
+                    if (templateData.subjects[day][period]) {
+                        totalAssigned++;
                     }
                 });
-                
-                // Get break times using robust DOM traversal
-                const breakRows = document.querySelectorAll(`#${day}_periods .break-row`);
-                breakRows.forEach(breakRow => {
-                    const timeInputs = breakRow.querySelectorAll('input[type="time"]');
-                    const labelEl = breakRow.querySelector('label');
-                    
-                    if (timeInputs.length >= 2 && labelEl) {
-                        const startTime = timeInputs[0].value;
-                        const endTime = timeInputs[1].value;
-                        const breakType = labelEl.textContent.replace(' Time:', '');
-                        
-                        if (startTime && endTime && breakType) {
-                            daySchedule.breaks.push({ 
-                                type: breakType, 
-                                start: startTime, 
-                                end: endTime 
-                            });
-                        }
-                    }
-                });
-                
-                weeklySchedule[day] = daySchedule;
             });
             
-            // Get grade and subjects info
-            const selectedGrade = document.getElementById('teacherGrade').value;
-            const selectedSubjects = JSON.parse(localStorage.getItem('selectedSubjects') || '[]');
+            const totalWeeks = 52;
+            const totalPeriods = totalAssigned * totalWeeks;
             
-            // Save complete schedule
-            localStorage.setItem('yearlyPlan', JSON.stringify({
-                grade: selectedGrade,
-                subjects: selectedSubjects,
-                schedule: weeklySchedule,
-                createdDate: new Date().toISOString()
-            }));
+            alert(`🎉 SUCCESS! Your weekly template has been copied to the entire academic year!
+
+📊 Summary:
+• Grade: ${templateData.grade}
+• Weeks: ${totalWeeks}
+• Assigned periods per week: ${totalAssigned}
+• Total periods for year: ${totalPeriods}
+• Break times: ${templateData.breaks.morning.start}-${templateData.breaks.morning.end} & ${templateData.breaks.lunch.start}-${templateData.breaks.lunch.end}`);
             
-            const totalPeriods = Object.values(weeklySchedule).reduce((total, day) => total + day.periods.length, 0);
-            const totalBreaks = Object.values(weeklySchedule).reduce((total, day) => total + day.breaks.length, 0);
-            alert(`✅ Complete schedule with ${Object.keys(weeklySchedule).length} days, ${totalPeriods} total periods, and ${totalBreaks} breaks copied to entire year!`);
-            
+            // Show success interface
             showYearlyCalendar();
         }
 
         function showYearlyCalendar() {
-            // Hide other steps
-            document.getElementById('step1').style.display = 'none';
-            document.getElementById('weeklyTemplate').style.display = 'none';
+            const yearlyDiv = document.getElementById('yearlyCalendar');
+            yearlyDiv.style.display = 'block';
             
-            // Show yearly calendar
-            const calendarDiv = document.getElementById('yearlyCalendar');
-            calendarDiv.style.display = 'block';
+            const savedPlan = localStorage.getItem('yearlyPlan');
+            if (!savedPlan) {
+                yearlyDiv.innerHTML = '<p>❌ No yearly plan found!</p>';
+                return;
+            }
             
-            const savedPlan = JSON.parse(localStorage.getItem('yearlyPlan'));
+            const planData = JSON.parse(savedPlan);
             
-            calendarDiv.innerHTML = `
-                <div class="yearly-calendar">
-                    <h3>📅 Your Yearly Schedule</h3>
-                    <p class="plan-info">Grade ${savedPlan.grade} | Subjects: ${savedPlan.subjects.join(', ')}</p>
-                    <p class="calendar-instruction">Click any week to edit individual days:</p>
-                    
-                    <div class="calendar-grid">
-                        ${generateWeekButtons()}
+            yearlyDiv.innerHTML = `
+                <div class="yearly-summary">
+                    <h3>📅 Your Academic Year Plan</h3>
+                    <div class="plan-summary">
+                        <p><strong>Grade:</strong> ${planData.grade}</p>
+                        <p><strong>Academic Year:</strong> ${planData.academicYear}</p>
+                        <p><strong>Created:</strong> ${new Date(planData.createdDate).toLocaleDateString()}</p>
                     </div>
                     
-                    <div class="action-buttons">
-                        <button onclick="goBackToStep1()" class="btn btn-secondary">← Start Over</button>
-                        <button onclick="downloadSchedule()" class="btn btn-primary">📄 Download Schedule</button>
+                    <div class="yearly-actions">
+                        <button onclick="downloadYearlyPlan()" class="btn btn-success">📥 Download PDF Plan</button>
+                        <button onclick="viewWeeklyTemplate()" class="btn btn-primary">👀 View Weekly Template</button>
+                        <button onclick="editYearlyPlan()" class="btn btn-secondary">✏️ Edit Plan</button>
+                        <button onclick="clearYearlyPlan()" class="btn btn-danger">🗑️ Delete Plan</button>
+                    </div>
+                    
+                    <div class="template-preview">
+                        <h4>📋 Weekly Template Preview</h4>
+                        ${generateTemplatePreview(planData.template)}
                     </div>
                 </div>
             `;
+            
+            // Hide other steps
+            document.getElementById('step1').style.display = 'none';
+            document.getElementById('weeklyTemplate').style.display = 'none';
+        }
+        
+        function generateTemplatePreview(template) {
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            let html = '<div class="template-preview-grid">';
+            
+            days.forEach(day => {
+                html += `<div class="day-preview">`;
+                html += `<h5>${day.charAt(0).toUpperCase() + day.slice(1)}</h5>`;
+                
+                for (let i = 1; i <= 8; i++) {
+                    const subject = template.subjects[day][`period${i}`] || 'Free';
+                    const period = template.periods[`period${i}`];
+                    html += `<div class="period-preview">P${i} (${period.start}-${period.end}): ${subject}</div>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            html += '</div>';
+            return html;
+        }
+        
+        function viewWeeklyTemplate() {
+            document.getElementById('yearlyCalendar').style.display = 'none';
+            document.getElementById('weeklyTemplate').style.display = 'block';
+        }
+        
+        function editYearlyPlan() {
+            document.getElementById('yearlyCalendar').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+        }
+        
+        function clearYearlyPlan() {
+            if (confirm('⚠️ Are you sure you want to delete your entire yearly plan? This cannot be undone!')) {
+                localStorage.removeItem('yearlyPlan');
+                localStorage.removeItem('weeklyTemplate');
+                alert('✅ Yearly plan deleted successfully!');
+                location.reload();
+            }
         }
 
         function generateWeekButtons() {
@@ -1452,6 +1474,83 @@
             flex-wrap: wrap;
         }
         
+        /* Yearly Summary Styles */
+        .yearly-summary {
+            background: var(--light-gray);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        
+        .yearly-summary h3 {
+            color: var(--sage-green);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .plan-summary {
+            background: var(--sunny-yellow);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .plan-summary p {
+            margin: 0.5rem 0;
+            font-weight: 500;
+        }
+        
+        .yearly-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        
+        .template-preview {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .template-preview h4 {
+            color: var(--sage-green);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .template-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .day-preview {
+            background: var(--light-gray);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        
+        .day-preview h5 {
+            color: var(--soft-blue);
+            margin-bottom: 0.5rem;
+            text-align: center;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .period-preview {
+            font-size: 0.8rem;
+            padding: 0.25rem;
+            margin: 0.25rem 0;
+            background: white;
+            border-radius: 3px;
+            color: #333;
+        }
+        
         .btn {
             padding: 0.75rem 1.5rem;
             border: none;
@@ -1663,6 +1762,15 @@
             
             .next-steps {
                 flex-direction: column;
+            }
+            
+            .yearly-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .template-preview-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
