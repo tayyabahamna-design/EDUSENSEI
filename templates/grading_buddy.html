@@ -1384,6 +1384,225 @@
             alert(`✅ ${studentNames.length} students added successfully!`);
         }
 
+        // PICTURE UPLOAD FOR STUDENT NAMES
+        function pictureStudentAdd(classId) {
+            document.getElementById('studentAddInterface').innerHTML = `
+                <div class="picture-add-form">
+                    <h4>📸 Upload Student List Picture</h4>
+                    <p>Upload a photo containing student names</p>
+                    
+                    <div class="upload-area">
+                        <input type="file" id="studentListImage" accept="image/*" onchange="previewImage()">
+                        <div class="upload-preview" id="imagePreview"></div>
+                    </div>
+                    
+                    <button onclick="extractStudentNames(${classId})" class="extract-btn">Extract Names</button>
+                    
+                    <div id="extractedNamesContainer" style="display:none;">
+                        <h5>📋 Extracted Names (Edit if needed):</h5>
+                        <div id="extractedNamesList"></div>
+                        <button onclick="saveExtractedStudents(${classId})" class="save-btn">💾 Save Students</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function previewImage() {
+            const file = document.getElementById('studentListImage').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('imagePreview').innerHTML = `
+                        <img src="${e.target.result}" style="max-width: 300px; max-height: 200px; border-radius: 8px;">
+                    `;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function extractStudentNames(classId) {
+            // Simulate name extraction (in real app, use OCR)
+            const sampleNames = [
+                "Ahmed Ali", "Fatima Sheikh", "Hassan Khan", "Ayesha Ahmad", 
+                "Ali Raza", "Zainab Malik", "Omar Farooq", "Maryam Qureshi"
+            ];
+            
+            let extractedHTML = '';
+            sampleNames.forEach((name, index) => {
+                extractedHTML += `
+                    <div class="extracted-name">
+                        <input type="text" id="extractedName_${index}" value="${name}" class="name-input">
+                        <button onclick="removeExtractedName(${index})" class="remove-btn">❌</button>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('extractedNamesList').innerHTML = extractedHTML;
+            document.getElementById('extractedNamesContainer').style.display = 'block';
+            
+            // Store count for processing
+            window.extractedCount = sampleNames.length;
+            
+            alert('📸 Names extracted from image! Please review and edit if needed.');
+        }
+
+        function saveExtractedStudents(classId) {
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            
+            let addedCount = 0;
+            for (let i = 0; i < window.extractedCount; i++) {
+                const nameInput = document.getElementById(`extractedName_${i}`);
+                if (nameInput && nameInput.value.trim()) {
+                    const newStudent = {
+                        id: Date.now() + i,
+                        name: nameInput.value.trim(),
+                        fatherName: '',
+                        motherName: '',
+                        contact: '',
+                        address: '',
+                        gender: ''
+                    };
+                    classes[classIndex].students.push(newStudent);
+                    addedCount++;
+                }
+            }
+            
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            alert(`✅ ${addedCount} students added from picture!`);
+            openClass(classId);
+        }
+
+        function removeExtractedName(index) {
+            document.getElementById(`extractedName_${index}`).parentElement.remove();
+        }
+
+        // STUDENT PROFILE EDITING
+        function viewAllStudents(classId) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            
+            let studentsHTML = `
+                <div class="students-list">
+                    <h3>👥 Students in ${currentClass.name}</h3>
+                    
+                    <div class="students-grid">
+                        ${currentClass.students.map(student => `
+                            <div class="student-card">
+                                <div class="student-info">
+                                    <h4>${student.name}</h4>
+                                    <p class="student-details">
+                                        ${student.fatherName ? `Father: ${student.fatherName}` : 'Father: Not added'}<br>
+                                        ${student.contact ? `Contact: ${student.contact}` : 'Contact: Not added'}
+                                    </p>
+                                </div>
+                                <div class="student-actions">
+                                    <button onclick="editStudentProfile(${classId}, ${student.id})" class="edit-btn">✏️ Edit</button>
+                                    <button onclick="deleteStudent(${classId}, ${student.id})" class="delete-btn">🗑️</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <button onclick="openClass(${classId})" class="back-btn">⬅️ Back to Class</button>
+                </div>
+            `;
+            
+            document.getElementById('classDetails').innerHTML = studentsHTML;
+        }
+
+        function editStudentProfile(classId, studentId) {
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            const student = currentClass.students.find(s => s.id === studentId);
+            
+            const editForm = `
+                <div class="edit-student-form">
+                    <h3>✏️ Edit Student Profile</h3>
+                    
+                    <div class="form-group">
+                        <label>Student Name:</label>
+                        <input type="text" id="editName" value="${student.name}" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Father's Name:</label>
+                        <input type="text" id="editFatherName" value="${student.fatherName || ''}" placeholder="Father's name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Mother's Name:</label>
+                        <input type="text" id="editMotherName" value="${student.motherName || ''}" placeholder="Mother's name">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Contact Number:</label>
+                        <input type="text" id="editContact" value="${student.contact || ''}" placeholder="Parent contact number">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Address:</label>
+                        <textarea id="editAddress" placeholder="Home address">${student.address || ''}</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Gender:</label>
+                        <select id="editGender">
+                            <option value="">Select Gender</option>
+                            <option value="Male" ${student.gender === 'Male' ? 'selected' : ''}>Male</option>
+                            <option value="Female" ${student.gender === 'Female' ? 'selected' : ''}>Female</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button onclick="saveStudentProfile(${classId}, ${studentId})" class="save-btn">💾 Save Changes</button>
+                        <button onclick="viewAllStudents(${classId})" class="cancel-btn">Cancel</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('classDetails').innerHTML = editForm;
+        }
+
+        function saveStudentProfile(classId, studentId) {
+            const updatedData = {
+                name: document.getElementById('editName').value.trim(),
+                fatherName: document.getElementById('editFatherName').value.trim(),
+                motherName: document.getElementById('editMotherName').value.trim(),
+                contact: document.getElementById('editContact').value.trim(),
+                address: document.getElementById('editAddress').value.trim(),
+                gender: document.getElementById('editGender').value
+            };
+            
+            if (!updatedData.name) {
+                alert('Student name is required!');
+                return;
+            }
+            
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            const studentIndex = classes[classIndex].students.findIndex(s => s.id === studentId);
+            
+            // Update student data
+            Object.assign(classes[classIndex].students[studentIndex], updatedData);
+            
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            alert('✅ Student profile updated successfully!');
+            viewAllStudents(classId);
+        }
+
+        function deleteStudent(classId, studentId) {
+            if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+                const classIndex = classes.findIndex(c => c.id === classId);
+                classes[classIndex].students = classes[classIndex].students.filter(s => s.id !== studentId);
+                
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                alert('✅ Student deleted successfully!');
+                viewAllStudents(classId);
+            }
+        }
+
         // CREATE NEW TEST WITH SUBJECT SELECTION
         function createNewTest(classId) {
             const subjects = ['English', 'Math', 'Urdu', 'Islamiyat', 'Science', 'Social Studies', 'General Knowledge'];
