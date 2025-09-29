@@ -1747,37 +1747,39 @@
                 return;
             }
             
-            document.getElementById('extractedNamesContainer').innerHTML = 'Processing image...';
+            document.getElementById('extractedNamesContainer').innerHTML = 'Reading names from image...';
             document.getElementById('extractedNamesContainer').style.display = 'block';
             
-            // ONLY USE REAL OCR - NO FAKE NAMES
-            Tesseract.recognize(imageFile, 'eng')
-                .then(({ data: { text } }) => {
-                    console.log('OCR Result:', text); // Show what OCR actually found
-                    
-                    // Extract actual names from OCR text
-                    const lines = text.split('\n');
-                    const realNames = [];
-                    
-                    lines.forEach(line => {
-                        const cleaned = line.trim();
-                        if (cleaned.length > 2 && /[A-Za-z]/.test(cleaned)) {
-                            realNames.push(cleaned);
-                        }
-                    });
-                    
-                    if (realNames.length === 0) {
-                        alert('No names found in image. Try a clearer photo.');
-                        return;
+            // BETTER OCR SETTINGS
+            Tesseract.recognize(imageFile, 'eng', {
+                tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ',
+                tessedit_pageseg_mode: 6
+            })
+            .then(({ data: { text } }) => {
+                console.log('OCR found:', text);
+                
+                // BETTER NAME EXTRACTION
+                const lines = text.split(/[\n\r]+/);
+                const names = [];
+                
+                lines.forEach(line => {
+                    const cleaned = line.trim().replace(/[^A-Za-z\s]/g, '');
+                    if (cleaned.length >= 3 && cleaned.split(' ').length >= 2) {
+                        names.push(cleaned);
                     }
-                    
-                    // Show actual extracted names
-                    showRealExtractedNames(realNames, classId);
-                })
-                .catch(error => {
-                    console.error('OCR failed:', error);
-                    alert('OCR failed. Please try manual entry.');
                 });
+                
+                if (names.length === 0) {
+                    alert('No names found. Try clearer image or manual entry.');
+                    return;
+                }
+                
+                showRealExtractedNames(names, classId);
+            })
+            .catch(error => {
+                console.error('OCR failed:', error);
+                alert('OCR failed. Use manual entry instead.');
+            });
         }
 
         function showRealExtractedNames(names, classId) {
