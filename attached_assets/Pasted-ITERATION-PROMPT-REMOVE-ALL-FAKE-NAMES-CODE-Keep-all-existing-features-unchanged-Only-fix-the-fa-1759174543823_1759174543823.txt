@@ -1,0 +1,81 @@
+ITERATION PROMPT - REMOVE ALL FAKE NAMES CODE:
+Keep all existing features unchanged. Only fix the fake names issue:
+REMOVE FAKE NAMES - MAKE REAL OCR WORK
+1. FIND AND DELETE THIS FAKE CODE
+javascriptCopy// DELETE THIS ENTIRE SECTION - THIS IS GENERATING FAKE NAMES
+function extractStudentNames(classId) {
+    // DELETE THESE FAKE NAMES
+    const sampleNames = [
+        "Ahmed Ali", "Fatima Sheikh", "Hassan Khan", "Ayesha Ahmad", 
+        "Ali Raza", "Zainab Malik", "Omar Farooq", "Maryam Qureshi"
+    ];
+    // DELETE EVERYTHING ABOVE
+}
+2. REPLACE WITH REAL OCR ONLY
+javascriptCopyfunction extractStudentNames(classId) {
+    const imageFile = document.getElementById('studentListImage').files[0];
+    
+    if (!imageFile) {
+        alert('Please select an image first!');
+        return;
+    }
+    
+    document.getElementById('extractedNamesContainer').innerHTML = 'Processing image...';
+    
+    // ONLY USE REAL OCR - NO FAKE NAMES
+    Tesseract.recognize(imageFile, 'eng')
+        .then(({ data: { text } }) => {
+            console.log('OCR Result:', text); // Show what OCR actually found
+            
+            // Extract actual names from OCR text
+            const lines = text.split('\n');
+            const realNames = [];
+            
+            lines.forEach(line => {
+                const cleaned = line.trim();
+                if (cleaned.length > 2 && /[A-Za-z]/.test(cleaned)) {
+                    realNames.push(cleaned);
+                }
+            });
+            
+            if (realNames.length === 0) {
+                alert('No names found in image. Try a clearer photo.');
+                return;
+            }
+            
+            // Show actual extracted names
+            showRealExtractedNames(realNames, classId);
+        })
+        .catch(error => {
+            console.error('OCR failed:', error);
+            alert('OCR failed. Please try manual entry.');
+        });
+}
+
+function showRealExtractedNames(names, classId) {
+    let html = '<h5>Names found in image:</h5>';
+    names.forEach((name, index) => {
+        html += `
+            <div>
+                <input type="text" id="name_${index}" value="${name}" />
+                <button onclick="removeName(${index})">Remove</button>
+            </div>
+        `;
+    });
+    html += `<button onclick="saveRealNames(${classId}, ${names.length})">Save Names</button>`;
+    
+    document.getElementById('extractedNamesContainer').innerHTML = html;
+}
+3. MAKE SURE TESSERACT IS LOADED
+htmlCopy<!-- Make sure this is in your HTML -->
+<script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+4. DELETE ALL SAMPLE/FAKE DATA
+Search your code for:
+
+sampleNames
+"Ahmed Ali", "Fatima Sheikh"
+Any hardcoded student names
+DELETE ALL OF THEM
+
+REMOVE EVERY LINE THAT CREATES FAKE NAMES - ONLY USE REAL OCR RESULTS
+Keep everything else the same.

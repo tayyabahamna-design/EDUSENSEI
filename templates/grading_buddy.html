@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grading Buddy - USTAAD DOST</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Add Tesseract.js for real OCR functionality -->
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+    <!-- Make sure this is in your HTML -->
+    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -206,9 +206,6 @@
                         <div class="report-controls">
                             <select class="form-select">
                                 <option>Select Student...</option>
-                                <option>Ahmed Ali (Grade 4-A)</option>
-                                <option>Fatima Khan (Grade 4-A)</option>
-                                <option>Hassan Ahmed (Grade 4-A)</option>
                             </select>
                             <button class="btn btn-primary">📄 Generate PDF</button>
                         </div>
@@ -1638,7 +1635,7 @@
                     
                     <div class="bulk-add">
                         <h5>Or add multiple students (one per line):</h5>
-                        <textarea id="bulkStudents" placeholder="Ahmed Ali&#10;Fatima Khan&#10;Hassan Ahmed" rows="5"></textarea>
+                        <textarea id="bulkStudents" placeholder="Student Name 1&#10;Student Name 2&#10;Student Name 3" rows="5"></textarea>
                         <button onclick="addBulkStudents(${classId})" class="add-btn">Add All</button>
                     </div>
                 </div>
@@ -1717,9 +1714,7 @@
                     <button onclick="extractStudentNames(${classId})" class="extract-btn">Extract Names</button>
                     
                     <div id="extractedNamesContainer" style="display:none;">
-                        <h5>📋 Extracted Names (Edit if needed):</h5>
-                        <div id="extractedNamesList"></div>
-                        <button onclick="saveExtractedStudents(${classId})" class="save-btn">💾 Save Students</button>
+                        <!-- Names will be dynamically inserted here by OCR -->
                     </div>
                 </div>
             `;
@@ -1745,76 +1740,83 @@
         }
 
         function extractStudentNames(classId) {
-            const files = document.getElementById('studentImages').files;
+            const imageFile = document.getElementById('studentImages').files[0];
             
-            if (files.length === 0) {
-                alert('Please select images first!');
+            if (!imageFile) {
+                alert('Please select an image first!');
                 return;
             }
             
-            // Show loading
-            document.getElementById('extractedNamesContainer').innerHTML = `
-                <p>Processing images... Please wait.</p>
-            `;
+            document.getElementById('extractedNamesContainer').innerHTML = 'Processing image...';
             document.getElementById('extractedNamesContainer').style.display = 'block';
             
-            // Use Tesseract OCR - REAL extraction
-            Tesseract.recognize(files[0], 'eng')
-            .then(result => {
-                const text = result.data.text;
-                const lines = text.split('\n');
-                const names = lines.filter(line => 
-                    line.trim().length > 3 && 
-                    /^[A-Za-z\s]+$/.test(line.trim())
-                );
-                
-                showExtractedNames(names, classId);
-            })
-            .catch(error => {
-                alert('OCR failed. Please try manual entry.');
-                console.log('OCR Error:', error);
-            });
+            // ONLY USE REAL OCR - NO FAKE NAMES
+            Tesseract.recognize(imageFile, 'eng')
+                .then(({ data: { text } }) => {
+                    console.log('OCR Result:', text); // Show what OCR actually found
+                    
+                    // Extract actual names from OCR text
+                    const lines = text.split('\n');
+                    const realNames = [];
+                    
+                    lines.forEach(line => {
+                        const cleaned = line.trim();
+                        if (cleaned.length > 2 && /[A-Za-z]/.test(cleaned)) {
+                            realNames.push(cleaned);
+                        }
+                    });
+                    
+                    if (realNames.length === 0) {
+                        alert('No names found in image. Try a clearer photo.');
+                        return;
+                    }
+                    
+                    // Show actual extracted names
+                    showRealExtractedNames(realNames, classId);
+                })
+                .catch(error => {
+                    console.error('OCR failed:', error);
+                    alert('OCR failed. Please try manual entry.');
+                });
         }
 
-        function showExtractedNames(names, classId) {
-            let extractedHTML = '';
+        function showRealExtractedNames(names, classId) {
+            let html = '<h5>Names found in image:</h5>';
             names.forEach((name, index) => {
-                extractedHTML += `
-                    <div class="extracted-name">
-                        <input type="text" id="extractedName_${index}" value="${name.trim()}" class="name-input">
-                        <button onclick="removeExtractedName(${index})" class="remove-btn">❌</button>
+                html += `
+                    <div>
+                        <input type="text" id="name_${index}" value="${name}" />
+                        <button onclick="removeName(${index})">Remove</button>
                     </div>
                 `;
             });
+            html += `<button onclick="saveRealNames(${classId}, ${names.length})">Save Names</button>`;
             
-            document.getElementById('extractedNamesContainer').innerHTML = `
-                <h5>📋 Extracted Names (Edit if needed):</h5>
-                <div id="extractedNamesList">${extractedHTML}</div>
-                <button onclick="saveExtractedStudents(${classId})" class="save-btn">💾 Save Students</button>
-            `;
-            
-            // Store count for processing
-            window.extractedCount = names.length;
-            
-            alert('📸 Names extracted from image! Please review and edit if needed.');
+            document.getElementById('extractedNamesContainer').innerHTML = html;
         }
 
-        function saveExtractedStudents(classId) {
-            const nameInputs = document.querySelectorAll('.name-input');
+        function removeName(index) {
+            document.getElementById(`name_${index}`).parentElement.remove();
+        }
+
+        function saveRealNames(classId, originalCount) {
             const students = [];
             
-            nameInputs.forEach(input => {
-                if (input.value.trim()) {
+            // Collect all name inputs that still exist
+            for (let i = 0; i < originalCount; i++) {
+                const nameInput = document.getElementById(`name_${i}`);
+                if (nameInput && nameInput.value.trim()) {
                     students.push({
                         id: Date.now() + Math.random(),
-                        name: input.value.trim(),
+                        name: nameInput.value.trim(),
                         fatherName: '',
                         motherName: '',
                         contact: '',
-                        address: ''
+                        address: '',
+                        gender: ''
                     });
                 }
-            });
+            }
             
             // FORCE SAVE TO LOCALSTORAGE
             let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
@@ -1823,14 +1825,11 @@
             if (classIndex !== -1) {
                 classes[classIndex].students.push(...students);
                 localStorage.setItem('teacherClasses', JSON.stringify(classes));
-                alert('Students saved successfully!');
+                alert(`✅ ${students.length} students saved successfully!`);
                 openClass(classId);
             }
         }
 
-        function removeExtractedName(index) {
-            document.getElementById(`extractedName_${index}`).parentElement.remove();
-        }
 
         function saveWeeklyPlan() {
             const planData = {}; // collect your plan data here
@@ -2430,22 +2429,7 @@
                 `;
                 document.getElementById('extractedNames').appendChild(errorMsg);
                 
-                // Fallback to demo names for testing
-                const demoNames = [
-                    "Ahmed Ali Khan", 
-                    "Fatima Sheikh", 
-                    "Muhammad Hassan", 
-                    "Ayesha Malik", 
-                    "Ali Raza", 
-                    "Zainab Ahmed"
-                ];
-                setTimeout(() => {
-                    displayExtractedNames(demoNames);
-                    const demoMsg = document.createElement('div');
-                    demoMsg.style.cssText = 'background: #fff3cd; color: #856404; padding: 10px; border-radius: 5px; margin-bottom: 15px;';
-                    demoMsg.textContent = '📋 Demo: Showing sample names for testing purposes';
-                    document.getElementById('extractedNames').insertBefore(demoMsg, document.getElementById('extractedNames').firstChild);
-                }, 1000);
+                // No fallback - only use real OCR results
             } finally {
                 // Reset button
                 document.getElementById('extractBtn').textContent = '🔍 Extract Names';
