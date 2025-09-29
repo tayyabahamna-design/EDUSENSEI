@@ -121,6 +121,21 @@
             window.location.href = '/logout';
         }
         
+        // QUICK ACTIONS FUNCTIONS (moved before createWeeklyTemplate)
+        function addQuickActionsToolbar() {
+            return `
+                <div class="quick-actions" style="background: #e9ecef; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #dee2e6;">
+                    <h5 style="margin-bottom: 10px; color: #495057;">⚡ Quick Actions:</h5>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button onclick="addBreakToAllDays()" class="quick-btn" style="background: #6c757d; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🕐 Add Break to All Days</button>
+                        <button onclick="copyMondayToAll()" class="quick-btn" style="background: #17a2b8; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📋 Copy Monday to All Days</button>
+                        <button onclick="clearAllSchedules()" class="quick-btn" style="background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🗑️ Clear All Schedules</button>
+                        <button onclick="autoFillSubjects()" class="quick-btn" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🎯 Auto-Fill Subjects</button>
+                    </div>
+                </div>
+            `;
+        }
+        
         // STEP 2 - WEEKLY TEMPLATE CREATION
         function createWeeklyTemplate() {
             console.log('Create Weekly Template button clicked!'); // Debug log
@@ -362,20 +377,7 @@
             }
         }
 
-        // QUICK ACTIONS FUNCTIONS
-        function addQuickActionsToolbar() {
-            return `
-                <div class="quick-actions" style="background: #e9ecef; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #dee2e6;">
-                    <h5 style="margin-bottom: 10px; color: #495057;">⚡ Quick Actions:</h5>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="addBreakToAllDays()" class="quick-btn" style="background: #6c757d; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🕐 Add Break to All Days</button>
-                        <button onclick="addPeriodToAllDays()" class="quick-btn" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">➕ Add Period to All Days</button>
-                        <button onclick="copyMondayToAll()" class="quick-btn" style="background: #007bff; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📋 Copy Monday to All Days</button>
-                        <button onclick="clearAllSchedules()" class="quick-btn" style="background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🗑️ Clear All Schedules</button>
-                    </div>
-                </div>
-            `;
-        }
+        // QUICK ACTIONS FUNCTIONS (moved above)
 
         function addPeriodToAllDays() {
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
