@@ -46,24 +46,13 @@
 
         <div class="planner-container">
             <div class="welcome-section">
-                <h1>📅 Yearly Planner</h1>
-                <p class="welcome-subtitle">Create your teaching schedule in 2 simple steps</p>
+                <h1>📅 Enhanced Yearly Planner</h1>
+                <p class="welcome-subtitle">Create weekly template, copy to entire year, and manage monthly schedules</p>
             </div>
             
-            <!-- Frontend-Only Yearly Planner System -->
+            <!-- Enhanced Frontend-Only Yearly Planner System -->
             <div id="yearlyPlannerSection">
-                <div id="gradeSelection" class="planner-step">
-                    <h2>Select Your Grade</h2>
-                    <div class="grade-buttons">
-                        <button onclick="selectGrade(1)" class="grade-btn">Grade 1</button>
-                        <button onclick="selectGrade(2)" class="grade-btn">Grade 2</button>
-                        <button onclick="selectGrade(3)" class="grade-btn">Grade 3</button>
-                        <button onclick="selectGrade(4)" class="grade-btn">Grade 4</button>
-                        <button onclick="selectGrade(5)" class="grade-btn">Grade 5</button>
-                    </div>
-                </div>
-                
-                <div id="weeklyPlanner" class="planner-step" style="display:none;">
+                <div id="weeklyPlanner" class="planner-step">
                     <!-- Weekly planner will load here -->
                 </div>
             </div>
@@ -86,30 +75,21 @@
         }
         
         // ===========================================
-        // FRONTEND-ONLY YEARLY PLANNER SYSTEM
+        // ENHANCED YEARLY PLANNER SYSTEM
         // ===========================================
         
-        // GRADE SELECTION FUNCTION
-        function selectGrade(grade) {
-            // Store selected grade
-            localStorage.setItem('selectedGrade', grade);
-            
-            // Hide grade selection
-            document.getElementById('gradeSelection').style.display = 'none';
-            
-            // Show weekly planner
-            document.getElementById('weeklyPlanner').style.display = 'block';
-            
-            // Load weekly planner interface
-            loadWeeklyPlanner(grade);
-        }
+        // Initialize the weekly planner on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadWeeklyPlanner();
+        });
         
-        // WEEKLY PLANNER INTERFACE
-        function loadWeeklyPlanner(grade) {
+        // ENHANCED WEEKLY PLANNER WITH GRADE SELECTION PER PERIOD
+        function loadWeeklyPlanner() {
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             const subjects = ['English', 'Urdu', 'Islamiyat', 'General Knowledge', 'Science', 'Social Studies', 'Math'];
+            const grades = ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5'];
             
-            let plannerHTML = `<h2>Weekly Planner - Grade ${grade}</h2>`;
+            let plannerHTML = `<h2>Create Weekly Template</h2>`;
             
             days.forEach(day => {
                 plannerHTML += `<div class="day-column">
@@ -119,9 +99,13 @@
                     plannerHTML += `
                         <div class="period-row">
                             <label>Period ${period}:</label>
-                            <select id="${day}_period${period}">
+                            <select id="${day}_period${period}_subject">
                                 <option value="">Select Subject</option>
                                 ${subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('')}
+                            </select>
+                            <select id="${day}_period${period}_grade">
+                                <option value="">Select Grade</option>
+                                ${grades.map(grade => `<option value="${grade}">${grade}</option>`).join('')}
                             </select>
                             <input type="time" id="${day}_period${period}_start" value="08:00">
                             <input type="time" id="${day}_period${period}_end" value="08:40">
@@ -137,33 +121,195 @@
                 </div>`;
             });
             
-            plannerHTML += `<button onclick="saveWeeklyPlan()" class="btn btn-success save-btn">Save Weekly Plan</button>`;
+            plannerHTML += `<button onclick="saveAndCopyToYear()" class="btn btn-success save-btn">Save & Copy to Entire Year</button>`;
             
             document.getElementById('weeklyPlanner').innerHTML = plannerHTML;
         }
         
-        // SAVE FUNCTION
-        function saveWeeklyPlan() {
-            const weeklyPlan = {};
+        // SAVE AND COPY TO ENTIRE YEAR
+        function saveAndCopyToYear() {
+            const weeklyTemplate = {};
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             
+            // Save weekly template
             days.forEach(day => {
-                weeklyPlan[day] = {};
+                weeklyTemplate[day] = {};
                 for (let period = 1; period <= 8; period++) {
-                    weeklyPlan[day][`period${period}`] = {
-                        subject: document.getElementById(`${day}_period${period}`).value,
+                    weeklyTemplate[day][`period${period}`] = {
+                        subject: document.getElementById(`${day}_period${period}_subject`).value,
+                        grade: document.getElementById(`${day}_period${period}_grade`).value,
                         startTime: document.getElementById(`${day}_period${period}_start`).value,
                         endTime: document.getElementById(`${day}_period${period}_end`).value
                     };
                 }
-                weeklyPlan[day].break = {
+                weeklyTemplate[day].break = {
                     startTime: document.getElementById(`${day}_break_start`).value,
                     endTime: document.getElementById(`${day}_break_end`).value
                 };
             });
             
-            localStorage.setItem('yearlyPlan', JSON.stringify(weeklyPlan));
-            alert('Weekly plan saved successfully!');
+            // Copy to entire year (365 days)
+            const yearlyPlan = {};
+            for (let month = 1; month <= 12; month++) {
+                for (let date = 1; date <= 31; date++) {
+                    const dateKey = `${month}-${date}`;
+                    const dayOfWeek = new Date(2024, month-1, date).getDay(); // 0=Sunday, 1=Monday
+                    
+                    if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday to Friday
+                        const dayName = days[dayOfWeek - 1];
+                        yearlyPlan[dateKey] = JSON.parse(JSON.stringify(weeklyTemplate[dayName]));
+                    }
+                }
+            }
+            
+            localStorage.setItem('yearlyPlan', JSON.stringify(yearlyPlan));
+            localStorage.setItem('weeklyTemplate', JSON.stringify(weeklyTemplate));
+            
+            alert('Weekly template saved and copied to entire year!');
+            showMonthlyView();
+        }
+        
+        // SHOW MONTHLY CALENDAR VIEW
+        function showMonthlyView() {
+            document.getElementById('weeklyPlanner').style.display = 'none';
+            
+            let calendarHTML = `
+                <h2>Your Yearly Plan</h2>
+                <div class="calendar-navigation">
+                    <button onclick="showMonth(1)" class="month-btn">Jan</button>
+                    <button onclick="showMonth(2)" class="month-btn">Feb</button>
+                    <button onclick="showMonth(3)" class="month-btn">Mar</button>
+                    <button onclick="showMonth(4)" class="month-btn">Apr</button>
+                    <button onclick="showMonth(5)" class="month-btn">May</button>
+                    <button onclick="showMonth(6)" class="month-btn">Jun</button>
+                    <button onclick="showMonth(7)" class="month-btn">Jul</button>
+                    <button onclick="showMonth(8)" class="month-btn">Aug</button>
+                    <button onclick="showMonth(9)" class="month-btn">Sep</button>
+                    <button onclick="showMonth(10)" class="month-btn">Oct</button>
+                    <button onclick="showMonth(11)" class="month-btn">Nov</button>
+                    <button onclick="showMonth(12)" class="month-btn">Dec</button>
+                </div>
+                <div id="monthDisplay"></div>
+                <div class="yearly-actions">
+                    <button onclick="loadWeeklyPlanner(); document.getElementById('weeklyPlanner').style.display='block'; document.getElementById('calendarView').style.display='none';" class="btn btn-secondary">Back to Weekly Template</button>
+                </div>
+            `;
+            
+            document.getElementById('yearlyPlannerSection').innerHTML += `<div id="calendarView">${calendarHTML}</div>`;
+            
+            // Show current month by default
+            showMonth(new Date().getMonth() + 1);
+        }
+        
+        // SHOW SPECIFIC MONTH
+        function showMonth(month) {
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                               'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            let monthHTML = `<h3>${monthNames[month]} 2024</h3><div class="calendar-grid">`;
+            
+            for (let date = 1; date <= 31; date++) {
+                const dateKey = `${month}-${date}`;
+                const dayPlan = yearlyPlan[dateKey];
+                
+                if (dayPlan) {
+                    monthHTML += `
+                        <div class="calendar-day" onclick="editDay('${dateKey}')">
+                            <strong>${date}</strong>
+                            <div class="day-preview">
+                                <small>P1: ${dayPlan.period1?.subject || ''} ${dayPlan.period1?.grade || ''}</small>
+                                <small>P2: ${dayPlan.period2?.subject || ''} ${dayPlan.period2?.grade || ''}</small>
+                                <small>Click to edit...</small>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    monthHTML += `<div class="calendar-day empty">${date}</div>`;
+                }
+            }
+            
+            monthHTML += '</div>';
+            document.getElementById('monthDisplay').innerHTML = monthHTML;
+        }
+        
+        // EDIT INDIVIDUAL DAY
+        function editDay(dateKey) {
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            const dayPlan = yearlyPlan[dateKey];
+            const subjects = ['English', 'Urdu', 'Islamiyat', 'General Knowledge', 'Science', 'Social Studies', 'Math'];
+            const grades = ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5'];
+            
+            let editHTML = `<h3>Edit Day: ${dateKey}</h3>`;
+            
+            for (let period = 1; period <= 8; period++) {
+                const periodData = dayPlan[`period${period}`] || {};
+                editHTML += `
+                    <div class="edit-period">
+                        <label>Period ${period}:</label>
+                        <select id="edit_period${period}_subject">
+                            <option value="">Select Subject</option>
+                            ${subjects.map(subject => 
+                                `<option value="${subject}" ${periodData.subject === subject ? 'selected' : ''}>${subject}</option>`
+                            ).join('')}
+                        </select>
+                        <select id="edit_period${period}_grade">
+                            <option value="">Select Grade</option>
+                            ${grades.map(grade => 
+                                `<option value="${grade}" ${periodData.grade === grade ? 'selected' : ''}>${grade}</option>`
+                            ).join('')}
+                        </select>
+                        <input type="time" id="edit_period${period}_start" value="${periodData.startTime || '08:00'}">
+                        <input type="time" id="edit_period${period}_end" value="${periodData.endTime || '08:40'}">
+                    </div>
+                `;
+            }
+            
+            editHTML += `
+                <div class="edit-break">
+                    <label>Break:</label>
+                    <input type="time" id="edit_break_start" value="${dayPlan.break?.startTime || '10:00'}">
+                    <input type="time" id="edit_break_end" value="${dayPlan.break?.endTime || '10:20'}">
+                </div>
+                <div class="edit-actions">
+                    <button onclick="saveDayEdit('${dateKey}')" class="btn btn-success">Save Changes</button>
+                    <button onclick="closeEdit()" class="btn btn-secondary">Cancel</button>
+                </div>
+            `;
+            
+            document.getElementById('monthDisplay').innerHTML = editHTML;
+        }
+        
+        // SAVE DAY EDIT
+        function saveDayEdit(dateKey) {
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            
+            yearlyPlan[dateKey] = {};
+            for (let period = 1; period <= 8; period++) {
+                yearlyPlan[dateKey][`period${period}`] = {
+                    subject: document.getElementById(`edit_period${period}_subject`).value,
+                    grade: document.getElementById(`edit_period${period}_grade`).value,
+                    startTime: document.getElementById(`edit_period${period}_start`).value,
+                    endTime: document.getElementById(`edit_period${period}_end`).value
+                };
+            }
+            yearlyPlan[dateKey].break = {
+                startTime: document.getElementById('edit_break_start').value,
+                endTime: document.getElementById('edit_break_end').value
+            };
+            
+            localStorage.setItem('yearlyPlan', JSON.stringify(yearlyPlan));
+            alert('Day updated successfully!');
+            
+            // Go back to month view
+            const month = dateKey.split('-')[0];
+            showMonth(parseInt(month));
+        }
+        
+        // CLOSE EDIT
+        function closeEdit() {
+            const month = new Date().getMonth() + 1;
+            showMonth(month);
         }
     </script>
     
@@ -209,7 +355,7 @@
             box-shadow: 0 4px 12px rgba(108, 155, 209, 0.3);
         }
         
-        /* Weekly Planner Styles */
+        /* Enhanced Weekly Planner Styles */
         #weeklyPlanner {
             background: white;
         }
@@ -256,24 +402,22 @@
         }
         
         .period-row select {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-        
-        .period-row input[type="time"] {
             width: 48%;
             padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 4px;
+            margin-bottom: 0.5rem;
+            margin-right: 2%;
             font-size: 0.9rem;
         }
         
-        .period-row input[type="time"]:first-of-type {
-            margin-right: 4%;
+        .period-row input[type="time"] {
+            width: 23%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-right: 2%;
         }
         
         .break-row {
@@ -309,6 +453,172 @@
             padding: 1rem 2rem;
             font-size: 1.1rem;
             font-weight: 600;
+        }
+        
+        /* Monthly Calendar View Styles */
+        #calendarView {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+        
+        #calendarView h2 {
+            color: var(--sage-green);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .calendar-navigation {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        
+        .month-btn {
+            background: white;
+            border: 2px solid var(--soft-blue);
+            color: var(--soft-blue);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .month-btn:hover {
+            background: var(--soft-blue);
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .calendar-day {
+            background: var(--light-gray);
+            border: 2px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 120px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-day:hover {
+            background: var(--mint-green);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-day.empty {
+            background: #f8f8f8;
+            color: #ccc;
+            cursor: default;
+        }
+        
+        .calendar-day.empty:hover {
+            background: #f8f8f8;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .calendar-day strong {
+            display: block;
+            font-size: 1.2rem;
+            color: var(--sage-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .day-preview {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .day-preview small {
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        
+        /* Individual Day Editing Styles */
+        .edit-period {
+            background: var(--light-gray);
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            border: 1px solid var(--border-gray);
+        }
+        
+        .edit-period label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .edit-period select {
+            width: 48%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            margin-right: 2%;
+            font-size: 0.9rem;
+        }
+        
+        .edit-period input[type="time"] {
+            width: 23%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-right: 2%;
+        }
+        
+        .edit-break {
+            background: var(--peach);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 6px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .edit-break label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .edit-break input[type="time"] {
+            width: 48%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .edit-break input[type="time"]:first-of-type {
+            margin-right: 4%;
+        }
+        
+        .edit-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        
+        .yearly-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
         }
         
         /* Mobile Responsive */
