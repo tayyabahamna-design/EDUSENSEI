@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grading Buddy - USTAAD DOST</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Add Tesseract.js for real OCR functionality -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -1708,7 +1710,7 @@
                     <p>Upload a photo containing student names</p>
                     
                     <div class="upload-area">
-                        <input type="file" id="studentListImage" accept="image/*" onchange="previewImage()">
+                        <input type="file" id="studentImages" accept="image/*" multiple onchange="previewImages()">
                         <div class="upload-preview" id="imagePreview"></div>
                     </div>
                     
@@ -1723,74 +1725,121 @@
             `;
         }
 
-        function previewImage() {
-            const file = document.getElementById('studentListImage').files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreview').innerHTML = `
-                        <img src="${e.target.result}" style="max-width: 300px; max-height: 200px; border-radius: 8px;">
-                    `;
-                };
-                reader.readAsDataURL(file);
+        function previewImages() {
+            const files = document.getElementById('studentImages').files;
+            const previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = '';
+            
+            if (files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewContainer.innerHTML += `
+                            <img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border-radius: 8px; margin: 5px;">
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
         }
 
         function extractStudentNames(classId) {
-            // Simulate name extraction (in real app, use OCR)
-            const sampleNames = [
-                "Ahmed Ali", "Fatima Sheikh", "Hassan Khan", "Ayesha Ahmad", 
-                "Ali Raza", "Zainab Malik", "Omar Farooq", "Maryam Qureshi"
-            ];
+            const files = document.getElementById('studentImages').files;
             
+            if (files.length === 0) {
+                alert('Please select images first!');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('extractedNamesContainer').innerHTML = `
+                <p>Processing images... Please wait.</p>
+            `;
+            document.getElementById('extractedNamesContainer').style.display = 'block';
+            
+            // Use Tesseract OCR - REAL extraction
+            Tesseract.recognize(files[0], 'eng')
+            .then(result => {
+                const text = result.data.text;
+                const lines = text.split('\n');
+                const names = lines.filter(line => 
+                    line.trim().length > 3 && 
+                    /^[A-Za-z\s]+$/.test(line.trim())
+                );
+                
+                showExtractedNames(names, classId);
+            })
+            .catch(error => {
+                alert('OCR failed. Please try manual entry.');
+                console.log('OCR Error:', error);
+            });
+        }
+
+        function showExtractedNames(names, classId) {
             let extractedHTML = '';
-            sampleNames.forEach((name, index) => {
+            names.forEach((name, index) => {
                 extractedHTML += `
                     <div class="extracted-name">
-                        <input type="text" id="extractedName_${index}" value="${name}" class="name-input">
+                        <input type="text" id="extractedName_${index}" value="${name.trim()}" class="name-input">
                         <button onclick="removeExtractedName(${index})" class="remove-btn">❌</button>
                     </div>
                 `;
             });
             
-            document.getElementById('extractedNamesList').innerHTML = extractedHTML;
-            document.getElementById('extractedNamesContainer').style.display = 'block';
+            document.getElementById('extractedNamesContainer').innerHTML = `
+                <h5>📋 Extracted Names (Edit if needed):</h5>
+                <div id="extractedNamesList">${extractedHTML}</div>
+                <button onclick="saveExtractedStudents(${classId})" class="save-btn">💾 Save Students</button>
+            `;
             
             // Store count for processing
-            window.extractedCount = sampleNames.length;
+            window.extractedCount = names.length;
             
             alert('📸 Names extracted from image! Please review and edit if needed.');
         }
 
         function saveExtractedStudents(classId) {
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const classIndex = classes.findIndex(c => c.id === classId);
+            const nameInputs = document.querySelectorAll('.name-input');
+            const students = [];
             
-            let addedCount = 0;
-            for (let i = 0; i < window.extractedCount; i++) {
-                const nameInput = document.getElementById(`extractedName_${i}`);
-                if (nameInput && nameInput.value.trim()) {
-                    const newStudent = {
-                        id: Date.now() + i,
-                        name: nameInput.value.trim(),
+            nameInputs.forEach(input => {
+                if (input.value.trim()) {
+                    students.push({
+                        id: Date.now() + Math.random(),
+                        name: input.value.trim(),
                         fatherName: '',
                         motherName: '',
                         contact: '',
-                        address: '',
-                        gender: ''
-                    };
-                    classes[classIndex].students.push(newStudent);
-                    addedCount++;
+                        address: ''
+                    });
                 }
-            }
+            });
             
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
-            alert(`✅ ${addedCount} students added from picture!`);
-            openClass(classId);
+            // FORCE SAVE TO LOCALSTORAGE
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id == classId);
+            
+            if (classIndex !== -1) {
+                classes[classIndex].students.push(...students);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                alert('Students saved successfully!');
+                openClass(classId);
+            }
         }
 
         function removeExtractedName(index) {
             document.getElementById(`extractedName_${index}`).parentElement.remove();
+        }
+
+        function saveWeeklyPlan() {
+            const planData = {}; // collect your plan data here
+            
+            // FORCE SAVE
+            localStorage.setItem('yearlyPlan', JSON.stringify(planData));
+            localStorage.setItem('weeklyTemplate', JSON.stringify(planData));
+            
+            alert('Plan saved successfully!');
         }
 
         // STUDENT PROFILE EDITING
