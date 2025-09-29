@@ -126,10 +126,33 @@
         // ENHANCED YEARLY PLANNER SYSTEM
         // ===========================================
         
-        // Initialize the weekly planner on page load
+        // Initialize the yearly planner with memory check on page load
         document.addEventListener('DOMContentLoaded', function() {
-            loadWeeklyPlanner();
+            openYearlyPlanner();
         });
+        
+        // MEMORY CHECK LOGIC - Show calendar if plan exists, creation form if not
+        function openYearlyPlanner() {
+            const savedPlan = localStorage.getItem('yearlyPlan');
+            
+            if (savedPlan && savedPlan !== '{}') {
+                // Plan exists - show calendar
+                showCalendarView();
+            } else {
+                // No plan - show creation
+                showWeeklyCreation();
+            }
+        }
+        
+        // Show calendar view with months
+        function showCalendarView() {
+            showMonthlyView();
+        }
+        
+        // Show weekly creation form
+        function showWeeklyCreation() {
+            loadWeeklyPlanner();
+        }
         
         // ENHANCED WEEKLY PLANNER WITH GRADE SELECTION PER PERIOD
         function loadWeeklyPlanner() {
