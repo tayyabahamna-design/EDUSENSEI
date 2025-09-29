@@ -153,41 +153,85 @@
         
         // STEP 1 - GRADE SELECTION
         function selectGrade(grade) {
-            console.log('Grade selected:', grade);
+            console.log('🎯 Grade selected:', grade);
             
-            // Update button styles
-            document.querySelectorAll('.grade-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            document.querySelector(`[data-grade="${grade}"]`).classList.add('active');
-            
-            selectedGrade = grade;
-            
-            // Automatically proceed to weekly planner
-            setTimeout(() => {
-                createWeeklyTemplate();
-            }, 300);
+            try {
+                // Update button styles
+                const gradeBtns = document.querySelectorAll('.grade-btn');
+                console.log('Found grade buttons:', gradeBtns.length);
+                
+                gradeBtns.forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                const selectedBtn = document.querySelector(`[data-grade="${grade}"]`);
+                if (selectedBtn) {
+                    selectedBtn.classList.add('active');
+                    console.log('✅ Button activated for grade:', grade);
+                } else {
+                    console.error('❌ Could not find button for grade:', grade);
+                }
+                
+                selectedGrade = grade;
+                console.log('✅ selectedGrade set to:', selectedGrade);
+                
+                // Automatically proceed to weekly planner
+                console.log('⏰ Starting 300ms timeout to show weekly planner...');
+                setTimeout(() => {
+                    console.log('⚡ Timeout complete, calling createWeeklyTemplate()');
+                    createWeeklyTemplate();
+                }, 300);
+                
+            } catch (error) {
+                console.error('❌ Error in selectGrade:', error);
+                alert('Error selecting grade: ' + error.message);
+            }
         }
         
         // STEP 2 - WEEKLY TEMPLATE CREATION (SIMPLIFIED)
         function createWeeklyTemplate() {
+            console.log('🚀 createWeeklyTemplate called with selectedGrade:', selectedGrade);
+            
             if (!selectedGrade) {
+                console.error('❌ No grade selected!');
                 alert('Please select a grade first!');
                 return;
             }
             
-            console.log('Creating weekly template for Grade:', selectedGrade);
-            
-            // Hide step 1
-            document.getElementById('step1').style.display = 'none';
-            
-            // Show weekly template builder
-            const templateDiv = document.getElementById('weeklyTemplate');
-            templateDiv.style.display = 'block';
-            templateDiv.innerHTML = createWeeklyPlannerTable();
-            
-            // Store grade globally
-            localStorage.setItem('selectedGrade', selectedGrade);
+            try {
+                console.log('✅ Creating weekly template for Grade:', selectedGrade);
+                
+                // Hide step 1
+                const step1 = document.getElementById('step1');
+                if (step1) {
+                    step1.style.display = 'none';
+                    console.log('✅ Step 1 hidden successfully');
+                } else {
+                    console.error('❌ Could not find step1 element');
+                }
+                
+                // Show weekly template builder
+                const templateDiv = document.getElementById('weeklyTemplate');
+                if (templateDiv) {
+                    templateDiv.style.display = 'block';
+                    console.log('✅ Weekly template div shown');
+                    
+                    const tableHTML = createWeeklyPlannerTable();
+                    console.log('✅ Generated table HTML (length):', tableHTML.length);
+                    templateDiv.innerHTML = tableHTML;
+                    console.log('✅ Weekly planner table inserted into DOM');
+                } else {
+                    console.error('❌ Could not find weeklyTemplate element');
+                }
+                
+                // Store grade globally
+                localStorage.setItem('selectedGrade', selectedGrade);
+                console.log('✅ Grade saved to localStorage');
+                
+            } catch (error) {
+                console.error('❌ Error in createWeeklyTemplate:', error);
+                alert('Error creating weekly template: ' + error.message);
+            }
         }
 
         // CREATE CLEAN TABLE-BASED WEEKLY PLANNER
