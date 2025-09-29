@@ -47,54 +47,21 @@
         <div class="planner-container">
             <div class="welcome-section">
                 <h1>📅 Yearly Planner</h1>
-                <p class="welcome-subtitle">Create your teaching schedule in 3 simple steps</p>
+                <p class="welcome-subtitle">Create your teaching schedule in 2 simple steps</p>
             </div>
             
-            <!-- Step 1: Select Teaching Details -->
+            <!-- Step 1: Grade Selection Only -->
             <div class="step-1" id="step1">
-                <h3>Step 1: Select Your Teaching Details</h3>
+                <h3>Step 1: Select Your Grade</h3>
                 
-                <div class="selection-area">
-                    <div class="form-group">
-                        <label for="teacherGrade">Select Grade:</label>
-                        <select id="teacherGrade" class="form-control">
-                            <option value="">Choose Grade</option>
-                            <option value="1">Grade 1</option>
-                            <option value="2">Grade 2</option>
-                            <option value="3">Grade 3</option>
-                            <option value="4">Grade 4</option>
-                            <option value="5">Grade 5</option>
-                        </select>
+                <div class="grade-selection">
+                    <div class="grade-buttons">
+                        <button onclick="selectGrade(1)" class="grade-btn" data-grade="1">Grade 1</button>
+                        <button onclick="selectGrade(2)" class="grade-btn" data-grade="2">Grade 2</button>
+                        <button onclick="selectGrade(3)" class="grade-btn" data-grade="3">Grade 3</button>
+                        <button onclick="selectGrade(4)" class="grade-btn" data-grade="4">Grade 4</button>
+                        <button onclick="selectGrade(5)" class="grade-btn" data-grade="5">Grade 5</button>
                     </div>
-                    
-                    <div class="form-group">
-                        <label>Select Your Subjects:</label>
-                        <div class="subject-checkboxes">
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="english" value="English"> English
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="math" value="Math"> Math
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="urdu" value="Urdu"> Urdu
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="islamiyat" value="Islamiyat"> Islamiyat
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="science" value="Science"> Science
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="social" value="Social Studies"> Social Studies
-                            </label>
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="gk" value="General Knowledge"> General Knowledge
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <button onclick="createWeeklyTemplate()" class="btn btn-primary next-btn">Create Weekly Template</button>
                 </div>
             </div>
             
@@ -122,39 +89,94 @@
         }
         
         // QUICK ACTIONS FUNCTIONS (moved before createWeeklyTemplate)
-        function addQuickActionsToolbar() {
-            return `
-                <div class="quick-actions" style="background: #e9ecef; padding: 15px; margin: 15px 0; border-radius: 8px; border: 1px solid #dee2e6;">
-                    <h5 style="margin-bottom: 10px; color: #495057;">⚡ Quick Actions:</h5>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <button onclick="addBreakToAllDays()" class="quick-btn" style="background: #6c757d; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🕐 Add Break to All Days</button>
-                        <button onclick="copyMondayToAll()" class="quick-btn" style="background: #17a2b8; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">📋 Copy Monday to All Days</button>
-                        <button onclick="clearAllSchedules()" class="quick-btn" style="background: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🗑️ Clear All Schedules</button>
-                        <button onclick="autoFillSubjects()" class="quick-btn" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">🎯 Auto-Fill Subjects</button>
-                    </div>
-                </div>
-            `;
+        // Quick Actions for the table-based interface
+        function copyMondayToAll() {
+            if (confirm('Copy Monday schedule to all other days?')) {
+                const days = ['tuesday', 'wednesday', 'thursday', 'friday'];
+                
+                days.forEach(day => {
+                    for (let i = 1; i <= 8; i++) {
+                        const mondaySelect = document.getElementById(`monday_period${i}`);
+                        const daySelect = document.getElementById(`${day}_period${i}`);
+                        
+                        if (mondaySelect && daySelect) {
+                            daySelect.value = mondaySelect.value;
+                        }
+                    }
+                });
+                
+                alert('✅ Monday schedule copied to all days!');
+            }
         }
         
-        // STEP 2 - WEEKLY TEMPLATE CREATION
+        function clearAllSchedules() {
+            if (confirm('Clear all subject assignments?')) {
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+                
+                days.forEach(day => {
+                    for (let i = 1; i <= 8; i++) {
+                        const select = document.getElementById(`${day}_period${i}`);
+                        if (select) {
+                            select.value = '';
+                        }
+                    }
+                });
+                
+                alert('✅ All schedules cleared!');
+            }
+        }
+        
+        function autoFillSubjects() {
+            if (confirm('Auto-fill subjects evenly across all periods?')) {
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+                let subjectIndex = 0;
+                
+                days.forEach(day => {
+                    for (let i = 1; i <= 8; i++) {
+                        const select = document.getElementById(`${day}_period${i}`);
+                        if (select) {
+                            select.value = availableSubjects[subjectIndex % availableSubjects.length];
+                            subjectIndex++;
+                        }
+                    }
+                });
+                
+                alert('✅ Subjects auto-filled across all periods!');
+            }
+        }
+        
+        // Store selected grade globally
+        let selectedGrade = null;
+        
+        // Available subjects for all grades
+        const availableSubjects = ['English', 'Urdu', 'Islamiyat', 'General Knowledge', 'Science', 'Social Studies', 'Math'];
+        
+        // STEP 1 - GRADE SELECTION
+        function selectGrade(grade) {
+            console.log('Grade selected:', grade);
+            
+            // Update button styles
+            document.querySelectorAll('.grade-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-grade="${grade}"]`).classList.add('active');
+            
+            selectedGrade = grade;
+            
+            // Automatically proceed to weekly planner
+            setTimeout(() => {
+                createWeeklyTemplate();
+            }, 300);
+        }
+        
+        // STEP 2 - WEEKLY TEMPLATE CREATION (SIMPLIFIED)
         function createWeeklyTemplate() {
-            console.log('Create Weekly Template button clicked!'); // Debug log
-            
-            const selectedGrade = document.getElementById('teacherGrade').value;
-            console.log('Selected grade:', selectedGrade); // Debug log
-            
-            const selectedSubjects = [];
-            
-            // Get selected subjects
-            const checkboxes = document.querySelectorAll('.subject-checkboxes input:checked');
-            console.log('Found checkboxes:', checkboxes.length); // Debug log
-            checkboxes.forEach(cb => selectedSubjects.push(cb.value));
-            console.log('Selected subjects:', selectedSubjects); // Debug log
-            
-            if (!selectedGrade || selectedSubjects.length === 0) {
-                alert('Please select grade and at least one subject!');
+            if (!selectedGrade) {
+                alert('Please select a grade first!');
                 return;
             }
+            
+            console.log('Creating weekly template for Grade:', selectedGrade);
             
             // Hide step 1
             document.getElementById('step1').style.display = 'none';
@@ -162,220 +184,209 @@
             // Show weekly template builder
             const templateDiv = document.getElementById('weeklyTemplate');
             templateDiv.style.display = 'block';
-            templateDiv.innerHTML = `
-                <h3>Step 2: Create Your Weekly Schedule</h3>
-                <p class="grade-subjects-info">Grade: ${selectedGrade} | Subjects: ${selectedSubjects.join(', ')}</p>
+            templateDiv.innerHTML = createWeeklyPlannerTable();
+            
+            // Store grade globally
+            localStorage.setItem('selectedGrade', selectedGrade);
+        }
+
+        // CREATE CLEAN TABLE-BASED WEEKLY PLANNER
+        function createWeeklyPlannerTable() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            const periods = [
+                {num: 1, defaultStart: '08:00', defaultEnd: '08:40'},
+                {num: 2, defaultStart: '08:40', defaultEnd: '09:20'},
+                {num: 3, defaultStart: '09:20', defaultEnd: '10:00'},
+                {num: 4, defaultStart: '10:20', defaultEnd: '11:00'},
+                {num: 5, defaultStart: '11:00', defaultEnd: '11:40'},
+                {num: 6, defaultStart: '11:40', defaultEnd: '12:20'},
+                {num: 7, defaultStart: '12:20', defaultEnd: '13:00'},
+                {num: 8, defaultStart: '13:40', defaultEnd: '14:20'}
+            ];
+            
+            return `
+                <div class="weekly-planner-header">
+                    <h3>Step 2: Create Your Weekly Schedule</h3>
+                    <p class="grade-info">Grade: ${selectedGrade}</p>
+                </div>
                 
-                ${addQuickActionsToolbar()}
-                
-                <div class="weekly-schedule">
-                    ${createDaySchedule('Monday', selectedSubjects)}
-                    ${createDaySchedule('Tuesday', selectedSubjects)}
-                    ${createDaySchedule('Wednesday', selectedSubjects)}
-                    ${createDaySchedule('Thursday', selectedSubjects)}
-                    ${createDaySchedule('Friday', selectedSubjects)}
+                <div class="weekly-table-container">
+                    <table class="weekly-schedule-table">
+                        <!-- Header Row -->
+                        <thead>
+                            <tr>
+                                <th class="period-header">Period</th>
+                                <th class="time-header">Time</th>
+                                ${days.map(day => `<th class="day-header">${day}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        
+                        <tbody>
+                            ${periods.map(period => `
+                                <tr>
+                                    <td class="period-cell">Period ${period.num}</td>
+                                    <td class="time-cell">
+                                        <div class="time-inputs">
+                                            <input type="time" id="period${period.num}_start" value="${period.defaultStart}" class="time-input">
+                                            <span class="time-separator">to</span>
+                                            <input type="time" id="period${period.num}_end" value="${period.defaultEnd}" class="time-input">
+                                        </div>
+                                    </td>
+                                    ${days.map(day => `
+                                        <td class="subject-cell">
+                                            <select id="${day.toLowerCase()}_period${period.num}" class="subject-dropdown">
+                                                <option value="">Select Subject</option>
+                                                ${availableSubjects.map(subject => `<option value="${subject}">${subject}</option>`).join('')}
+                                            </select>
+                                        </td>
+                                    `).join('')}
+                                </tr>
+                            `).join('')}
+                            
+                            <!-- Break Time Row -->
+                            <tr class="break-row">
+                                <td class="period-cell break-label">Break Time</td>
+                                <td class="time-cell">
+                                    <div class="time-inputs">
+                                        <input type="time" id="break_start" value="10:00" class="time-input break-input">
+                                        <span class="time-separator">to</span>
+                                        <input type="time" id="break_end" value="10:20" class="time-input break-input">
+                                    </div>
+                                </td>
+                                <td colspan="5" class="break-span">Morning Break (applies to all days)</td>
+                            </tr>
+                            
+                            <!-- Lunch Break Row -->
+                            <tr class="break-row">
+                                <td class="period-cell break-label">Lunch Break</td>
+                                <td class="time-cell">
+                                    <div class="time-inputs">
+                                        <input type="time" id="lunch_start" value="13:00" class="time-input break-input">
+                                        <span class="time-separator">to</span>
+                                        <input type="time" id="lunch_end" value="13:40" class="time-input break-input">
+                                    </div>
+                                </td>
+                                <td colspan="5" class="break-span">Lunch Break (applies to all days)</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
                 
                 <div class="action-buttons">
-                    <button onclick="goBackToStep1()" class="btn btn-secondary">← Back to Step 1</button>
-                    <button onclick="copyToYear()" class="btn btn-success copy-btn">📅 Copy This Week to Entire Year</button>
-                </div>
-            `;
-            
-            // Store selected subjects globally for period management
-            localStorage.setItem('selectedSubjects', JSON.stringify(selectedSubjects));
-        }
-
-        function createDaySchedule(day, subjects) {
-            return `
-                <div class="day-schedule" style="border: 2px solid #333; padding: 15px; margin: 10px; border-radius: 8px; background: #fafafa;">
-                    <h4>${day} Schedule</h4>
-                    
-                    <div class="periods-container">
-                        <div class="period-header" style="margin-bottom: 15px;">
-                            <button onclick="addNewPeriod('${day}')" class="add-period-btn" style="background: #28a745; color: white; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">➕ Add Period</button>
-                            <button onclick="resetDaySchedule('${day}')" class="reset-btn" style="background: #ffc107; color: black; padding: 8px 12px; border: none; border-radius: 5px; margin: 5px; cursor: pointer;">🔄 Reset Day</button>
-                        </div>
-                        
-                        <div id="${day}_periods" class="all-periods">
-                            ${createEditablePeriod(day, 1, '08:00', '08:40', subjects)}
-                            ${createEditablePeriod(day, 2, '08:40', '09:20', subjects)}
-                            ${createEditablePeriod(day, 3, '09:20', '10:00', subjects)}
-                            
-                            <!-- EDITABLE BREAK TIME -->
-                            ${createEditableBreak(day, '10:00', '10:20')}
-                            
-                            ${createEditablePeriod(day, 4, '10:20', '11:00', subjects)}
-                            ${createEditablePeriod(day, 5, '11:00', '11:40', subjects)}
-                            ${createEditablePeriod(day, 6, '11:40', '12:20', subjects)}
-                            ${createEditablePeriod(day, 7, '12:20', '13:00', subjects)}
-                            
-                            <!-- LUNCH BREAK -->
-                            ${createEditableBreak(day, '13:00', '13:40', 'Lunch')}
-                            
-                            ${createEditablePeriod(day, 8, '13:40', '14:20', subjects)}
-                        </div>
-                    </div>
+                    <button onclick="goBackToStep1()" class="btn btn-secondary">← Back to Grade Selection</button>
+                    <button onclick="saveWeeklyTemplate()" class="btn btn-success">💾 Save Weekly Template</button>
                 </div>
             `;
         }
 
-        function createEditablePeriod(day, periodNumber, startTime, endTime, subjects) {
-            return `
-                <div class="period-row" id="${day}_period${periodNumber}_container" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #dee2e6;">
-                    <div class="period-info" style="flex: 1;">
-                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">Period ${periodNumber}:</label>
-                        
-                        <div class="time-inputs" style="margin: 5px 0;">
-                            <input type="time" id="${day}_period${periodNumber}_start" value="${startTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            <span style="margin: 0 5px;">to</span>
-                            <input type="time" id="${day}_period${periodNumber}_end" value="${endTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                        </div>
-                        
-                        <select id="${day}_period${periodNumber}_subject" style="width: 150px; margin: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            <option value="">Select Subject</option>
-                            ${subjects.map(s => `<option value="${s}">${s}</option>`).join('')}
-                        </select>
-                    </div>
-                    
-                    <div class="period-actions" style="display: flex; flex-direction: column; gap: 5px;">
-                        <button onclick="deletePeriod('${day}', ${periodNumber})" class="delete-btn" style="background: #dc3545; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                        <button onclick="duplicatePeriod('${day}', ${periodNumber})" class="duplicate-btn" style="background: #007bff; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">📋</button>
-                    </div>
-                </div>
-            `;
-        }
-
-        function createEditableBreak(day, startTime, endTime, breakType = 'Break') {
-            return `
-                <div class="break-row" id="${day}_${breakType.toLowerCase()}_container" style="display: flex; align-items: center; margin: 8px 0; padding: 10px; background: #fff3cd; border-radius: 5px; border: 1px solid #ffeaa7;">
-                    <div class="break-info" style="flex: 1;">
-                        <label style="font-weight: bold; margin-bottom: 5px; display: block;">${breakType} Time:</label>
-                        
-                        <div class="time-inputs" style="margin: 5px 0;">
-                            <input type="time" id="${day}_${breakType.toLowerCase()}_start" value="${startTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                            <span style="margin: 0 5px;">to</span>
-                            <input type="time" id="${day}_${breakType.toLowerCase()}_end" value="${endTime}" style="margin: 0 5px; padding: 5px; border: 1px solid #ccc; border-radius: 3px;">
-                        </div>
-                    </div>
-                    
-                    <div class="break-actions">
-                        <button onclick="deleteBreak('${day}', '${breakType.toLowerCase()}')" class="delete-btn" style="background: #fd7e14; color: white; padding: 5px 8px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">🗑️</button>
-                    </div>
-                </div>
-            `;
-        }
+        // Remove old complex period creation functions - they're replaced by the table interface
 
         function goBackToStep1() {
             document.getElementById('step1').style.display = 'block';
             document.getElementById('weeklyTemplate').style.display = 'none';
             document.getElementById('yearlyCalendar').style.display = 'none';
-        }
-
-        // PERIOD MANAGEMENT FUNCTIONS
-        function addNewPeriod(day) {
-            const periodsContainer = document.getElementById(`${day}_periods`);
             
-            // Get next available period number by finding the highest existing number
-            const existingPeriods = periodsContainer.querySelectorAll('.period-row');
-            let maxPeriodNumber = 0;
-            existingPeriods.forEach(row => {
-                const periodLabel = row.querySelector('label').textContent;
-                const periodMatch = periodLabel.match(/Period (\d+):/);
-                if (periodMatch) {
-                    maxPeriodNumber = Math.max(maxPeriodNumber, parseInt(periodMatch[1]));
+            // Reset grade selection
+            selectedGrade = null;
+            document.querySelectorAll('.grade-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+        
+        function saveWeeklyTemplate() {
+            console.log('Saving weekly template...');
+            
+            // Collect all schedule data
+            const weeklySchedule = {
+                grade: selectedGrade,
+                periods: {},
+                breaks: {
+                    morning: {
+                        start: document.getElementById('break_start').value,
+                        end: document.getElementById('break_end').value
+                    },
+                    lunch: {
+                        start: document.getElementById('lunch_start').value,
+                        end: document.getElementById('lunch_end').value
+                    }
+                }
+            };
+            
+            // Collect period times
+            for (let i = 1; i <= 8; i++) {
+                weeklySchedule.periods[`period${i}`] = {
+                    start: document.getElementById(`period${i}_start`).value,
+                    end: document.getElementById(`period${i}_end`).value
+                };
+            }
+            
+            // Collect subjects for each day and period
+            const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+            weeklySchedule.subjects = {};
+            
+            days.forEach(day => {
+                weeklySchedule.subjects[day] = {};
+                for (let i = 1; i <= 8; i++) {
+                    const subjectElement = document.getElementById(`${day}_period${i}`);
+                    if (subjectElement) {
+                        weeklySchedule.subjects[day][`period${i}`] = subjectElement.value;
+                    }
                 }
             });
-            const newPeriodNumber = maxPeriodNumber + 1;
             
-            // Get available subjects
-            const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu", "Islamiyat", "Science", "Social Studies", "General Knowledge"]');
+            // Save to localStorage
+            localStorage.setItem('weeklyTemplate', JSON.stringify(weeklySchedule));
             
-            const newPeriodHTML = createEditablePeriod(day, newPeriodNumber, '14:20', '15:00', subjects);
-            periodsContainer.innerHTML += newPeriodHTML;
-            
-            alert(`✅ New period added to ${day}!`);
-        }
-
-        function deletePeriod(day, periodNumber) {
-            if (confirm(`Delete Period ${periodNumber} from ${day}?`)) {
-                const periodContainer = document.getElementById(`${day}_period${periodNumber}_container`);
-                if (periodContainer) {
-                    periodContainer.remove();
-                    alert(`✅ Period ${periodNumber} deleted from ${day}!`);
-                }
-            }
-        }
-
-        function duplicatePeriod(day, periodNumber) {
-            const originalPeriod = document.getElementById(`${day}_period${periodNumber}_container`);
-            if (originalPeriod) {
-                const periodsContainer = document.getElementById(`${day}_periods`);
-                
-                // Get next available period number
-                const existingPeriods = periodsContainer.querySelectorAll('.period-row');
-                let maxPeriodNumber = 0;
-                existingPeriods.forEach(row => {
-                    const periodLabel = row.querySelector('label').textContent;
-                    const periodMatch = periodLabel.match(/Period (\d+):/);
-                    if (periodMatch) {
-                        maxPeriodNumber = Math.max(maxPeriodNumber, parseInt(periodMatch[1]));
+            // Count assigned periods
+            let assignedPeriods = 0;
+            Object.keys(weeklySchedule.subjects).forEach(day => {
+                Object.keys(weeklySchedule.subjects[day]).forEach(period => {
+                    if (weeklySchedule.subjects[day][period]) {
+                        assignedPeriods++;
                     }
                 });
-                const newPeriodNumber = maxPeriodNumber + 1;
-                
-                // Get original values
-                const startTime = document.getElementById(`${day}_period${periodNumber}_start`).value;
-                const endTime = document.getElementById(`${day}_period${periodNumber}_end`).value;
-                const subject = document.getElementById(`${day}_period${periodNumber}_subject`).value;
-                
-                // Create duplicate
-                const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu", "Islamiyat", "Science", "Social Studies", "General Knowledge"]');
-                const duplicateHTML = createEditablePeriod(day, newPeriodNumber, startTime, endTime, subjects);
-                periodsContainer.innerHTML += duplicateHTML;
-                
-                // Set the subject
-                setTimeout(() => {
-                    if (subject) {
-                        document.getElementById(`${day}_period${newPeriodNumber}_subject`).value = subject;
-                    }
-                }, 100);
-                
-                alert(`✅ Period duplicated on ${day}!`);
+            });
+            
+            alert(`✅ Weekly template saved successfully!\n\nGrade: ${selectedGrade}\nAssigned periods: ${assignedPeriods} out of 40\nBreak time: ${weeklySchedule.breaks.morning.start} - ${weeklySchedule.breaks.morning.end}\nLunch time: ${weeklySchedule.breaks.lunch.start} - ${weeklySchedule.breaks.lunch.end}`);
+            
+            // Show yearly calendar option
+            const templateDiv = document.getElementById('weeklyTemplate');
+            templateDiv.innerHTML += `
+                <div class="success-message">
+                    <h4>✅ Template Saved Successfully!</h4>
+                    <p>Your weekly template has been created. You can now:</p>
+                    <div class="next-steps">
+                        <button onclick="copyToYear()" class="btn btn-success">📅 Apply to Entire Year</button>
+                        <button onclick="downloadTemplate()" class="btn btn-primary">📥 Download Template</button>
+                        <button onclick="editTemplate()" class="btn btn-secondary">✏️ Edit Template</button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function editTemplate() {
+            // Simply scroll back to the table
+            document.querySelector('.weekly-table-container').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function downloadTemplate() {
+            const savedTemplate = localStorage.getItem('weeklyTemplate');
+            if (savedTemplate) {
+                const templateData = JSON.parse(savedTemplate);
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(templateData, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `Grade_${templateData.grade}_Weekly_Template.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                alert('✅ Template downloaded successfully!');
+            } else {
+                alert('❌ No template found to download!');
             }
         }
 
-        function deleteBreak(day, breakType) {
-            if (confirm(`Delete ${breakType} time from ${day}?`)) {
-                const breakContainer = document.getElementById(`${day}_${breakType}_container`);
-                if (breakContainer) {
-                    breakContainer.remove();
-                    alert(`✅ ${breakType} deleted from ${day}!`);
-                }
-            }
-        }
-
-        function resetDaySchedule(day) {
-            if (confirm(`Reset entire ${day} schedule to default?`)) {
-                const subjects = JSON.parse(localStorage.getItem('selectedSubjects') || '["English", "Math", "Urdu"]');
-                const periodsContainer = document.getElementById(`${day}_periods`);
-                
-                periodsContainer.innerHTML = `
-                    ${createEditablePeriod(day, 1, '08:00', '08:40', subjects)}
-                    ${createEditablePeriod(day, 2, '08:40', '09:20', subjects)}
-                    ${createEditablePeriod(day, 3, '09:20', '10:00', subjects)}
-                    ${createEditableBreak(day, '10:00', '10:20')}
-                    ${createEditablePeriod(day, 4, '10:20', '11:00', subjects)}
-                    ${createEditablePeriod(day, 5, '11:00', '11:40', subjects)}
-                    ${createEditablePeriod(day, 6, '11:40', '12:20', subjects)}
-                    ${createEditablePeriod(day, 7, '12:20', '13:00', subjects)}
-                    ${createEditableBreak(day, '13:00', '13:40', 'Lunch')}
-                    ${createEditablePeriod(day, 8, '13:40', '14:20', subjects)}
-                `;
-                
-                alert(`✅ ${day} schedule reset to default!`);
-            }
-        }
+        // Quick actions functions are simplified above
 
         // QUICK ACTIONS FUNCTIONS (moved above)
 
@@ -1210,11 +1221,48 @@
         .step-1 h3 {
             color: var(--sage-green);
             margin-bottom: 1.5rem;
+            text-align: center;
         }
         
-        .selection-area {
-            max-width: 600px;
+        .grade-selection {
+            max-width: 800px;
             margin: 0 auto;
+            text-align: center;
+        }
+        
+        .grade-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .grade-btn {
+            background: white;
+            border: 3px solid var(--soft-blue);
+            color: var(--soft-blue);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .grade-btn:hover {
+            background: var(--soft-blue);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(108, 155, 209, 0.3);
+        }
+        
+        .grade-btn.active {
+            background: var(--sage-green);
+            border-color: var(--sage-green);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(156, 188, 136, 0.4);
         }
         
         .form-group {
@@ -1242,29 +1290,166 @@
             border-color: var(--soft-blue);
         }
         
-        .subject-checkboxes {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+        /* Weekly Planner Table Styles */
+        .weekly-planner-header {
+            text-align: center;
+            margin-bottom: 2rem;
         }
         
-        .checkbox-label {
+        .weekly-planner-header h3 {
+            color: var(--sage-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .grade-info {
+            background: var(--sunny-yellow);
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+        
+        .weekly-table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .weekly-schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .weekly-schedule-table th,
+        .weekly-schedule-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid var(--border-gray);
+        }
+        
+        .weekly-schedule-table th {
+            background: var(--soft-blue);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .period-header {
+            width: 80px;
+            font-weight: 600;
+        }
+        
+        .time-header {
+            width: 160px;
+            font-weight: 600;
+        }
+        
+        .day-header {
+            width: 140px;
+            font-weight: 600;
+        }
+        
+        .period-cell {
+            background: var(--light-gray);
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .time-cell {
+            background: #f8f9fa;
+        }
+        
+        .subject-cell {
+            background: white;
+        }
+        
+        .time-inputs {
             display: flex;
             align-items: center;
-            padding: 0.5rem;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .time-input {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        
+        .time-separator {
+            font-weight: 600;
+            color: #666;
+        }
+        
+        .subject-dropdown {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.85rem;
             background: white;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background-color 0.3s;
         }
         
-        .checkbox-label:hover {
+        .subject-dropdown:focus {
+            outline: none;
+            border-color: var(--soft-blue);
+        }
+        
+        .break-row {
+            background: var(--peach) !important;
+        }
+        
+        .break-row td {
+            background: var(--peach) !important;
+        }
+        
+        .break-label {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .break-input {
+            background: #fff3cd;
+        }
+        
+        .break-span {
+            font-style: italic;
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .success-message {
             background: var(--mint-green);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 2rem;
         }
         
-        .checkbox-label input {
-            margin-right: 0.5rem;
+        .success-message h4 {
+            color: #155724;
+            margin-bottom: 1rem;
+        }
+        
+        .success-message p {
+            color: #155724;
+            margin-bottom: 1rem;
+        }
+        
+        .next-steps {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
         
         .btn {
@@ -1313,67 +1498,7 @@
             margin-top: 1rem;
         }
         
-        .weekly-schedule {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-        
-        .day-schedule {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .day-schedule h4 {
-            color: var(--sage-green);
-            margin-bottom: 1rem;
-            text-align: center;
-            padding: 0.5rem;
-            background: var(--light-gray);
-            border-radius: 6px;
-        }
-        
-        .periods {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        
-        .period-slot {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-        
-        .period-slot label {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .period-select {
-            padding: 0.5rem;
-            border: 1px solid var(--border-gray);
-            border-radius: 6px;
-            font-size: 0.9rem;
-        }
-        
-        .break-time {
-            text-align: center;
-            padding: 0.5rem;
-            background: var(--peach);
-            border-radius: 6px;
-            margin: 0.5rem 0;
-        }
-        
-        .break-time p {
-            margin: 0;
-            font-weight: 500;
-            color: #333;
-        }
+        /* Remove old day-schedule styles - replaced with table */
         
         .action-buttons {
             display: flex;
@@ -1496,8 +1621,36 @@
                 padding: 1rem;
             }
             
-            .weekly-schedule {
-                grid-template-columns: 1fr;
+            .grade-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .grade-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+            
+            .weekly-table-container {
+                font-size: 0.8rem;
+            }
+            
+            .weekly-schedule-table th,
+            .weekly-schedule-table td {
+                padding: 8px 4px;
+            }
+            
+            .time-inputs {
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .time-input {
+                width: 50px;
+            }
+            
+            .subject-dropdown {
+                font-size: 0.75rem;
             }
             
             .calendar-grid {
@@ -1505,6 +1658,10 @@
             }
             
             .action-buttons {
+                flex-direction: column;
+            }
+            
+            .next-steps {
                 flex-direction: column;
             }
         }
