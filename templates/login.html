@@ -612,7 +612,7 @@
             localStorage.removeItem('resetCode');
         }
 
-        // ENHANCED FORGET PASSWORD SYSTEM WITH MULTIPLE DELIVERY OPTIONS
+        // ENHANCED FORGET PASSWORD SYSTEM WITH BACKEND INTEGRATION
         function sendResetCodeWithOptions() {
             const phone = document.getElementById('resetPhone').value;
             
@@ -621,42 +621,51 @@
                 return;
             }
             
-            // Check rate limiting first
-            if (!checkResetAttempts(phone)) {
-                return;
-            }
+            // Show loading state
+            document.getElementById('resetOptions').innerHTML = '<p>Sending verification code...</p>';
             
-            // Check if phone number exists in system
-            const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            const userExists = existingUsers.find(user => user.phone_number === phone);
-            
-            if (!userExists) {
-                alert('❌ Phone number not found! Please register first.');
-                return;
-            }
-            
-            // Generate 4-digit verification code
-            const resetCode = Math.floor(1000 + Math.random() * 9000).toString();
-            
-            // Store reset code temporarily
-            localStorage.setItem('resetCode', JSON.stringify({
-                phone: phone,
-                code: resetCode,
-                timestamp: Date.now()
-            }));
-            
-            // Show multiple delivery options
-            document.getElementById('resetOptions').innerHTML = `
-                <div class="reset-options">
-                    <h4>Choose how to receive your reset code:</h4>
+            // Call backend to send reset code
+            fetch('/forgot-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'phone_number': phone
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store phone for later use
+                    sessionStorage.setItem('resetPhone', phone);
                     
-                    <button onclick="sendViaSMS('${phone}', '${resetCode}')" class="option-btn">
-                        📱 Simulate SMS
-                    </button>
+                    // Show the verification code in a simulation (remove in production)
+                    document.getElementById('resetOptions').innerHTML = `
+                        <div class="reset-options">
+                            <h4>Verification code sent!</h4>
+                            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                                <p><strong>SMS Simulation:</strong></p>
+                                <p>Your USTAAD DOST verification code is: <strong>${data.code}</strong></p>
+                                <p><small>This code expires in 10 minutes.</small></p>
+                            </div>
+                        </div>
+                    `;
                     
-                    <button onclick="sendViaWhatsApp('${phone}', '${resetCode}')" class="option-btn">
-                        💬 WhatsApp Message
-                    </button>
+                    // Show verification section
+                    document.getElementById('codeVerification').style.display = 'block';
+                } else {
+                    document.getElementById('resetOptions').innerHTML = `
+                        <div style="color: red; padding: 10px;">${data.message}</div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('resetOptions').innerHTML = `
+                    <div style="color: red; padding: 10px;">Network error. Please try again.</div>
+                `;
+            });
                     
                     <button onclick="showCodeDirectly('${resetCode}')" class="option-btn">
                         👁️ Show Code Directly
@@ -756,7 +765,7 @@
         // ENHANCED CODE VERIFICATION WITH BETTER FEEDBACK
         function verifyResetCode() {
             const enteredCode = document.getElementById('verificationCode').value;
-            const storedResetData = JSON.parse(localStorage.getItem('resetCode') || '{}');
+            const phone = sessionStorage.getItem('resetPhone');
             
             if (!enteredCode) {
                 alert('❌ Please enter the verification code!');
@@ -768,13 +777,37 @@
                 return;
             }
             
-            // Check if code matches and is not expired (valid for 10 minutes)
-            const currentTime = Date.now();
-            const codeAge = currentTime - storedResetData.timestamp;
-            const tenMinutes = 10 * 60 * 1000;
+            if (!phone) {
+                alert('Session expired. Please start over.');
+                resetForgotPasswordForm();
+                return;
+            }
             
-            if (codeAge > tenMinutes) {
-                alert('⏰ Code expired! Please request a new one.');
+            // Call backend to verify code
+            fetch('/verify-reset-code', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'phone_number': phone,
+                    'code': enteredCode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Code verified! You can now set your new password.');
+                    document.getElementById('newPasswordSection').style.display = 'block';
+                    // Store verification status
+                    sessionStorage.setItem('codeVerified', 'true');
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
                 localStorage.removeItem('resetCode');
                 // Reset the form to allow new code request
                 document.getElementById('resetOptions').innerHTML = '';
@@ -805,7 +838,8 @@
         function resetPassword() {
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmNewPassword').value;
-            const resetData = JSON.parse(localStorage.getItem('resetCode') || '{}');
+            const phone = sessionStorage.getItem('resetPhone');
+            const codeVerified = sessionStorage.getItem('codeVerified');
             
             // Enhanced validation
             if (!newPassword) {
@@ -824,8 +858,44 @@
             }
             
             if (newPassword !== confirmPassword) {
-                alert('❌ Passwords do not match! Please try again.');
+                alert('❌ Passwords do not match!');
                 return;
+            }
+            
+            if (!phone || !codeVerified) {
+                alert('❌ Please verify your code first!');
+                return;
+            }
+            
+            // Call backend to reset password
+            fetch('/reset-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'phone_number': phone,
+                    'new_password': newPassword,
+                    'confirm_password': confirmPassword
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Password reset successfully! You can now login with your new password.');
+                    // Clear session data
+                    sessionStorage.removeItem('resetPhone');
+                    sessionStorage.removeItem('codeVerified');
+                    // Return to login form
+                    backToLogin();
+                } else {
+                    alert('❌ ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Network error. Please try again.');
+            });
             }
             
             // Update user's password

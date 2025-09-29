@@ -3969,6 +3969,196 @@ def logout():
     flash('You have been logged out successfully', 'info')
     return redirect(url_for('login'))
 
+@app.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    phone_number = request.form.get('phone_number', '').strip()
+    
+    if not phone_number:
+        return jsonify({'success': False, 'message': 'Phone number is required'})
+    
+    # Format phone number consistently
+    phone_number = phone_number.replace('-', '').replace(' ', '')
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection error'})
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Check if phone number exists in users table
+        cursor.execute("SELECT id, name FROM users WHERE phone_number = %s", (phone_number,))
+        user = cursor.fetchone()
+        
+        if not user:
+            return jsonify({'success': False, 'message': 'Phone number not found in our system'})
+        
+        # Check rate limiting - max 3 attempts per hour
+        cursor.execute("""
+            SELECT COUNT(*) FROM password_reset_codes 
+            WHERE phone_number = %s AND created_at > NOW() - INTERVAL '1 hour'
+        """, (phone_number,))
+        
+        recent_attempts = cursor.fetchone()['count']
+        if recent_attempts >= 3:
+            return jsonify({'success': False, 'message': 'Too many reset attempts. Please try again later.'})
+        
+        # Generate 4-digit verification code
+        import random
+        reset_code = str(random.randint(1000, 9999))
+        
+        # Store reset code in database (expires in 10 minutes)
+        cursor.execute("""
+            INSERT INTO password_reset_codes (phone_number, reset_code, expires_at) 
+            VALUES (%s, %s, NOW() + INTERVAL '10 minutes')
+        """, (phone_number, reset_code))
+        
+        conn.commit()
+        
+        # In a real application, you would send SMS here
+        # For now, we'll return the code for testing/simulation
+        return jsonify({
+            'success': True, 
+            'message': 'Verification code sent!',
+            'code': reset_code,  # Remove this in production
+            'phone': phone_number
+        })
+        
+    except Exception as e:
+        print(f"Forgot password error: {e}")
+        conn.rollback()
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
+    finally:
+        conn.close()
+
+@app.route('/verify-reset-code', methods=['POST'])
+def verify_reset_code():
+    phone_number = request.form.get('phone_number', '').strip()
+    code = request.form.get('code', '').strip()
+    
+    if not phone_number or not code:
+        return jsonify({'success': False, 'message': 'Phone number and code are required'})
+    
+    phone_number = phone_number.replace('-', '').replace(' ', '')
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection error'})
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Find valid reset code
+        cursor.execute("""
+            SELECT id FROM password_reset_codes 
+            WHERE phone_number = %s AND reset_code = %s 
+            AND expires_at > NOW() AND used = FALSE
+            ORDER BY created_at DESC LIMIT 1
+        """, (phone_number, code))
+        
+        reset_record = cursor.fetchone()
+        
+        if not reset_record:
+            # Increment attempts for failed verification
+            cursor.execute("""
+                UPDATE password_reset_codes 
+                SET attempts = attempts + 1 
+                WHERE phone_number = %s AND reset_code = %s
+            """, (phone_number, code))
+            conn.commit()
+            
+            return jsonify({'success': False, 'message': 'Invalid or expired verification code'})
+        
+        # Mark code as used
+        cursor.execute("""
+            UPDATE password_reset_codes 
+            SET used = TRUE 
+            WHERE id = %s
+        """, (reset_record['id'],))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Code verified successfully!',
+            'phone': phone_number
+        })
+        
+    except Exception as e:
+        print(f"Verify reset code error: {e}")
+        conn.rollback()
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
+    finally:
+        conn.close()
+
+@app.route('/reset-password', methods=['POST'])
+def reset_password():
+    phone_number = request.form.get('phone_number', '').strip()
+    new_password = request.form.get('new_password', '').strip()
+    confirm_password = request.form.get('confirm_password', '').strip()
+    
+    if not phone_number or not new_password or not confirm_password:
+        return jsonify({'success': False, 'message': 'All fields are required'})
+    
+    if new_password != confirm_password:
+        return jsonify({'success': False, 'message': 'Passwords do not match'})
+    
+    if len(new_password) < 6:
+        return jsonify({'success': False, 'message': 'Password must be at least 6 characters'})
+    
+    phone_number = phone_number.replace('-', '').replace(' ', '')
+    
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({'success': False, 'message': 'Database connection error'})
+    
+    try:
+        cursor = conn.cursor()
+        
+        # Check if there's a recent verified reset code for this phone
+        cursor.execute("""
+            SELECT id FROM password_reset_codes 
+            WHERE phone_number = %s AND used = TRUE 
+            AND created_at > NOW() - INTERVAL '1 hour'
+            ORDER BY created_at DESC LIMIT 1
+        """, (phone_number,))
+        
+        if not cursor.fetchone():
+            return jsonify({'success': False, 'message': 'No valid password reset session found'})
+        
+        # Hash new password
+        password_hash = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        # Update user password
+        cursor.execute("""
+            UPDATE users 
+            SET password_hash = %s 
+            WHERE phone_number = %s
+        """, (password_hash, phone_number))
+        
+        if cursor.rowcount == 0:
+            return jsonify({'success': False, 'message': 'User not found'})
+        
+        # Clean up old reset codes for this phone
+        cursor.execute("""
+            DELETE FROM password_reset_codes 
+            WHERE phone_number = %s
+        """, (phone_number,))
+        
+        conn.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': 'Password reset successfully!'
+        })
+        
+    except Exception as e:
+        print(f"Reset password error: {e}")
+        conn.rollback()
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'})
+    finally:
+        conn.close()
+
 @app.route('/profile-setup', methods=['GET', 'POST'])
 def profile_setup():
     if 'user_id' not in session:
