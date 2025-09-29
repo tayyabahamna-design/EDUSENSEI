@@ -1704,14 +1704,22 @@
             document.getElementById('studentAddInterface').innerHTML = `
                 <div class="picture-add-form">
                     <h4>📸 Upload Student List Picture</h4>
-                    <p>Upload a photo containing student names</p>
+                    
+                    <div class="warning" style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 10px 0;">
+                        ⚠️ <strong>Note:</strong> OCR works best with:
+                        <br>• Clear, printed text
+                        <br>• Good lighting
+                        <br>• Dark text on light background
+                        <br><strong>For handwritten lists, use MANUAL ENTRY instead.</strong>
+                    </div>
                     
                     <div class="upload-area">
-                        <input type="file" id="studentImages" accept="image/*" multiple onchange="previewImages()">
+                        <input type="file" id="studentImages" accept="image/*" onchange="previewImages()">
                         <div class="upload-preview" id="imagePreview"></div>
                     </div>
                     
-                    <button onclick="extractStudentNames(${classId})" class="extract-btn">Extract Names</button>
+                    <button onclick="extractStudentNames(${classId})" class="extract-btn">📷 Try OCR</button>
+                    <button onclick="manualStudentAdd(${classId})" style="background: #28a745; margin-left: 10px;">✏️ Manual Entry (Recommended)</button>
                     
                     <div id="extractedNamesContainer" style="display:none;">
                         <!-- Names will be dynamically inserted here by OCR -->
@@ -1747,38 +1755,49 @@
                 return;
             }
             
-            document.getElementById('extractedNamesContainer').innerHTML = 'Reading names from image...';
+            document.getElementById('extractedNamesContainer').innerHTML = 'Reading handwritten names...';
             document.getElementById('extractedNamesContainer').style.display = 'block';
             
-            // BETTER OCR SETTINGS
+            // HANDWRITING OCR SETTINGS
             Tesseract.recognize(imageFile, 'eng', {
                 tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz ',
-                tessedit_pageseg_mode: 6
+                tessedit_pageseg_mode: 6,
+                preserve_interword_spaces: '1'
             })
             .then(({ data: { text } }) => {
-                console.log('OCR found:', text);
+                console.log('Raw OCR:', text);
                 
-                // BETTER NAME EXTRACTION
-                const lines = text.split(/[\n\r]+/);
-                const names = [];
+                // FILTER OUT GARBAGE
+                const lines = text.split('\n');
+                const cleanNames = [];
                 
                 lines.forEach(line => {
-                    const cleaned = line.trim().replace(/[^A-Za-z\s]/g, '');
-                    if (cleaned.length >= 3 && cleaned.split(' ').length >= 2) {
-                        names.push(cleaned);
+                    let cleaned = line.trim();
+                    // Remove symbols and numbers
+                    cleaned = cleaned.replace(/[^A-Za-z\s]/g, '');
+                    // Remove single letters
+                    cleaned = cleaned.replace(/\b[A-Za-z]\b/g, '');
+                    // Clean extra spaces
+                    cleaned = cleaned.replace(/\s+/g, ' ').trim();
+                    
+                    // Only keep if looks like a name (2+ words, 5+ chars total)
+                    if (cleaned.length >= 5 && cleaned.split(' ').length >= 2) {
+                        cleanNames.push(cleaned);
                     }
                 });
                 
-                if (names.length === 0) {
-                    alert('No names found. Try clearer image or manual entry.');
+                if (cleanNames.length === 0) {
+                    alert('❌ Handwriting unclear. Please use MANUAL ENTRY instead.');
+                    manualStudentAdd(classId);
                     return;
                 }
                 
-                showRealExtractedNames(names, classId);
+                showRealExtractedNames(cleanNames, classId);
             })
             .catch(error => {
                 console.error('OCR failed:', error);
-                alert('OCR failed. Use manual entry instead.');
+                alert('OCR failed for handwriting. Use MANUAL ENTRY.');
+                manualStudentAdd(classId);
             });
         }
 
