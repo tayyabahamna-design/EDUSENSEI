@@ -174,36 +174,51 @@
             document.getElementById('weeklyPlanner').innerHTML = plannerHTML;
         }
         
-        // SAVE AND COPY TO ENTIRE YEAR
+        // ENHANCED SAVE AND COPY TO ENTIRE YEAR WITH VALIDATION
         function saveAndCopyToYear() {
             const weeklyTemplate = {};
             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
             
-            // Save weekly template
+            // Save weekly template with validation
+            let hasContent = false;
             days.forEach(day => {
                 weeklyTemplate[day] = {};
                 for (let period = 1; period <= 8; period++) {
+                    const subject = document.getElementById(`${day}_period${period}_subject`)?.value || '';
+                    const grade = document.getElementById(`${day}_period${period}_grade`)?.value || '';
+                    
+                    if (subject) hasContent = true; // Check if any content exists
+                    
                     weeklyTemplate[day][`period${period}`] = {
-                        subject: document.getElementById(`${day}_period${period}_subject`).value,
-                        grade: document.getElementById(`${day}_period${period}_grade`).value,
-                        startTime: document.getElementById(`${day}_period${period}_start`).value,
-                        endTime: document.getElementById(`${day}_period${period}_end`).value
+                        subject: subject,
+                        grade: grade,
+                        startTime: document.getElementById(`${day}_period${period}_start`)?.value || '08:00',
+                        endTime: document.getElementById(`${day}_period${period}_end`)?.value || '08:40'
                     };
                 }
                 weeklyTemplate[day].break = {
-                    startTime: document.getElementById(`${day}_break_start`).value,
-                    endTime: document.getElementById(`${day}_break_end`).value
+                    startTime: document.getElementById(`${day}_break_start`)?.value || '10:00',
+                    endTime: document.getElementById(`${day}_break_end`)?.value || '10:20'
                 };
             });
             
-            // Copy to entire year (365 days)
+            if (!hasContent) {
+                alert('Please add at least one subject to save!');
+                return;
+            }
+            
+            // ACTUALLY SAVE THE DATA
+            localStorage.setItem('weeklyTemplate', JSON.stringify(weeklyTemplate));
+            console.log('Weekly template saved:', weeklyTemplate); // Debug log
+            
+            // Copy to entire year
             const yearlyPlan = {};
             for (let month = 1; month <= 12; month++) {
                 for (let date = 1; date <= 31; date++) {
                     const dateKey = `${month}-${date}`;
-                    const dayOfWeek = new Date(2024, month-1, date).getDay(); // 0=Sunday, 1=Monday
+                    const dayOfWeek = new Date(2024, month-1, date).getDay();
                     
-                    if (dayOfWeek >= 1 && dayOfWeek <= 5) { // Monday to Friday
+                    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
                         const dayName = days[dayOfWeek - 1];
                         yearlyPlan[dateKey] = JSON.parse(JSON.stringify(weeklyTemplate[dayName]));
                     }
@@ -211,9 +226,9 @@
             }
             
             localStorage.setItem('yearlyPlan', JSON.stringify(yearlyPlan));
-            localStorage.setItem('weeklyTemplate', JSON.stringify(weeklyTemplate));
+            console.log('Yearly plan saved!'); // Debug log
             
-            alert('Weekly template saved and copied to entire year!');
+            alert('✅ Weekly plan copied to entire year!');
             showMonthlyView();
         }
         
