@@ -33,6 +33,14 @@
         </div>
     </nav>
 
+    <!-- Zoom Controls -->
+    <div class="zoom-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+        <button onclick="zoomIn()" class="zoom-btn">🔍+</button>
+        <button onclick="zoomOut()" class="zoom-btn">🔍-</button>
+        <button onclick="resetZoom()" class="zoom-btn">↻</button>
+        <span id="zoomLevel">100%</span>
+    </div>
+
     <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -73,6 +81,46 @@
             console.log("Local session data cleared"); // Debug log
             window.location.href = '/logout';
         }
+        
+        // ===========================================
+        // ZOOM FUNCTIONALITY
+        // ===========================================
+        
+        let currentZoom = 100;
+
+        function zoomIn() {
+            if (currentZoom < 200) {
+                currentZoom += 10;
+                applyZoom();
+            }
+        }
+
+        function zoomOut() {
+            if (currentZoom > 70) {
+                currentZoom -= 10;
+                applyZoom();
+            }
+        }
+
+        function resetZoom() {
+            currentZoom = 100;
+            applyZoom();
+        }
+
+        function applyZoom() {
+            document.body.style.zoom = currentZoom + '%';
+            document.getElementById('zoomLevel').textContent = currentZoom + '%';
+            localStorage.setItem('appZoomLevel', currentZoom);
+        }
+
+        // Load saved zoom on page load
+        window.addEventListener('load', function() {
+            const savedZoom = localStorage.getItem('appZoomLevel');
+            if (savedZoom) {
+                currentZoom = parseInt(savedZoom);
+                applyZoom();
+            }
+        });
         
         // ===========================================
         // ENHANCED YEARLY PLANNER SYSTEM
@@ -201,36 +249,103 @@
             showMonth(new Date().getMonth() + 1);
         }
         
-        // SHOW SPECIFIC MONTH
+        // ENHANCED COLORFUL CALENDAR
         function showMonth(month) {
             const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
             const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
                                'July', 'August', 'September', 'October', 'November', 'December'];
+            const today = new Date();
+            const currentMonth = today.getMonth() + 1;
+            const currentDate = today.getDate();
             
-            let monthHTML = `<h3>${monthNames[month]} 2024</h3><div class="calendar-grid">`;
+            let monthHTML = `
+                <div class="calendar-header">
+                    <h3>📅 ${monthNames[month]} 2024</h3>
+                    <div class="calendar-stats">
+                        <span class="stat-pill">📚 School Days: ${countSchoolDays(month)}</span>
+                        <span class="stat-pill">🎯 Classes Planned: ${countPlannedClasses(month)}</span>
+                    </div>
+                </div>
+                
+                <div class="weekdays-header">
+                    <div class="weekday">Mon</div>
+                    <div class="weekday">Tue</div>
+                    <div class="weekday">Wed</div>
+                    <div class="weekday">Thu</div>
+                    <div class="weekday">Fri</div>
+                </div>
+                
+                <div class="calendar-grid">`;
             
             for (let date = 1; date <= 31; date++) {
                 const dateKey = `${month}-${date}`;
                 const dayPlan = yearlyPlan[dateKey];
+                const isToday = (month === currentMonth && date === currentDate);
+                const dayOfWeek = new Date(2024, month-1, date).getDay();
                 
-                if (dayPlan) {
+                if (dayPlan && dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    const subjects = getSubjectsForDay(dayPlan);
                     monthHTML += `
-                        <div class="calendar-day" onclick="editDay('${dateKey}')">
-                            <strong>${date}</strong>
+                        <div class="calendar-day ${isToday ? 'today' : ''}" onclick="editDay('${dateKey}')">
+                            <div class="date-number">${date}</div>
                             <div class="day-preview">
-                                <small>P1: ${dayPlan.period1?.subject || ''} ${dayPlan.period1?.grade || ''}</small>
-                                <small>P2: ${dayPlan.period2?.subject || ''} ${dayPlan.period2?.grade || ''}</small>
-                                <small>Click to edit...</small>
+                                <div class="subject-pills">
+                                    ${subjects.map(subject => `<span class="subject-pill ${subject.toLowerCase()}">${subject}</span>`).join('')}
+                                </div>
+                                <div class="classes-count">${subjects.length} classes</div>
                             </div>
+                            <div class="edit-hint">✏️ Click to edit</div>
                         </div>
                     `;
                 } else {
-                    monthHTML += `<div class="calendar-day empty">${date}</div>`;
+                    monthHTML += `<div class="calendar-day empty ${isToday ? 'today-empty' : ''}">${date}</div>`;
                 }
             }
             
             monthHTML += '</div>';
             document.getElementById('monthDisplay').innerHTML = monthHTML;
+            
+            // Add today's sidebar
+            addTodaysSidebar();
+        }
+
+        function getSubjectsForDay(dayPlan) {
+            const subjects = [];
+            for (let period = 1; period <= 8; period++) {
+                const subject = dayPlan[`period${period}`]?.subject;
+                if (subject && !subjects.includes(subject)) {
+                    subjects.push(subject);
+                }
+            }
+            return subjects;
+        }
+        
+        function countSchoolDays(month) {
+            let count = 0;
+            for (let date = 1; date <= 31; date++) {
+                const dayOfWeek = new Date(2024, month-1, date).getDay();
+                if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+                    count++;
+                }
+            }
+            return count;
+        }
+        
+        function countPlannedClasses(month) {
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            let count = 0;
+            for (let date = 1; date <= 31; date++) {
+                const dateKey = `${month}-${date}`;
+                const dayPlan = yearlyPlan[dateKey];
+                if (dayPlan) {
+                    for (let period = 1; period <= 8; period++) {
+                        if (dayPlan[`period${period}`]?.subject) {
+                            count++;
+                        }
+                    }
+                }
+            }
+            return count;
         }
         
         // EDIT INDIVIDUAL DAY
@@ -310,6 +425,70 @@
         function closeEdit() {
             const month = new Date().getMonth() + 1;
             showMonth(month);
+        }
+        
+        // TODAY'S SCHEDULE SIDEBAR
+        function addTodaysSidebar() {
+            // Remove existing sidebar if present
+            const existingSidebar = document.querySelector('.todays-schedule');
+            if (existingSidebar) {
+                existingSidebar.remove();
+            }
+            
+            const today = new Date();
+            const month = today.getMonth() + 1;
+            const date = today.getDate();
+            const dateKey = `${month}-${date}`;
+            const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+            const todayPlan = yearlyPlan[dateKey];
+            
+            const sidebarHTML = `
+                <div class="todays-schedule" style="position: fixed; left: 20px; top: 100px; width: 250px; background: #f8f9fa; border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 999;">
+                    <h4>📋 Today's Schedule</h4>
+                    <div class="date-display">${today.toDateString()}</div>
+                    
+                    ${todayPlan ? `
+                        <div class="today-periods">
+                            ${generateTodayPeriods(todayPlan)}
+                        </div>
+                        <button onclick="editDay('${dateKey}')" class="edit-today-btn">✏️ Edit Today</button>
+                    ` : `
+                        <div class="no-schedule">
+                            <p>📝 No classes scheduled for today</p>
+                            <button onclick="editDay('${dateKey}')" class="add-today-btn">➕ Add Schedule</button>
+                        </div>
+                    `}
+                </div>
+            `;
+            
+            document.body.innerHTML += sidebarHTML;
+        }
+
+        function generateTodayPeriods(todayPlan) {
+            let periodsHTML = '';
+            for (let period = 1; period <= 8; period++) {
+                const periodData = todayPlan[`period${period}`];
+                if (periodData && periodData.subject) {
+                    periodsHTML += `
+                        <div class="period-item">
+                            <span class="period-time">${periodData.startTime}-${periodData.endTime}</span>
+                            <span class="period-subject ${periodData.subject.toLowerCase().replace(/\s+/g, '')}">${periodData.subject}</span>
+                            <span class="period-grade">${periodData.grade}</span>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (todayPlan.break) {
+                periodsHTML += `
+                    <div class="break-item">
+                        <span class="break-time">☕ ${todayPlan.break.startTime}-${todayPlan.break.endTime}</span>
+                        <span class="break-label">Break Time</span>
+                    </div>
+                `;
+            }
+            
+            return periodsHTML;
         }
     </script>
     
@@ -619,6 +798,242 @@
             display: flex;
             justify-content: center;
             margin-top: 2rem;
+        }
+        
+        /* ENHANCED COLORFUL CALENDAR STYLES */
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .calendar-header h3 {
+            color: var(--sage-green);
+            margin-bottom: 1rem;
+        }
+        
+        .calendar-stats {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .stat-pill {
+            background: var(--mint-green);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .weekdays-header {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+            background: var(--soft-blue);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .weekday {
+            text-align: center;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+        }
+        
+        .calendar-day.today {
+            border: 3px solid #007bff !important;
+            box-shadow: 0 0 15px rgba(0,123,255,0.3) !important;
+            animation: pulse 2s infinite;
+        }
+        
+        .calendar-day.today-empty {
+            border: 2px solid #007bff !important;
+            background: #e3f2fd !important;
+        }
+        
+        .date-number {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sage-green);
+            margin-bottom: 0.5rem;
+        }
+        
+        .subject-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .subject-pill {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            color: white;
+            margin: 1px;
+            font-weight: 600;
+        }
+        
+        .english { background: #28a745; }
+        .urdu { background: #6f42c1; }
+        .islamiyat { background: #20c997; }
+        .generalknowledge { background: #ffc107; color: #333; }
+        .science { background: #fd7e14; }
+        .socialstudies { background: #e83e8c; }
+        .math { background: #17a2b8; }
+        
+        .classes-count {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .edit-hint {
+            font-size: 0.7rem;
+            color: #999;
+            margin-top: 0.5rem;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* ZOOM CONTROLS STYLING */
+        .zoom-controls {
+            background: white;
+            padding: 8px;
+            border-radius: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .zoom-btn {
+            margin: 2px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            background: var(--soft-blue);
+            color: white;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .zoom-btn:hover {
+            background: var(--sage-green);
+            transform: translateY(-2px);
+        }
+        
+        #zoomLevel {
+            font-weight: 600;
+            color: var(--sage-green);
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        /* TODAY'S SCHEDULE SIDEBAR STYLING */
+        .todays-schedule h4 {
+            color: var(--sage-green);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .date-display {
+            background: var(--mint-green);
+            padding: 0.5rem;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .period-item {
+            background: white;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            border-left: 4px solid var(--soft-blue);
+        }
+        
+        .period-time {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .period-subject {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: white;
+            margin: 0.25rem 0;
+            font-weight: 600;
+        }
+        
+        .period-grade {
+            display: block;
+            font-size: 0.8rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .break-item {
+            background: var(--peach);
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .break-time {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .break-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .edit-today-btn, .add-today-btn {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            background: var(--sage-green);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .edit-today-btn:hover, .add-today-btn:hover {
+            background: var(--soft-blue);
+            transform: translateY(-2px);
+        }
+        
+        .no-schedule {
+            text-align: center;
+            padding: 1rem;
+        }
+        
+        .no-schedule p {
+            color: #666;
+            margin-bottom: 1rem;
         }
         
         /* Mobile Responsive */

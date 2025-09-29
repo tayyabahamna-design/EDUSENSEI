@@ -1,0 +1,223 @@
+ITERATION PROMPT - ADD ZOOM FUNCTIONALITY AND IMPROVE CALENDAR DESIGN:
+Keep all existing features unchanged. Only add zoom controls and improve calendar appearance:
+ADD ZOOM FUNCTIONALITY FOR ENTIRE APP
+1. ADD ZOOM CONTROLS TO EVERY PAGE
+htmlCopy<!-- Add this to top of every section -->
+<div class="zoom-controls" style="position: fixed; top: 10px; right: 10px; z-index: 1000;">
+    <button onclick="zoomIn()" class="zoom-btn">🔍+</button>
+    <button onclick="zoomOut()" class="zoom-btn">🔍-</button>
+    <button onclick="resetZoom()" class="zoom-btn">↻</button>
+    <span id="zoomLevel">100%</span>
+</div>
+2. ZOOM FUNCTIONS
+javascriptCopylet currentZoom = 100;
+
+function zoomIn() {
+    if (currentZoom < 200) {
+        currentZoom += 10;
+        applyZoom();
+    }
+}
+
+function zoomOut() {
+    if (currentZoom > 70) {
+        currentZoom -= 10;
+        applyZoom();
+    }
+}
+
+function resetZoom() {
+    currentZoom = 100;
+    applyZoom();
+}
+
+function applyZoom() {
+    document.body.style.zoom = currentZoom + '%';
+    document.getElementById('zoomLevel').textContent = currentZoom + '%';
+    localStorage.setItem('appZoomLevel', currentZoom);
+}
+
+// Load saved zoom on page load
+window.addEventListener('load', function() {
+    const savedZoom = localStorage.getItem('appZoomLevel');
+    if (savedZoom) {
+        currentZoom = parseInt(savedZoom);
+        applyZoom();
+    }
+});
+3. MAKE CALENDAR MORE EYE CANDY
+javascriptCopyfunction showMonth(month) {
+    const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+    const monthNames = ['', 'January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentDate = today.getDate();
+    
+    let monthHTML = `
+        <div class="calendar-header">
+            <h3>📅 ${monthNames[month]} 2024</h3>
+            <div class="calendar-stats">
+                <span class="stat-pill">📚 School Days: ${countSchoolDays(month)}</span>
+                <span class="stat-pill">🎯 Classes Planned: ${countPlannedClasses(month)}</span>
+            </div>
+        </div>
+        
+        <div class="weekdays-header">
+            <div class="weekday">Mon</div>
+            <div class="weekday">Tue</div>
+            <div class="weekday">Wed</div>
+            <div class="weekday">Thu</div>
+            <div class="weekday">Fri</div>
+        </div>
+        
+        <div class="calendar-grid">`;
+    
+    for (let date = 1; date <= 31; date++) {
+        const dateKey = `${month}-${date}`;
+        const dayPlan = yearlyPlan[dateKey];
+        const isToday = (month === currentMonth && date === currentDate);
+        const dayOfWeek = new Date(2024, month-1, date).getDay();
+        
+        if (dayPlan && dayOfWeek >= 1 && dayOfWeek <= 5) {
+            const subjects = getSubjectsForDay(dayPlan);
+            monthHTML += `
+                <div class="calendar-day ${isToday ? 'today' : ''}" onclick="editDay('${dateKey}')">
+                    <div class="date-number">${date}</div>
+                    <div class="day-preview">
+                        <div class="subject-pills">
+                            ${subjects.map(subject => `<span class="subject-pill ${subject.toLowerCase()}">${subject}</span>`).join('')}
+                        </div>
+                        <div class="classes-count">${subjects.length} classes</div>
+                    </div>
+                    <div class="edit-hint">✏️ Click to edit</div>
+                </div>
+            `;
+        } else {
+            monthHTML += `<div class="calendar-day empty ${isToday ? 'today-empty' : ''}">${date}</div>`;
+        }
+    }
+    
+    monthHTML += '</div>';
+    document.getElementById('monthDisplay').innerHTML = monthHTML;
+}
+
+function getSubjectsForDay(dayPlan) {
+    const subjects = [];
+    for (let period = 1; period <= 8; period++) {
+        const subject = dayPlan[`period${period}`]?.subject;
+        if (subject && !subjects.includes(subject)) {
+            subjects.push(subject);
+        }
+    }
+    return subjects;
+}
+4. TODAY'S SCHEDULE SIDEBAR
+javascriptCopyfunction addTodaysSidebar() {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const date = today.getDate();
+    const dateKey = `${month}-${date}`;
+    const yearlyPlan = JSON.parse(localStorage.getItem('yearlyPlan') || '{}');
+    const todayPlan = yearlyPlan[dateKey];
+    
+    const sidebarHTML = `
+        <div class="todays-schedule" style="position: fixed; right: 20px; top: 100px; width: 250px; background: #f8f9fa; border-radius: 10px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); z-index: 999;">
+            <h4>📋 Today's Schedule</h4>
+            <div class="date-display">${today.toDateString()}</div>
+            
+            ${todayPlan ? `
+                <div class="today-periods">
+                    ${generateTodayPeriods(todayPlan)}
+                </div>
+                <button onclick="editDay('${dateKey}')" class="edit-today-btn">✏️ Edit Today</button>
+            ` : `
+                <div class="no-schedule">
+                    <p>📝 No classes scheduled for today</p>
+                    <button onclick="editDay('${dateKey}')" class="add-today-btn">➕ Add Schedule</button>
+                </div>
+            `}
+        </div>
+    `;
+    
+    document.body.innerHTML += sidebarHTML;
+}
+
+function generateTodayPeriods(todayPlan) {
+    let periodsHTML = '';
+    for (let period = 1; period <= 8; period++) {
+        const periodData = todayPlan[`period${period}`];
+        if (periodData && periodData.subject) {
+            periodsHTML += `
+                <div class="period-item">
+                    <span class="period-time">${periodData.startTime}-${periodData.endTime}</span>
+                    <span class="period-subject ${periodData.subject.toLowerCase()}">${periodData.subject}</span>
+                    <span class="period-grade">${periodData.grade}</span>
+                </div>
+            `;
+        }
+    }
+    
+    if (todayPlan.break) {
+        periodsHTML += `
+            <div class="break-item">
+                <span class="break-time">☕ ${todayPlan.break.startTime}-${todayPlan.break.endTime}</span>
+                <span class="break-label">Break Time</span>
+            </div>
+        `;
+    }
+    
+    return periodsHTML;
+}
+5. ADD COLORFUL CSS
+cssCopy.calendar-day.today {
+    border: 3px solid #007bff !important;
+    box-shadow: 0 0 15px rgba(0,123,255,0.3) !important;
+    animation: pulse 2s infinite;
+}
+
+.subject-pill {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    color: white;
+    margin: 1px;
+}
+
+.english { background: #28a745; }
+.math { background: #17a2b8; }
+.urdu { background: #6f42c1; }
+.islamiyat { background: #20c997; }
+.science { background: #fd7e14; }
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.zoom-controls {
+    background: white;
+    padding: 5px;
+    border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.zoom-btn {
+    margin: 2px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+}
+FEATURES ADDED:
+
+🔍 Zoom in/out controls on every page
+📅 Colorful, modern calendar design
+📋 Today's schedule sidebar
+🎨 Subject color coding
+✨ Today's date highlighting with animation
+📊 Calendar statistics
+
+Keep all other app features unchanged.
