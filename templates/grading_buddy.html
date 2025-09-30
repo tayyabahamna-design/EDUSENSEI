@@ -90,6 +90,15 @@
                     <div class="upload-options">
                         <button class="btn btn-secondary" onclick="manualEntry()">📝 Manual Entry</button>
                         <button class="btn btn-accent" onclick="uploadPicture()">📸 Upload Picture</button>
+                        <button class="btn btn-primary" onclick="bulkImport()">📋 Bulk Import</button>
+                    </div>
+                    
+                    <div id="bulkImportSection" style="display:none;" class="bulk-import-section">
+                        <h4>📋 Bulk Import Students</h4>
+                        <p>Paste student names (one per line):</p>
+                        <textarea id="bulkNamesList" placeholder="Husnain Fatima&#10;Humaira Fatima&#10;Ayesha Nadeem&#10;..." rows="10" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd;"></textarea>
+                        <button class="btn btn-success" onclick="processBulkImport()">✅ Add All Students</button>
+                        <button class="btn btn-secondary" onclick="cancelBulkImport()">❌ Cancel</button>
                     </div>
                     
                     <div id="pictureUpload" style="display:none;" class="picture-upload-section">
@@ -2362,12 +2371,83 @@
         // Picture upload functionality for student lists
         function manualEntry() {
             document.getElementById('pictureUpload').style.display = 'none';
+            document.getElementById('bulkImportSection').style.display = 'none';
             document.getElementById('manualStudentForm').style.display = 'block';
         }
         
         function uploadPicture() {
             document.getElementById('manualStudentForm').style.display = 'none';
+            document.getElementById('bulkImportSection').style.display = 'none';
             document.getElementById('pictureUpload').style.display = 'block';
+        }
+        
+        function bulkImport() {
+            document.getElementById('manualStudentForm').style.display = 'none';
+            document.getElementById('pictureUpload').style.display = 'none';
+            document.getElementById('bulkImportSection').style.display = 'block';
+        }
+        
+        function cancelBulkImport() {
+            document.getElementById('bulkImportSection').style.display = 'none';
+            document.getElementById('bulkNamesList').value = '';
+        }
+        
+        function processBulkImport() {
+            if (!window.currentClassId) {
+                alert('Please select a class first by clicking "👥 Students" from a class card.');
+                return;
+            }
+            
+            const namesList = document.getElementById('bulkNamesList').value;
+            if (!namesList.trim()) {
+                alert('Please enter at least one student name.');
+                return;
+            }
+            
+            // Split by newlines and filter empty lines
+            const names = namesList.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+            
+            if (names.length === 0) {
+                alert('No valid names found.');
+                return;
+            }
+            
+            // Get current class
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === window.currentClassId);
+            
+            if (classIndex === -1) {
+                alert('Class not found!');
+                return;
+            }
+            
+            // Add each student
+            let addedCount = 0;
+            names.forEach((name, index) => {
+                const newStudent = {
+                    id: Date.now() + index,
+                    name: name,
+                    rollNumber: '', // Can be filled later
+                    guardian: '',
+                    cnic: '',
+                    phone: ''
+                };
+                
+                classes[classIndex].students.push(newStudent);
+                addedCount++;
+            });
+            
+            // Save back to localStorage
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            
+            alert(`✅ Successfully added ${addedCount} students to the class!`);
+            
+            // Clear and close
+            document.getElementById('bulkNamesList').value = '';
+            document.getElementById('bulkImportSection').style.display = 'none';
+            
+            // Refresh class view if open
+            openClass(window.currentClassId);
         }
         
         function extractNamesFromImage() {
