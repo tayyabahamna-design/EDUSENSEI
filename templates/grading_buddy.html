@@ -1326,17 +1326,23 @@
         // USER-SPECIFIC DATA STORAGE - Prevents data mixing between different users
         function getCurrentUserPhone() {
             const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+            console.log('🔍 Current user:', user);
             return user.phone || 'default';
         }
 
         function saveUserData(key, data) {
             const userPhone = getCurrentUserPhone();
+            console.log('💾 Saving for user:', userPhone, 'Key:', key, 'Data length:', Array.isArray(data) ? data.length : 'N/A');
             localStorage.setItem(`${userPhone}_${key}`, JSON.stringify(data));
+            console.log('✅ Saved successfully to:', `${userPhone}_${key}`);
         }
 
         function getUserData(key) {
             const userPhone = getCurrentUserPhone();
-            return JSON.parse(localStorage.getItem(`${userPhone}_${key}`) || '[]');
+            const storageKey = `${userPhone}_${key}`;
+            const data = localStorage.getItem(storageKey);
+            console.log('📂 Loading for user:', userPhone, 'Key:', key, 'Found:', data ? 'YES' : 'NO');
+            return JSON.parse(data || '[]');
         }
 
         function showSection(sectionName) {
@@ -2905,6 +2911,21 @@
             
             // Initialize classes display
             loadExistingClasses();
+        });
+        
+        // LOGOUT FUNCTION - Clears user session
+        function logoutUser() {
+            console.log('🚪 Logging out user...');
+            localStorage.removeItem('ustaadDostUser');
+            console.log('✅ User data cleared from localStorage');
+            window.location.href = '/logout';
+        }
+        
+        // Add page load logging
+        window.addEventListener('load', function() {
+            const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+            console.log('📄 Grading Buddy page loaded');
+            console.log('👤 Current user from localStorage:', user);
         });
     </script>
 </body>

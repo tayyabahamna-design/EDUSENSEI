@@ -1,0 +1,131 @@
+SIMPLE FIX - PROFILE DATA MIXING:
+Keep everything same. Only fix the data mixing issue:
+FIX USER DATA SEPARATION
+javascriptCopy// Make sure user phone is properly stored and retrieved
+function loginUser() {
+    const phone = document.getElementById('loginPhone').value;
+    
+    if (!phone || phone.length < 11) {
+        alert('Please enter valid phone number!');
+        return;
+    }
+    
+    const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
+    const userExists = existingUsers.find(user => user.phone === phone);
+    
+    if (userExists) {
+        // CLEAR any existing user data first
+        localStorage.removeItem('ustaadDostUser');
+        
+        // Set new user data
+        localStorage.setItem('ustaadDostUser', JSON.stringify({
+            phone: phone,
+            name: userExists.name,
+            loginTime: Date.now()
+        }));
+        
+        console.log('Logged in as:', phone); // Debug
+        showDashboard();
+    } else {
+        alert('Phone number not registered!');
+    }
+}
+
+// Fix the data saving functions
+function saveUserData(key, data) {
+    const userPhone = getCurrentUserPhone();
+    console.log('Saving for user:', userPhone, 'Key:', key); // Debug
+    localStorage.setItem(`${userPhone}_${key}`, JSON.stringify(data));
+}
+
+function getUserData(key) {
+    const userPhone = getCurrentUserPhone();
+    console.log('Loading for user:', userPhone, 'Key:', key); // Debug
+    const data = localStorage.getItem(`${userPhone}_${key}`);
+    return JSON.parse(data || '[]');
+}
+
+function getCurrentUserPhone() {
+    const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+    console.log('Current user:', user); // Debug
+    return user.phone || 'unknown';
+}
+
+// Update ALL functions that save/load data
+function saveClass() {
+    const className = document.getElementById('className').value;
+    
+    if (className) {
+        const newClass = {
+            id: Date.now(),
+            name: className,
+            students: [],
+            scoresheets: []
+        };
+        
+        let classes = getUserData('teacherClasses');
+        classes.push(newClass);
+        saveUserData('teacherClasses', classes); // Use saveUserData
+        
+        alert('Class created!');
+        loadExistingClasses();
+    }
+}
+
+function loadExistingClasses() {
+    const classes = getUserData('teacherClasses'); // Use getUserData
+    // ... rest of function
+}
+
+// Fix student saving
+function saveStudentChanges(classId, studentId) {
+    const name = document.getElementById('editName').value;
+    const father = document.getElementById('editFather').value;
+    const contact = document.getElementById('editContact').value;
+    
+    let classes = getUserData('teacherClasses'); // Use getUserData
+    const classIndex = classes.findIndex(c => c.id == classId);
+    const studentIndex = classes[classIndex].students.findIndex(s => s.id == studentId);
+    
+    classes[classIndex].students[studentIndex].name = name;
+    classes[classIndex].students[studentIndex].fatherName = father;
+    classes[classIndex].students[studentIndex].contact = contact;
+    
+    saveUserData('teacherClasses', classes); // Use saveUserData
+    alert('Student updated!');
+    viewAllStudents(classId);
+}
+
+// Fix planner saving
+function saveAndCopyToYear() {
+    // ... existing logic to collect data ...
+    
+    saveUserData('yearlyPlan', yearlyPlan); // Use saveUserData
+    saveUserData('weeklyTemplate', weeklyTemplate); // Use saveUserData
+    
+    alert('Plan saved!');
+    showMonthlyView();
+}
+
+// Add logout function to clear user
+function logout() {
+    localStorage.removeItem('ustaadDostUser');
+    showLoginPage();
+    console.log('User logged out'); // Debug
+}
+Add logout button to dashboard:
+javascriptCopyfunction showDashboard() {
+    const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+    
+    document.getElementById('dashboard').innerHTML = `
+        <h1>Welcome ${user.name || 'Teacher'}!</h1>
+        <p>Phone: ${user.phone}</p>
+        
+        <button onclick="logout()" style="position: absolute; top: 10px; right: 10px; background: red; color: white;">
+            Logout
+        </button>
+        
+        <!-- rest of dashboard -->
+    `;
+}
+This will separate data properly for each user phone number.Add to Conversation

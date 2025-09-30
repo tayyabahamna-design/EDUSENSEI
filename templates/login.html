@@ -64,14 +64,18 @@
         function handleSuccessfulLogin(userPhone, userData) {
             console.log("Handling successful login for:", userPhone); // Debug log
             
-            // Store login session in localStorage
+            // CLEAR any existing user data first
+            localStorage.removeItem('ustaadDostUser');
+            console.log("Cleared existing user data"); // Debug log
+            
+            // Store NEW login session in localStorage
             localStorage.setItem('ustaadDostUser', JSON.stringify({
                 phone: userPhone,
                 loginTime: new Date().getTime(),
                 userData: userData || { name: userPhone }
             }));
             
-            console.log("Session stored in localStorage"); // Debug log
+            console.log("New session stored in localStorage for:", userPhone); // Debug log
             
             // Redirect to dashboard (Flask will handle server-side session)
             window.location.href = '/';
@@ -113,7 +117,11 @@
             if (flashMessages.length > 0 && loginAttemptPhone) {
                 console.log("Successful login detected, storing localStorage session"); // Debug log
                 
-                // Store login session in localStorage
+                // CLEAR any existing user data first
+                localStorage.removeItem('ustaadDostUser');
+                console.log("Cleared existing user data before new login"); // Debug log
+                
+                // Store NEW login session in localStorage
                 localStorage.setItem('ustaadDostUser', JSON.stringify({
                     phone: loginAttemptPhone,
                     loginTime: new Date().getTime(),
@@ -123,7 +131,7 @@
                 // Clear temporary storage
                 sessionStorage.removeItem('loginAttemptPhone');
                 
-                console.log("localStorage session created after successful login"); // Debug log
+                console.log("NEW localStorage session created for:", loginAttemptPhone); // Debug log
                 
                 // Redirect to dashboard after a short delay
                 setTimeout(function() {
