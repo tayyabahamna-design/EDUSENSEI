@@ -544,37 +544,7 @@
             e.target.value = value;
         });
 
-        // FORGET PASSWORD FUNCTIONS
-        function showForgotPassword() {
-            // Hide login form, show forgot password form
-            document.querySelector('.auth-form').style.display = 'none';
-            document.getElementById('forgotPasswordForm').style.display = 'block';
-        }
-
-        function backToLogin() {
-            // Show login form, hide forgot password form
-            document.querySelector('.auth-form').style.display = 'block';
-            document.getElementById('forgotPasswordForm').style.display = 'none';
-            
-            // Reset forgot password form
-            resetForgotPasswordForm();
-        }
-
-        function resetForgotPasswordForm() {
-            document.getElementById('resetPhone').value = '';
-            document.getElementById('verificationCode').value = '';
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmNewPassword').value = '';
-            document.getElementById('resetOptions').innerHTML = '';
-            document.getElementById('codeVerification').style.display = 'none';
-            document.getElementById('newPasswordSection').style.display = 'none';
-            
-            // Clear any stored reset data
-            localStorage.removeItem('resetCode');
-        }
-
-        // ENHANCED FORGET PASSWORD SYSTEM WITH BACKEND INTEGRATION
-        function sendResetCodeWithOptions() {
+        // No password functions needed - simple phone number login only
             const phone = document.getElementById('resetPhone').value;
             
             if (!phone || phone.length < 11) {
