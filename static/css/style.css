@@ -2071,7 +2071,28 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     /* General Mobile Fixes */
     body {
         font-size: 16px;
+        padding: 5px;
+        overflow-x: hidden;
+    }
+    
+    .container, .dashboard-container {
         padding: 10px;
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    
+    .welcome-banner {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    .welcome-banner h1 {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-banner p {
+        font-size: 0.9rem;
     }
     
     /* Buttons */
@@ -2100,8 +2121,35 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     
     /* Dashboard Cards */
     .feature-cards {
+        display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 15px;
+        grid-template-columns: 1fr;
+        padding: 10px;
+    }
+    
+    .feature-card {
+        width: 100%;
+        min-height: auto;
+        padding: 1.5rem;
+        margin: 0;
+    }
+    
+    .feature-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+        word-wrap: break-word;
+    }
+    
+    .feature-card p {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+    
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 0.75rem;
     }
     
     /* Planner */
