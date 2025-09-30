@@ -3850,16 +3850,13 @@ Step by step explain kariye
 Grade {grade} ke bachon ke liye perfect level main adjust kar deti hun!
 Kaisa laga teacher? Aur specific help chahiye? 😊"""
 
-@app.route('/health')
-def health_check():
-    """Health check endpoint for deployment"""
-    return {'status': 'ok', 'app': 'USTAAD DOST'}, 200
-
 @app.route('/')
 def index():
-    # Check if user is logged in
+    # Check if user is logged in - if not, show login page directly (no redirect for health checks)
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        # Return login page with 200 status for health checks to pass
+        return render_template('login.html'), 200
+    
     return render_template('dashboard.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
 
 @app.route('/login', methods=['GET', 'POST'])
