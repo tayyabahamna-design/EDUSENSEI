@@ -1324,25 +1324,63 @@
     
     <script>
         // USER-SPECIFIC DATA STORAGE - Prevents data mixing between different users
+        function normalizePhone(phone) {
+            // Remove all non-digits and get last 11 digits
+            const digits = (phone || '').replace(/\D/g, '');
+            return digits.slice(-11) || 'default';
+        }
+
         function getCurrentUserPhone() {
             const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
-            console.log('🔍 Current user:', user);
-            return user.phone || 'default';
+            console.log('🔍 Raw user data:', user);
+            const normalized = normalizePhone(user.phone);
+            console.log('📱 Normalized phone:', normalized);
+            return normalized;
         }
 
         function saveUserData(key, data) {
             const userPhone = getCurrentUserPhone();
-            console.log('💾 Saving for user:', userPhone, 'Key:', key, 'Data length:', Array.isArray(data) ? data.length : 'N/A');
-            localStorage.setItem(`${userPhone}_${key}`, JSON.stringify(data));
-            console.log('✅ Saved successfully to:', `${userPhone}_${key}`);
+            const storageKey = `gb_${userPhone}_${key}`;
+            console.log('💾 SAVING - User:', userPhone, 'Key:', storageKey, 'Data length:', Array.isArray(data) ? data.length : 'N/A');
+            localStorage.setItem(storageKey, JSON.stringify(data));
+            console.log('✅ SAVED successfully!');
         }
 
         function getUserData(key) {
             const userPhone = getCurrentUserPhone();
-            const storageKey = `${userPhone}_${key}`;
-            const data = localStorage.getItem(storageKey);
-            console.log('📂 Loading for user:', userPhone, 'Key:', key, 'Found:', data ? 'YES' : 'NO');
-            return JSON.parse(data || '[]');
+            const storageKey = `gb_${userPhone}_${key}`;
+            
+            // Try loading with new normalized key
+            let data = localStorage.getItem(storageKey);
+            console.log('📂 LOADING - User:', userPhone, 'Key:', storageKey, 'Found:', data ? 'YES' : 'NO');
+            
+            // MIGRATION: If not found, try old formats and migrate
+            if (!data) {
+                console.log('🔄 Trying legacy key formats...');
+                const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+                const legacyKeys = [
+                    `${user.phone}_${key}`,  // Original format with dashes
+                    `${user.phone.replace(/-/g, '')}_${key}`,  // No dashes
+                    `default_${key}`  // Fallback
+                ];
+                
+                for (const legacyKey of legacyKeys) {
+                    const legacyData = localStorage.getItem(legacyKey);
+                    if (legacyData) {
+                        console.log('✨ FOUND DATA in legacy key:', legacyKey);
+                        console.log('🔄 MIGRATING to new key:', storageKey);
+                        // Migrate to new format
+                        localStorage.setItem(storageKey, legacyData);
+                        data = legacyData;
+                        console.log('✅ MIGRATION complete! Data recovered!');
+                        break;
+                    }
+                }
+            }
+            
+            const result = JSON.parse(data || '[]');
+            console.log('📊 Loaded data count:', Array.isArray(result) ? result.length : 'N/A');
+            return result;
         }
 
         function showSection(sectionName) {
