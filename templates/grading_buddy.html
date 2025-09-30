@@ -1323,66 +1323,6 @@
     </style>
     
     <script>
-        // USER-SPECIFIC DATA STORAGE - Prevents data mixing between different users
-        function normalizePhone(phone) {
-            // Remove all non-digits and get last 11 digits
-            const digits = (phone || '').replace(/\D/g, '');
-            return digits.slice(-11) || 'default';
-        }
-
-        function getCurrentUserPhone() {
-            const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
-            console.log('🔍 Raw user data:', user);
-            const normalized = normalizePhone(user.phone);
-            console.log('📱 Normalized phone:', normalized);
-            return normalized;
-        }
-
-        function saveUserData(key, data) {
-            const userPhone = getCurrentUserPhone();
-            const storageKey = `gb_${userPhone}_${key}`;
-            console.log('💾 SAVING - User:', userPhone, 'Key:', storageKey, 'Data length:', Array.isArray(data) ? data.length : 'N/A');
-            localStorage.setItem(storageKey, JSON.stringify(data));
-            console.log('✅ SAVED successfully!');
-        }
-
-        function getUserData(key) {
-            const userPhone = getCurrentUserPhone();
-            const storageKey = `gb_${userPhone}_${key}`;
-            
-            // Try loading with new normalized key
-            let data = localStorage.getItem(storageKey);
-            console.log('📂 LOADING - User:', userPhone, 'Key:', storageKey, 'Found:', data ? 'YES' : 'NO');
-            
-            // MIGRATION: If not found, try old formats and migrate
-            if (!data) {
-                console.log('🔄 Trying legacy key formats...');
-                const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
-                const legacyKeys = [
-                    `${user.phone}_${key}`,  // Original format with dashes
-                    `${user.phone.replace(/-/g, '')}_${key}`,  // No dashes
-                    `default_${key}`  // Fallback
-                ];
-                
-                for (const legacyKey of legacyKeys) {
-                    const legacyData = localStorage.getItem(legacyKey);
-                    if (legacyData) {
-                        console.log('✨ FOUND DATA in legacy key:', legacyKey);
-                        console.log('🔄 MIGRATING to new key:', storageKey);
-                        // Migrate to new format
-                        localStorage.setItem(storageKey, legacyData);
-                        data = legacyData;
-                        console.log('✅ MIGRATION complete! Data recovered!');
-                        break;
-                    }
-                }
-            }
-            
-            const result = JSON.parse(data || '[]');
-            console.log('📊 Loaded data count:', Array.isArray(result) ? result.length : 'N/A');
-            return result;
-        }
-
         function showSection(sectionName) {
             // Hide all sections
             const sections = document.querySelectorAll('.content-section');
@@ -1429,14 +1369,14 @@
             if (className) {
                 const newClass = {
                     id: Date.now(),
-                    name: className,
+                    name: className, // Just class name, no subject restriction
                     students: [],
-                    scoresheets: []
+                    scoresheets: [] // Will contain tests for all subjects
                 };
                 
-                let classes = getUserData('teacherClasses');
+                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
                 classes.push(newClass);
-                saveUserData('teacherClasses', classes);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
                 
                 alert('✅ Class created successfully!');
                 loadExistingClasses();
@@ -1452,7 +1392,7 @@
         }
 
         function loadExistingClasses() {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classesGrid = document.querySelector('.classes-grid');
             
             if (classes.length === 0) {
@@ -1487,9 +1427,9 @@
 
         function deleteClass(classId) {
             if (confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
-                let classes = getUserData('teacherClasses');
+                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
                 classes = classes.filter(c => c.id !== classId);
-                saveUserData('teacherClasses', classes);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
                 loadExistingClasses();
                 alert('✅ Class deleted successfully!');
             }
@@ -1534,12 +1474,12 @@
             };
             
             // Add student to class
-            let classes = getUserData('teacherClasses');
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id === window.currentClassId);
             
             if (classIndex !== -1) {
                 classes[classIndex].students.push(newStudent);
-                saveUserData('teacherClasses', classes);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
                 
                 alert('✅ Student added successfully!');
                 
@@ -1569,7 +1509,7 @@
 
         // ENHANCED CLASS INTERFACE WITH NEW TEST BUTTON
         function openClass(classId) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             
             if (!currentClass) {
@@ -1630,7 +1570,7 @@
         }
 
         function loadRecentTests(classId) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             const recentTestsDiv = document.getElementById(`recentTests_${classId}`);
             
@@ -1650,7 +1590,7 @@
         }
 
         function viewAllTests(classId) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             
             alert(`📊 All Tests for ${currentClass.name}:\n\nTotal Tests: ${currentClass.scoresheets ? currentClass.scoresheets.length : 0}\n\nDetailed test history viewer coming soon!`);
@@ -1716,10 +1656,10 @@
                 gender: ''
             };
             
-            let classes = getUserData('teacherClasses');
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id === classId);
             classes[classIndex].students.push(newStudent);
-            saveUserData('teacherClasses', classes);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
             
             document.getElementById('studentName').value = '';
             alert(`✅ ${studentName} added successfully!`);
@@ -1734,7 +1674,7 @@
             
             const studentNames = bulkText.split('\n').map(name => name.trim()).filter(name => name);
             
-            let classes = getUserData('teacherClasses');
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id === classId);
             
             studentNames.forEach(name => {
@@ -1750,7 +1690,7 @@
                 classes[classIndex].students.push(newStudent);
             });
             
-            saveUserData('teacherClasses', classes);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
             
             document.getElementById('bulkStudents').value = '';
             alert(`✅ ${studentNames.length} students added successfully!`);
@@ -1897,12 +1837,12 @@
             }
             
             // FORCE SAVE TO LOCALSTORAGE
-            let classes = getUserData('teacherClasses');
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id == classId);
             
             if (classIndex !== -1) {
                 classes[classIndex].students.push(...students);
-                saveUserData('teacherClasses', classes);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
                 alert(`✅ ${students.length} students saved successfully!`);
                 openClass(classId);
             }
@@ -1919,69 +1859,44 @@
             alert('Plan saved successfully!');
         }
 
-        // STUDENT PROFILE EDITING WITH FORCED VISIBLE BUTTONS
+        // STUDENT PROFILE EDITING
         function viewAllStudents(classId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
             
-            if (!currentClass || !currentClass.students || currentClass.students.length === 0) {
-                document.getElementById('classDetails').innerHTML = `
-                    <div style="padding: 30px; text-align: center;">
-                        <h3>👥 No Students Yet</h3>
-                        <p style="color: #666;">Add students to this class first!</p>
-                        <button onclick="openClass(${classId})" style="background: #4a90e2; color: white; padding: 15px 30px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">⬅️ Back to Class</button>
+            let studentsHTML = `
+                <div class="students-list">
+                    <h3>👥 Students in ${currentClass.name}</h3>
+                    
+                    <div class="students-grid">
+                        ${currentClass.students.map(student => `
+                            <div class="student-card">
+                                <div class="student-info">
+                                    <h4>${student.name}</h4>
+                                    <p class="student-details">
+                                        ${student.fatherName ? `Father: ${student.fatherName}` : 'Father: Not added'}<br>
+                                        ${student.contact ? `Contact: ${student.contact}` : 'Contact: Not added'}
+                                    </p>
+                                </div>
+                                <div class="student-actions">
+                                    <button onclick="editStudentProfile(${classId}, ${student.id})" class="edit-btn">✏️ Edit</button>
+                                    <button onclick="deleteStudent(${classId}, ${student.id})" class="delete-btn">🗑️</button>
+                                </div>
+                            </div>
+                        `).join('')}
                     </div>
-                `;
-                return;
-            }
+                    
+                    <button onclick="openClass(${classId})" class="back-btn">⬅️ Back to Class</button>
+                </div>
+            `;
             
-            let html = '<div style="padding: 20px;"><h3 style="color: #2c5f2d;">👥 Students in ' + currentClass.name + ' (' + currentClass.students.length + ' students)</h3>';
-            
-            currentClass.students.forEach((student, index) => {
-                html += `
-                    <div style="border: 2px solid #4a90e2; padding: 20px; margin: 15px 0; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                        <h4 style="color: #2c5f2d; margin: 0 0 10px 0; font-size: 20px;">${index + 1}. ${student.name}</h4>
-                        <p style="margin: 5px 0;"><strong>Father:</strong> ${student.fatherName || 'Not added'}</p>
-                        <p style="margin: 5px 0;"><strong>Contact:</strong> ${student.contact || 'Not added'}</p>
-                        <p style="margin: 5px 0;"><strong>Roll No:</strong> ${student.rollNumber || 'Not set'}</p>
-                        
-                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button onclick="window.editBtn${index}()" style="background: #28a745; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; min-width: 120px;">
-                                ✏️ EDIT
-                            </button>
-                            <button onclick="window.delBtn${index}()" style="background: #dc3545; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; min-width: 120px;">
-                                🗑️ DELETE
-                            </button>
-                            <button onclick="window.reportBtn${index}()" style="background: #007bff; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; min-width: 120px;">
-                                📊 REPORTS
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Create individual button functions
-                window['editBtn' + index] = function() {
-                    editStudentProfile(classId, student.id);
-                };
-                
-                window['delBtn' + index] = function() {
-                    deleteStudent(classId, student.id);
-                };
-                
-                window['reportBtn' + index] = function() {
-                    viewStudentProgress(classId, student.id);
-                };
-            });
-            
-            html += '<button onclick="openClass(' + classId + ')" style="background: #4a90e2; color: white; padding: 15px 30px; margin-top: 20px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">⬅️ Back to Class</button></div>';
-            
-            document.getElementById('classDetails').innerHTML = html;
+            document.getElementById('classDetails').innerHTML = studentsHTML;
         }
 
         function editStudentProfile(classId, studentId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
-            const student = currentClass.students.find(s => s.id == studentId);
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const currentClass = classes.find(c => c.id === classId);
+            const student = currentClass.students.find(s => s.id === studentId);
             
             const editForm = `
                 <div class="edit-student-form">
@@ -2046,29 +1961,25 @@
                 return;
             }
             
-            let classes = getUserData('teacherClasses');
-            const classIndex = classes.findIndex(c => c.id == classId);
-            const studentIndex = classes[classIndex].students.findIndex(s => s.id == studentId);
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classIndex = classes.findIndex(c => c.id === classId);
+            const studentIndex = classes[classIndex].students.findIndex(s => s.id === studentId);
             
             // Update student data
             Object.assign(classes[classIndex].students[studentIndex], updatedData);
             
-            saveUserData('teacherClasses', classes);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
             alert('✅ Student profile updated successfully!');
             viewAllStudents(classId);
         }
 
         function deleteStudent(classId, studentId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
-            const student = currentClass.students.find(s => s.id == studentId);
-            
-            if (confirm('Delete ' + student.name + ' from this class permanently? This cannot be undone!')) {
-                let updatedClasses = getUserData('teacherClasses');
-                const classIndex = updatedClasses.findIndex(c => c.id == classId);
-                updatedClasses[classIndex].students = updatedClasses[classIndex].students.filter(s => s.id != studentId);
+            if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
+                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+                const classIndex = classes.findIndex(c => c.id === classId);
+                classes[classIndex].students = classes[classIndex].students.filter(s => s.id !== studentId);
                 
-                saveUserData('teacherClasses', updatedClasses);
+                localStorage.setItem('teacherClasses', JSON.stringify(classes));
                 alert('✅ Student deleted successfully!');
                 viewAllStudents(classId);
             }
@@ -2163,7 +2074,7 @@
 
         // MARKS SCORESHEET SYSTEM
         function createMarksScoresheet(classId, testData) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             
             if (currentClass.students.length === 0) {
@@ -2229,7 +2140,7 @@
 
         // EXERCISE CHECKLIST (7 TASKS) SYSTEM
         function createExerciseChecklist(classId, testData) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             
             if (currentClass.students.length === 0) {
@@ -2299,7 +2210,7 @@
 
         // SAVE SCORESHEET FUNCTIONS
         function saveScoresheet(classId, testData) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id === classId);
             const currentClass = classes[classIndex];
             
@@ -2333,14 +2244,14 @@
             currentClass.scoresheets.push(testData);
             
             // Save to localStorage
-            saveUserData('teacherClasses', classes);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
             
             alert('✅ Test scores saved successfully!');
             openClass(classId);
         }
 
         function saveExerciseChecklist(classId, testData) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id === classId);
             const currentClass = classes[classIndex];
             
@@ -2375,14 +2286,14 @@
             currentClass.scoresheets.push(testData);
             
             // Save to localStorage
-            saveUserData('teacherClasses', classes);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
             
             alert('✅ Exercise checklist saved successfully!');
             openClass(classId);
         }
 
         function viewTestResults(classId, testId) {
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             const test = currentClass.scoresheets.find(t => t.id === testId);
             
@@ -2394,67 +2305,57 @@
             let resultsHTML = '';
             if (test.assessmentType === 'marks') {
                 resultsHTML = `
-                    <div id="testReport">
-                        <div class="test-results">
-                            <h3>📊 ${test.subject} - ${test.topic} Results</h3>
-                            <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${test.type} | <strong>Date:</strong> ${test.date}</p>
-                            
-                            <div class="results-summary">
-                                <h4>Class Performance:</h4>
-                                <p>Average: ${calculateClassAverage(test.scores)}% | Highest: ${getHighestScore(test.scores)}% | Lowest: ${getLowestScore(test.scores)}%</p>
-                            </div>
-                            
-                            <table class="results-table" border="1" style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr><th>Student</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${test.scores.map(score => `
-                                        <tr>
-                                            <td>${score.studentName}</td>
-                                            <td>${score.obtainedMarks}/${test.totalMarks}</td>
-                                            <td>${score.percentage}%</td>
-                                            <td class="grade-${score.grade.toLowerCase()}">${score.grade}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                    <div class="test-results">
+                        <h3>📊 ${test.subject} - ${test.topic} Results</h3>
+                        <p><strong>Type:</strong> ${test.type} | <strong>Date:</strong> ${test.date}</p>
+                        
+                        <div class="results-summary">
+                            <h4>Class Performance:</h4>
+                            <p>Average: ${calculateClassAverage(test.scores)}% | Highest: ${getHighestScore(test.scores)}% | Lowest: ${getLowestScore(test.scores)}%</p>
                         </div>
+                        
+                        <table class="results-table">
+                            <thead>
+                                <tr><th>Student</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr>
+                            </thead>
+                            <tbody>
+                                ${test.scores.map(score => `
+                                    <tr>
+                                        <td>${score.studentName}</td>
+                                        <td>${score.obtainedMarks}/${test.totalMarks}</td>
+                                        <td>${score.percentage}%</td>
+                                        <td class="grade-${score.grade.toLowerCase()}">${score.grade}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                     </div>
-                    
-                    <button onclick="printTestReport()" style="background: green; color: white; padding: 10px; margin: 10px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
-                        🖨️ Print Test Report
-                    </button>
-                    <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                 `;
             } else {
                 resultsHTML = `
-                    <div id="testReport">
-                        <div class="exercise-results">
-                            <h3>✅ ${test.subject} - ${test.topic} Results</h3>
-                            <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> Exercise Checklist | <strong>Date:</strong> ${test.date}</p>
-                            
-                            <table class="results-table" border="1" style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr><th>Student</th><th>Completed Tasks</th><th>Completion Rate</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${test.exerciseResults.map(result => `
-                                        <tr>
-                                            <td>${result.studentName}</td>
-                                            <td>${result.total}</td>
-                                            <td>${result.completionRate}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="exercise-results">
+                        <h3>✅ ${test.subject} - ${test.topic} Results</h3>
+                        <p><strong>Type:</strong> Exercise Checklist | <strong>Date:</strong> ${test.date}</p>
+                        
+                        <table class="results-table">
+                            <thead>
+                                <tr><th>Student</th><th>Completed Tasks</th><th>Completion Rate</th></tr>
+                            </thead>
+                            <tbody>
+                                ${test.exerciseResults.map(result => `
+                                    <tr>
+                                        <td>${result.studentName}</td>
+                                        <td>${result.total}</td>
+                                        <td>${result.completionRate}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                     </div>
-                    
-                    <button onclick="printTestReport()" style="background: green; color: white; padding: 10px; margin: 10px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
-                        🖨️ Print Test Report
-                    </button>
-                    <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                 `;
             }
             
@@ -2473,238 +2374,6 @@
 
         function getLowestScore(scores) {
             return scores.length > 0 ? Math.min(...scores.map(s => s.percentage)) : 0;
-        }
-
-        // PRINT TEST REPORT FUNCTION
-        function printTestReport() {
-            const printContent = document.getElementById('testReport').innerHTML;
-            const printWindow = window.open('', '', 'height=600,width=800');
-            
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Test Report</title>
-                    <style>
-                        body { font-family: Arial; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; }
-                        h3 { color: #333; }
-                    </style>
-                </head>
-                <body>
-                    ${printContent}
-                    <p style="margin-top: 30px; font-size: 12px;">Generated by Ustaad Dost - ${new Date().toLocaleDateString()}</p>
-                </body>
-                </html>
-            `);
-            
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        function calculateLetterGrade(percentage) {
-            if (percentage >= 90) return 'A+';
-            if (percentage >= 80) return 'A';
-            if (percentage >= 70) return 'B';
-            if (percentage >= 60) return 'C';
-            if (percentage >= 50) return 'D';
-            return 'F';
-        }
-
-        // STUDENT PROGRESS REPORT FUNCTIONS
-        function viewStudentProgress(classId, studentId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
-            const student = currentClass.students.find(s => s.id == studentId);
-            
-            // Get all tests for this student
-            const studentTests = currentClass.scoresheets ? currentClass.scoresheets.map(test => {
-                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
-                return {
-                    subject: test.subject,
-                    topic: test.topic,
-                    date: test.date,
-                    score: studentScore || null,
-                    totalMarks: test.totalMarks
-                };
-            }).filter(test => test.score) : [];
-            
-            const progressHTML = `
-                <div class="student-progress">
-                    <h3>📈 ${student.name} - Progress Report</h3>
-                    
-                    <div class="report-buttons" style="margin: 20px 0;">
-                        <button onclick="printWeeklyProgress(${classId}, ${studentId})" style="background: blue; color: white; padding: 10px; margin: 5px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
-                            📅 Weekly Report
-                        </button>
-                        <button onclick="printMonthlyProgress(${classId}, ${studentId})" style="background: green; color: white; padding: 10px; margin: 5px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
-                            📅 Monthly Report
-                        </button>
-                        <button onclick="printYearlyProgress(${classId}, ${studentId})" style="background: purple; color: white; padding: 10px; margin: 5px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
-                            📅 Yearly Report
-                        </button>
-                    </div>
-                    
-                    <div id="progressReport">
-                        <h4>Recent Test Results:</h4>
-                        ${studentTests.length > 0 ? `
-                            <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                                <tr style="background-color: #f2f2f2;">
-                                    <th>Subject</th>
-                                    <th>Topic</th>
-                                    <th>Date</th>
-                                    <th>Marks</th>
-                                    <th>Percentage</th>
-                                </tr>
-                                ${studentTests.map(test => `
-                                    <tr>
-                                        <td>${test.subject}</td>
-                                        <td>${test.topic}</td>
-                                        <td>${test.date}</td>
-                                        <td>${test.score.obtainedMarks}/${test.totalMarks}</td>
-                                        <td>${test.score.percentage}%</td>
-                                    </tr>
-                                `).join('')}
-                            </table>
-                        ` : '<p>No test results available yet.</p>'}
-                    </div>
-                    
-                    <button onclick="viewAllStudents(${classId})" class="btn btn-secondary">Back to Students</button>
-                </div>
-            `;
-            
-            document.getElementById('classDetails').innerHTML = progressHTML;
-        }
-
-        function printWeeklyProgress(classId, studentId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
-            const student = currentClass.students.find(s => s.id == studentId);
-            
-            // Get tests from last 7 days
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-            
-            const weeklyTests = currentClass.scoresheets ? currentClass.scoresheets.filter(test => {
-                const testDate = new Date(test.date);
-                return testDate >= oneWeekAgo;
-            }).map(test => {
-                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
-                return { test, score: studentScore };
-            }).filter(item => item.score) : [];
-            
-            printProgressReport(student, weeklyTests, 'Weekly Progress Report');
-        }
-
-        function printMonthlyProgress(classId, studentId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
-            const student = currentClass.students.find(s => s.id == studentId);
-            
-            // Get tests from last 30 days
-            const oneMonthAgo = new Date();
-            oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
-            
-            const monthlyTests = currentClass.scoresheets ? currentClass.scoresheets.filter(test => {
-                const testDate = new Date(test.date);
-                return testDate >= oneMonthAgo;
-            }).map(test => {
-                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
-                return { test, score: studentScore };
-            }).filter(item => item.score) : [];
-            
-            printProgressReport(student, monthlyTests, 'Monthly Progress Report');
-        }
-
-        function printYearlyProgress(classId, studentId) {
-            const classes = getUserData('teacherClasses');
-            const currentClass = classes.find(c => c.id == classId);
-            const student = currentClass.students.find(s => s.id == studentId);
-            
-            // Get all tests for this student
-            const yearlyTests = currentClass.scoresheets ? currentClass.scoresheets.map(test => {
-                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
-                return { test, score: studentScore };
-            }).filter(item => item.score) : [];
-            
-            printProgressReport(student, yearlyTests, 'Yearly Progress Report');
-        }
-
-        function printProgressReport(student, tests, reportType) {
-            const totalTests = tests.length;
-            const averageScore = totalTests > 0 ? 
-                Math.round(tests.reduce((sum, item) => sum + item.score.percentage, 0) / totalTests) : 0;
-            
-            const printContent = `
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h2>${reportType}</h2>
-                    <h3>Student: ${student.name}</h3>
-                    <p><strong>Father:</strong> ${student.fatherName || 'N/A'} | <strong>Contact:</strong> ${student.contact || 'N/A'}</p>
-                </div>
-                
-                <div style="margin: 20px 0;">
-                    <h4>Summary:</h4>
-                    <p><strong>Total Tests:</strong> ${totalTests}</p>
-                    <p><strong>Average Score:</strong> ${averageScore}%</p>
-                    <p><strong>Overall Grade:</strong> ${calculateLetterGrade(averageScore)}</p>
-                </div>
-                
-                ${totalTests > 0 ? `
-                    <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                        <tr style="background-color: #f2f2f2;">
-                            <th>Subject</th>
-                            <th>Topic</th>
-                            <th>Date</th>
-                            <th>Marks Obtained</th>
-                            <th>Total Marks</th>
-                            <th>Percentage</th>
-                            <th>Grade</th>
-                        </tr>
-                        ${tests.map(item => `
-                            <tr>
-                                <td>${item.test.subject}</td>
-                                <td>${item.test.topic}</td>
-                                <td>${item.test.date}</td>
-                                <td>${item.score.obtainedMarks}</td>
-                                <td>${item.test.totalMarks}</td>
-                                <td>${item.score.percentage}%</td>
-                                <td>${calculateLetterGrade(item.score.percentage)}</td>
-                            </tr>
-                        `).join('')}
-                    </table>
-                ` : '<p>No tests available for this period.</p>'}
-                
-                <div style="margin-top: 40px;">
-                    <p><strong>Teacher's Comments:</strong> ____________________________</p>
-                    <br>
-                    <p><strong>Parent's Signature:</strong> ____________________________</p>
-                </div>
-            `;
-            
-            const printWindow = window.open('', '', 'height=600,width=800');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>${reportType} - ${student.name}</title>
-                    <style>
-                        body { font-family: Arial; padding: 20px; }
-                        table { width: 100%; border-collapse: collapse; }
-                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-                        th { background-color: #f2f2f2; font-weight: bold; }
-                    </style>
-                </head>
-                <body>
-                    ${printContent}
-                    <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
-                        Generated by Ustaad Dost - ${new Date().toLocaleDateString()}
-                    </p>
-                </body>
-                </html>
-            `);
-            
-            printWindow.document.close();
-            printWindow.print();
         }
         
         // Picture upload functionality for student lists
@@ -2726,7 +2395,7 @@
             document.getElementById('bulkImportSection').style.display = 'block';
             
             // Load classes into dropdown
-            const classes = getUserData('teacherClasses');
+            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const select = document.getElementById('bulkImportClassSelect');
             select.innerHTML = '<option value="">-- Select Class --</option>';
             
@@ -2766,7 +2435,7 @@
             }
             
             // Get current class
-            let classes = getUserData('teacherClasses');
+            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const classIndex = classes.findIndex(c => c.id === selectedClassId);
             
             if (classIndex === -1) {
@@ -2791,7 +2460,7 @@
             });
             
             // Save back to localStorage
-            saveUserData('teacherClasses', classes);
+            localStorage.setItem('teacherClasses', JSON.stringify(classes));
             
             alert(`✅ Successfully added ${addedCount} students to ${classes[classIndex].name}!`);
             
@@ -2949,21 +2618,6 @@
             
             // Initialize classes display
             loadExistingClasses();
-        });
-        
-        // LOGOUT FUNCTION - Clears user session
-        function logoutUser() {
-            console.log('🚪 Logging out user...');
-            localStorage.removeItem('ustaadDostUser');
-            console.log('✅ User data cleared from localStorage');
-            window.location.href = '/logout';
-        }
-        
-        // Add page load logging
-        window.addEventListener('load', function() {
-            const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
-            console.log('📄 Grading Buddy page loaded');
-            console.log('👤 Current user from localStorage:', user);
         });
     </script>
 </body>

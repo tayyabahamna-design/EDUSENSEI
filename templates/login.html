@@ -64,18 +64,14 @@
         function handleSuccessfulLogin(userPhone, userData) {
             console.log("Handling successful login for:", userPhone); // Debug log
             
-            // CLEAR any existing user data first
-            localStorage.removeItem('ustaadDostUser');
-            console.log("Cleared existing user data"); // Debug log
-            
-            // Store NEW login session in localStorage
+            // Store login session in localStorage
             localStorage.setItem('ustaadDostUser', JSON.stringify({
                 phone: userPhone,
                 loginTime: new Date().getTime(),
                 userData: userData || { name: userPhone }
             }));
             
-            console.log("New session stored in localStorage for:", userPhone); // Debug log
+            console.log("Session stored in localStorage"); // Debug log
             
             // Redirect to dashboard (Flask will handle server-side session)
             window.location.href = '/';
@@ -117,11 +113,7 @@
             if (flashMessages.length > 0 && loginAttemptPhone) {
                 console.log("Successful login detected, storing localStorage session"); // Debug log
                 
-                // CLEAR any existing user data first
-                localStorage.removeItem('ustaadDostUser');
-                console.log("Cleared existing user data before new login"); // Debug log
-                
-                // Store NEW login session in localStorage
+                // Store login session in localStorage
                 localStorage.setItem('ustaadDostUser', JSON.stringify({
                     phone: loginAttemptPhone,
                     loginTime: new Date().getTime(),
@@ -131,7 +123,7 @@
                 // Clear temporary storage
                 sessionStorage.removeItem('loginAttemptPhone');
                 
-                console.log("NEW localStorage session created for:", loginAttemptPhone); // Debug log
+                console.log("localStorage session created after successful login"); // Debug log
                 
                 // Redirect to dashboard after a short delay
                 setTimeout(function() {
@@ -552,7 +544,37 @@
             e.target.value = value;
         });
 
-        // No password functions needed - simple phone number login only
+        // FORGET PASSWORD FUNCTIONS
+        function showForgotPassword() {
+            // Hide login form, show forgot password form
+            document.querySelector('.auth-form').style.display = 'none';
+            document.getElementById('forgotPasswordForm').style.display = 'block';
+        }
+
+        function backToLogin() {
+            // Show login form, hide forgot password form
+            document.querySelector('.auth-form').style.display = 'block';
+            document.getElementById('forgotPasswordForm').style.display = 'none';
+            
+            // Reset forgot password form
+            resetForgotPasswordForm();
+        }
+
+        function resetForgotPasswordForm() {
+            document.getElementById('resetPhone').value = '';
+            document.getElementById('verificationCode').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmNewPassword').value = '';
+            document.getElementById('resetOptions').innerHTML = '';
+            document.getElementById('codeVerification').style.display = 'none';
+            document.getElementById('newPasswordSection').style.display = 'none';
+            
+            // Clear any stored reset data
+            localStorage.removeItem('resetCode');
+        }
+
+        // ENHANCED FORGET PASSWORD SYSTEM WITH BACKEND INTEGRATION
+        function sendResetCodeWithOptions() {
             const phone = document.getElementById('resetPhone').value;
             
             if (!phone || phone.length < 11) {

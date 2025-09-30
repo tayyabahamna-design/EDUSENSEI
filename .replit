@@ -36,6 +36,10 @@ localPort = 5000
 externalPort = 80
 
 [[ports]]
+localPort = 33171
+externalPort = 8080
+
+[[ports]]
 localPort = 35103
 externalPort = 5173
 
@@ -50,10 +54,6 @@ externalPort = 3002
 [[ports]]
 localPort = 38519
 externalPort = 3001
-
-[[ports]]
-localPort = 38697
-externalPort = 8080
 
 [[ports]]
 localPort = 39017
@@ -85,4 +85,4 @@ externalPort = 8000
 
 [deployment]
 deploymentTarget = "vm"
-run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "--workers=4", "app:app"]
+run = ["gunicorn", "--bind=0.0.0.0:5000", "--reuse-port", "app:app"]

@@ -5869,7 +5869,5 @@ if __name__ == '__main__':
     # Initialize upload directories
     init_upload_directories()
     
-    # Run the app (debug only in development)
-    import os
-    is_development = os.environ.get('REPL_ID') is not None
-    app.run(host='0.0.0.0', port=5000, debug=is_development)
+    # Run the app
+    app.run(host='0.0.0.0', port=5000, debug=True)
