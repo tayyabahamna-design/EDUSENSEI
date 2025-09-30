@@ -1,0 +1,152 @@
+SIMPLE FIXES - PHONE DATA MIX & MISSING BUTTONS:
+Keep everything same. Only fix these issues:
+FIX 1 - DATA MIXING ON PHONE
+javascriptCopy// Add phone number to all localStorage keys to separate users
+function getCurrentUserPhone() {
+    const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+    return user.phone || 'default';
+}
+
+// Update all localStorage calls with user phone
+function saveUserData(key, data) {
+    const userPhone = getCurrentUserPhone();
+    localStorage.setItem(`${userPhone}_${key}`, JSON.stringify(data));
+}
+
+function getUserData(key) {
+    const userPhone = getCurrentUserPhone();
+    return JSON.parse(localStorage.getItem(`${userPhone}_${key}`) || '[]');
+}
+
+// Update class saving
+function saveClass() {
+    const className = document.getElementById('className').value;
+    
+    if (className) {
+        const newClass = {
+            id: Date.now(),
+            name: className,
+            students: [],
+            scoresheets: []
+        };
+        
+        let classes = getUserData('teacherClasses');
+        classes.push(newClass);
+        saveUserData('teacherClasses', classes);
+        
+        alert('Class created!');
+        loadExistingClasses();
+    }
+}
+
+// Update planner saving  
+function saveAndCopyToYear() {
+    // ... existing logic ...
+    saveUserData('yearlyPlan', yearlyPlan);
+    saveUserData('weeklyTemplate', weeklyTemplate);
+    alert('Plan saved!');
+}
+FIX 2 - MISSING EDIT/DELETE BUTTONS
+javascriptCopy// Force show buttons with inline styles
+function viewAllStudents(classId) {
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (!currentClass || !currentClass.students) {
+        document.getElementById('classDetails').innerHTML = '<p>No students found.</p>';
+        return;
+    }
+    
+    let html = '<h3>Students List</h3>';
+    
+    currentClass.students.forEach((student, index) => {
+        html += `
+            <div style="border: 2px solid black; padding: 15px; margin: 10px 0; background: white;">
+                <h4 style="color: blue;">${student.name}</h4>
+                <p>Father: ${student.fatherName || 'Not added'}</p>
+                <p>Contact: ${student.contact || 'Not added'}</p>
+                
+                <button onclick="editStudent${index}()" style="background: green; color: white; padding: 10px; margin: 5px; font-size: 16px; border: none; border-radius: 5px;">
+                    EDIT
+                </button>
+                
+                <button onclick="deleteStudent${index}()" style="background: red; color: white; padding: 10px; margin: 5px; font-size: 16px; border: none; border-radius: 5px;">
+                    DELETE  
+                </button>
+            </div>
+        `;
+        
+        // Create individual functions for each student
+        window[`editStudent${index}`] = function() {
+            editStudentProfile(classId, student.id);
+        };
+        
+        window[`deleteStudent${index}`] = function() {
+            deleteStudentProfile(classId, student.id);
+        };
+    });
+    
+    html += `<button onclick="openClass(${classId})" style="background: blue; color: white; padding: 15px; margin: 10px; font-size: 18px;">Back to Class</button>`;
+    
+    document.getElementById('classDetails').innerHTML = html;
+}
+
+function editStudentProfile(classId, studentId) {
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    const student = currentClass.students.find(s => s.id == studentId);
+    
+    const editForm = `
+        <h3>Edit Student Profile</h3>
+        <input type="text" id="editName" value="${student.name}" style="width: 100%; padding: 10px; margin: 5px 0; font-size: 16px;">
+        <input type="text" id="editFather" value="${student.fatherName || ''}" placeholder="Father Name" style="width: 100%; padding: 10px; margin: 5px 0; font-size: 16px;">
+        <input type="text" id="editContact" value="${student.contact || ''}" placeholder="Contact" style="width: 100%; padding: 10px; margin: 5px 0; font-size: 16px;">
+        
+        <button onclick="saveStudentChanges(${classId}, ${studentId})" style="background: green; color: white; padding: 15px; margin: 10px; font-size: 16px;">
+            SAVE CHANGES
+        </button>
+        
+        <button onclick="viewAllStudents(${classId})" style="background: gray; color: white; padding: 15px; margin: 10px; font-size: 16px;">
+            CANCEL
+        </button>
+    `;
+    
+    document.getElementById('classDetails').innerHTML = editForm;
+}
+
+function saveStudentChanges(classId, studentId) {
+    const name = document.getElementById('editName').value;
+    const father = document.getElementById('editFather').value;
+    const contact = document.getElementById('editContact').value;
+    
+    if (!name) {
+        alert('Name required!');
+        return;
+    }
+    
+    let classes = getUserData('teacherClasses');
+    const classIndex = classes.findIndex(c => c.id == classId);
+    const studentIndex = classes[classIndex].students.findIndex(s => s.id == studentId);
+    
+    classes[classIndex].students[studentIndex].name = name;
+    classes[classIndex].students[studentIndex].fatherName = father;
+    classes[classIndex].students[studentIndex].contact = contact;
+    
+    saveUserData('teacherClasses', classes);
+    alert('Student updated!');
+    viewAllStudents(classId);
+}
+
+function deleteStudentProfile(classId, studentId) {
+    if (confirm('Delete this student permanently?')) {
+        let classes = getUserData('teacherClasses');
+        const classIndex = classes.findIndex(c => c.id == classId);
+        
+        classes[classIndex].students = classes[classIndex].students.filter(s => s.id != studentId);
+        
+        saveUserData('teacherClasses', classes);
+        alert('Student deleted!');
+        viewAllStudents(classId);
+    }
+}
+This fixes data mixing between users and forces buttons to show properly.

@@ -1323,6 +1323,22 @@
     </style>
     
     <script>
+        // USER-SPECIFIC DATA STORAGE - Prevents data mixing between different users
+        function getCurrentUserPhone() {
+            const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+            return user.phone || 'default';
+        }
+
+        function saveUserData(key, data) {
+            const userPhone = getCurrentUserPhone();
+            localStorage.setItem(`${userPhone}_${key}`, JSON.stringify(data));
+        }
+
+        function getUserData(key) {
+            const userPhone = getCurrentUserPhone();
+            return JSON.parse(localStorage.getItem(`${userPhone}_${key}`) || '[]');
+        }
+
         function showSection(sectionName) {
             // Hide all sections
             const sections = document.querySelectorAll('.content-section');
@@ -1369,14 +1385,14 @@
             if (className) {
                 const newClass = {
                     id: Date.now(),
-                    name: className, // Just class name, no subject restriction
+                    name: className,
                     students: [],
-                    scoresheets: [] // Will contain tests for all subjects
+                    scoresheets: []
                 };
                 
-                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+                let classes = getUserData('teacherClasses');
                 classes.push(newClass);
-                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                saveUserData('teacherClasses', classes);
                 
                 alert('✅ Class created successfully!');
                 loadExistingClasses();
@@ -1392,7 +1408,7 @@
         }
 
         function loadExistingClasses() {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const classesGrid = document.querySelector('.classes-grid');
             
             if (classes.length === 0) {
@@ -1427,9 +1443,9 @@
 
         function deleteClass(classId) {
             if (confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
-                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+                let classes = getUserData('teacherClasses');
                 classes = classes.filter(c => c.id !== classId);
-                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                saveUserData('teacherClasses', classes);
                 loadExistingClasses();
                 alert('✅ Class deleted successfully!');
             }
@@ -1474,12 +1490,12 @@
             };
             
             // Add student to class
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            let classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id === window.currentClassId);
             
             if (classIndex !== -1) {
                 classes[classIndex].students.push(newStudent);
-                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                saveUserData('teacherClasses', classes);
                 
                 alert('✅ Student added successfully!');
                 
@@ -1509,7 +1525,7 @@
 
         // ENHANCED CLASS INTERFACE WITH NEW TEST BUTTON
         function openClass(classId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const currentClass = classes.find(c => c.id === classId);
             
             if (!currentClass) {
@@ -1570,7 +1586,7 @@
         }
 
         function loadRecentTests(classId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const currentClass = classes.find(c => c.id === classId);
             const recentTestsDiv = document.getElementById(`recentTests_${classId}`);
             
@@ -1590,7 +1606,7 @@
         }
 
         function viewAllTests(classId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const currentClass = classes.find(c => c.id === classId);
             
             alert(`📊 All Tests for ${currentClass.name}:\n\nTotal Tests: ${currentClass.scoresheets ? currentClass.scoresheets.length : 0}\n\nDetailed test history viewer coming soon!`);
@@ -1656,10 +1672,10 @@
                 gender: ''
             };
             
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            let classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id === classId);
             classes[classIndex].students.push(newStudent);
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            saveUserData('teacherClasses', classes);
             
             document.getElementById('studentName').value = '';
             alert(`✅ ${studentName} added successfully!`);
@@ -1674,7 +1690,7 @@
             
             const studentNames = bulkText.split('\n').map(name => name.trim()).filter(name => name);
             
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            let classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id === classId);
             
             studentNames.forEach(name => {
@@ -1690,7 +1706,7 @@
                 classes[classIndex].students.push(newStudent);
             });
             
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            saveUserData('teacherClasses', classes);
             
             document.getElementById('bulkStudents').value = '';
             alert(`✅ ${studentNames.length} students added successfully!`);
@@ -1837,12 +1853,12 @@
             }
             
             // FORCE SAVE TO LOCALSTORAGE
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            let classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id == classId);
             
             if (classIndex !== -1) {
                 classes[classIndex].students.push(...students);
-                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                saveUserData('teacherClasses', classes);
                 alert(`✅ ${students.length} students saved successfully!`);
                 openClass(classId);
             }
@@ -1859,67 +1875,62 @@
             alert('Plan saved successfully!');
         }
 
-        // STUDENT PROFILE EDITING
+        // STUDENT PROFILE EDITING WITH FORCED VISIBLE BUTTONS
         function viewAllStudents(classId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const currentClass = classes.find(c => c.id === classId);
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
             
-            if (!currentClass.students || currentClass.students.length === 0) {
+            if (!currentClass || !currentClass.students || currentClass.students.length === 0) {
                 document.getElementById('classDetails').innerHTML = `
-                    <div class="students-list">
-                        <h3>👥 Students in ${currentClass.name}</h3>
-                        <p style="text-align: center; padding: 40px; color: #666;">No students added yet. Add students first!</p>
-                        <button onclick="openClass(${classId})" class="back-btn">⬅️ Back to Class</button>
+                    <div style="padding: 30px; text-align: center;">
+                        <h3>👥 No Students Yet</h3>
+                        <p style="color: #666;">Add students to this class first!</p>
+                        <button onclick="openClass(${classId})" style="background: #4a90e2; color: white; padding: 15px 30px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer;">⬅️ Back to Class</button>
                     </div>
                 `;
                 return;
             }
             
-            let studentsHTML = `
-                <div class="students-list">
-                    <h3>👥 Students in ${currentClass.name} (${currentClass.students.length} students)</h3>
-                    
-                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                        <thead>
-                            <tr style="background: var(--sage-green-light); border-bottom: 2px solid var(--sage-green);">
-                                <th style="padding: 12px; text-align: left;">#</th>
-                                <th style="padding: 12px; text-align: left;">Student Name</th>
-                                <th style="padding: 12px; text-align: left;">Roll No</th>
-                                <th style="padding: 12px; text-align: left;">Guardian</th>
-                                <th style="padding: 12px; text-align: center;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${currentClass.students.map((student, index) => `
-                                <tr style="border-bottom: 1px solid #ddd;">
-                                    <td style="padding: 12px;">${index + 1}</td>
-                                    <td style="padding: 12px;"><strong>${student.name}</strong></td>
-                                    <td style="padding: 12px;">${student.rollNumber || '-'}</td>
-                                    <td style="padding: 12px;">${student.guardian || student.fatherName || '-'}</td>
-                                    <td style="padding: 12px; text-align: center;">
-                                        <button onclick="editStudentProfile(${classId}, ${student.id})" 
-                                                class="btn btn-sm btn-secondary" 
-                                                style="margin: 0 5px;">✏️ Edit</button>
-                                        <button onclick="deleteStudent(${classId}, ${student.id})" 
-                                                class="btn btn-sm" 
-                                                style="background: #dc3545; color: white; margin: 0 5px;">🗑️ Delete</button>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
-                    
-                    <button onclick="openClass(${classId})" class="btn btn-secondary">⬅️ Back to Class</button>
-                </div>
-            `;
+            let html = '<div style="padding: 20px;"><h3 style="color: #2c5f2d;">👥 Students in ' + currentClass.name + ' (' + currentClass.students.length + ' students)</h3>';
             
-            document.getElementById('classDetails').innerHTML = studentsHTML;
+            currentClass.students.forEach((student, index) => {
+                html += `
+                    <div style="border: 2px solid #4a90e2; padding: 20px; margin: 15px 0; background: white; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <h4 style="color: #2c5f2d; margin: 0 0 10px 0; font-size: 20px;">${index + 1}. ${student.name}</h4>
+                        <p style="margin: 5px 0;"><strong>Father:</strong> ${student.fatherName || 'Not added'}</p>
+                        <p style="margin: 5px 0;"><strong>Contact:</strong> ${student.contact || 'Not added'}</p>
+                        <p style="margin: 5px 0;"><strong>Roll No:</strong> ${student.rollNumber || 'Not set'}</p>
+                        
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button onclick="window.editBtn${index}()" style="background: #28a745; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1;">
+                                ✏️ EDIT
+                            </button>
+                            <button onclick="window.delBtn${index}()" style="background: #dc3545; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1;">
+                                🗑️ DELETE
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Create individual button functions
+                window['editBtn' + index] = function() {
+                    editStudentProfile(classId, student.id);
+                };
+                
+                window['delBtn' + index] = function() {
+                    deleteStudent(classId, student.id);
+                };
+            });
+            
+            html += '<button onclick="openClass(' + classId + ')" style="background: #4a90e2; color: white; padding: 15px 30px; margin-top: 20px; font-size: 18px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">⬅️ Back to Class</button></div>';
+            
+            document.getElementById('classDetails').innerHTML = html;
         }
 
         function editStudentProfile(classId, studentId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const currentClass = classes.find(c => c.id === classId);
-            const student = currentClass.students.find(s => s.id === studentId);
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
+            const student = currentClass.students.find(s => s.id == studentId);
             
             const editForm = `
                 <div class="edit-student-form">
@@ -1984,25 +1995,29 @@
                 return;
             }
             
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const classIndex = classes.findIndex(c => c.id === classId);
-            const studentIndex = classes[classIndex].students.findIndex(s => s.id === studentId);
+            let classes = getUserData('teacherClasses');
+            const classIndex = classes.findIndex(c => c.id == classId);
+            const studentIndex = classes[classIndex].students.findIndex(s => s.id == studentId);
             
             // Update student data
             Object.assign(classes[classIndex].students[studentIndex], updatedData);
             
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            saveUserData('teacherClasses', classes);
             alert('✅ Student profile updated successfully!');
             viewAllStudents(classId);
         }
 
         function deleteStudent(classId, studentId) {
-            if (confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
-                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-                const classIndex = classes.findIndex(c => c.id === classId);
-                classes[classIndex].students = classes[classIndex].students.filter(s => s.id !== studentId);
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
+            const student = currentClass.students.find(s => s.id == studentId);
+            
+            if (confirm('Delete ' + student.name + ' from this class permanently? This cannot be undone!')) {
+                let updatedClasses = getUserData('teacherClasses');
+                const classIndex = updatedClasses.findIndex(c => c.id == classId);
+                updatedClasses[classIndex].students = updatedClasses[classIndex].students.filter(s => s.id != studentId);
                 
-                localStorage.setItem('teacherClasses', JSON.stringify(classes));
+                saveUserData('teacherClasses', updatedClasses);
                 alert('✅ Student deleted successfully!');
                 viewAllStudents(classId);
             }
@@ -2097,7 +2112,7 @@
 
         // MARKS SCORESHEET SYSTEM
         function createMarksScoresheet(classId, testData) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const currentClass = classes.find(c => c.id === classId);
             
             if (currentClass.students.length === 0) {
@@ -2163,7 +2178,7 @@
 
         // EXERCISE CHECKLIST (7 TASKS) SYSTEM
         function createExerciseChecklist(classId, testData) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const currentClass = classes.find(c => c.id === classId);
             
             if (currentClass.students.length === 0) {
@@ -2233,7 +2248,7 @@
 
         // SAVE SCORESHEET FUNCTIONS
         function saveScoresheet(classId, testData) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id === classId);
             const currentClass = classes[classIndex];
             
@@ -2267,14 +2282,14 @@
             currentClass.scoresheets.push(testData);
             
             // Save to localStorage
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            saveUserData('teacherClasses', classes);
             
             alert('✅ Test scores saved successfully!');
             openClass(classId);
         }
 
         function saveExerciseChecklist(classId, testData) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id === classId);
             const currentClass = classes[classIndex];
             
@@ -2309,14 +2324,14 @@
             currentClass.scoresheets.push(testData);
             
             // Save to localStorage
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            saveUserData('teacherClasses', classes);
             
             alert('✅ Exercise checklist saved successfully!');
             openClass(classId);
         }
 
         function viewTestResults(classId, testId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const currentClass = classes.find(c => c.id === classId);
             const test = currentClass.scoresheets.find(t => t.id === testId);
             
@@ -2418,7 +2433,7 @@
             document.getElementById('bulkImportSection').style.display = 'block';
             
             // Load classes into dropdown
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            const classes = getUserData('teacherClasses');
             const select = document.getElementById('bulkImportClassSelect');
             select.innerHTML = '<option value="">-- Select Class --</option>';
             
@@ -2458,7 +2473,7 @@
             }
             
             // Get current class
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
+            let classes = getUserData('teacherClasses');
             const classIndex = classes.findIndex(c => c.id === selectedClassId);
             
             if (classIndex === -1) {
@@ -2483,7 +2498,7 @@
             });
             
             // Save back to localStorage
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
+            saveUserData('teacherClasses', classes);
             
             alert(`✅ Successfully added ${addedCount} students to ${classes[classIndex].name}!`);
             
