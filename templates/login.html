@@ -798,40 +798,30 @@
             .then(data => {
                 if (data.success) {
                     alert('✅ Code verified! You can now set your new password.');
+                    // Hide code verification section
+                    document.getElementById('codeVerification').style.display = 'none';
+                    // Show new password section
                     document.getElementById('newPasswordSection').style.display = 'block';
                     // Store verification status
                     sessionStorage.setItem('codeVerified', 'true');
+                    
+                    // Track successful verification
+                    if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                        posthog.capture('password_reset_code_verified');
+                    }
                 } else {
                     alert('❌ ' + data.message);
+                    
+                    // Track failed verification
+                    if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
+                        posthog.capture('password_reset_code_failed');
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('Network error. Please try again.');
-                localStorage.removeItem('resetCode');
-                // Reset the form to allow new code request
-                document.getElementById('resetOptions').innerHTML = '';
-                document.getElementById('codeVerification').style.display = 'none';
-                return;
-            }
-            
-            if (enteredCode === storedResetData.code) {
-                // Code verified, show new password section
-                document.getElementById('newPasswordSection').style.display = 'block';
-                alert('✅ Code verified! Create your new password.');
-                
-                // Track successful verification
-                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
-                    posthog.capture('password_reset_code_verified');
-                }
-            } else {
-                alert('❌ Wrong code! Please check and try again.');
-                
-                // Track failed verification
-                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
-                    posthog.capture('password_reset_code_failed');
-                }
-            }
+            });
         }
 
         // ENHANCED PASSWORD RESET WITH BETTER VALIDATION
@@ -896,35 +886,6 @@
                 console.error('Error:', error);
                 alert('Network error. Please try again.');
             });
-            }
-            
-            // Update user's password
-            const existingUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-            const userIndex = existingUsers.findIndex(user => user.phone_number === resetData.phone);
-            
-            if (userIndex !== -1) {
-                // Update password
-                existingUsers[userIndex].password = newPassword;
-                localStorage.setItem('registeredUsers', JSON.stringify(existingUsers));
-                
-                // Clear reset data
-                localStorage.removeItem('resetCode');
-                
-                // Track successful password reset
-                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
-                    posthog.capture('password_reset_completed');
-                }
-                
-                // Success message with better UX
-                alert('✅ Password updated successfully! You can now login with your new password.');
-                
-                // Automatically return to login
-                setTimeout(() => {
-                    backToLogin();
-                }, 1000);
-            } else {
-                alert('❌ Error updating password. Please try again.');
-            }
         }
         
         // RATE LIMITING FOR RESET ATTEMPTS
