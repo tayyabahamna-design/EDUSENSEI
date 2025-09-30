@@ -1901,12 +1901,15 @@
                         <p style="margin: 5px 0;"><strong>Contact:</strong> ${student.contact || 'Not added'}</p>
                         <p style="margin: 5px 0;"><strong>Roll No:</strong> ${student.rollNumber || 'Not set'}</p>
                         
-                        <div style="margin-top: 15px; display: flex; gap: 10px;">
-                            <button onclick="window.editBtn${index}()" style="background: #28a745; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1;">
+                        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="window.editBtn${index}()" style="background: #28a745; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; min-width: 120px;">
                                 ✏️ EDIT
                             </button>
-                            <button onclick="window.delBtn${index}()" style="background: #dc3545; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1;">
+                            <button onclick="window.delBtn${index}()" style="background: #dc3545; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; min-width: 120px;">
                                 🗑️ DELETE
+                            </button>
+                            <button onclick="window.reportBtn${index}()" style="background: #007bff; color: white; padding: 12px 25px; font-size: 16px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; flex: 1; min-width: 120px;">
+                                📊 REPORTS
                             </button>
                         </div>
                     </div>
@@ -1919,6 +1922,10 @@
                 
                 window['delBtn' + index] = function() {
                     deleteStudent(classId, student.id);
+                };
+                
+                window['reportBtn' + index] = function() {
+                    viewStudentProgress(classId, student.id);
                 };
             });
             
@@ -2343,57 +2350,67 @@
             let resultsHTML = '';
             if (test.assessmentType === 'marks') {
                 resultsHTML = `
-                    <div class="test-results">
-                        <h3>📊 ${test.subject} - ${test.topic} Results</h3>
-                        <p><strong>Type:</strong> ${test.type} | <strong>Date:</strong> ${test.date}</p>
-                        
-                        <div class="results-summary">
-                            <h4>Class Performance:</h4>
-                            <p>Average: ${calculateClassAverage(test.scores)}% | Highest: ${getHighestScore(test.scores)}% | Lowest: ${getLowestScore(test.scores)}%</p>
+                    <div id="testReport">
+                        <div class="test-results">
+                            <h3>📊 ${test.subject} - ${test.topic} Results</h3>
+                            <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${test.type} | <strong>Date:</strong> ${test.date}</p>
+                            
+                            <div class="results-summary">
+                                <h4>Class Performance:</h4>
+                                <p>Average: ${calculateClassAverage(test.scores)}% | Highest: ${getHighestScore(test.scores)}% | Lowest: ${getLowestScore(test.scores)}%</p>
+                            </div>
+                            
+                            <table class="results-table" border="1" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr><th>Student</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${test.scores.map(score => `
+                                        <tr>
+                                            <td>${score.studentName}</td>
+                                            <td>${score.obtainedMarks}/${test.totalMarks}</td>
+                                            <td>${score.percentage}%</td>
+                                            <td class="grade-${score.grade.toLowerCase()}">${score.grade}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                        
-                        <table class="results-table">
-                            <thead>
-                                <tr><th>Student</th><th>Marks</th><th>Percentage</th><th>Grade</th></tr>
-                            </thead>
-                            <tbody>
-                                ${test.scores.map(score => `
-                                    <tr>
-                                        <td>${score.studentName}</td>
-                                        <td>${score.obtainedMarks}/${test.totalMarks}</td>
-                                        <td>${score.percentage}%</td>
-                                        <td class="grade-${score.grade.toLowerCase()}">${score.grade}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                        
-                        <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                     </div>
+                    
+                    <button onclick="printTestReport()" style="background: green; color: white; padding: 10px; margin: 10px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
+                        🖨️ Print Test Report
+                    </button>
+                    <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                 `;
             } else {
                 resultsHTML = `
-                    <div class="exercise-results">
-                        <h3>✅ ${test.subject} - ${test.topic} Results</h3>
-                        <p><strong>Type:</strong> Exercise Checklist | <strong>Date:</strong> ${test.date}</p>
-                        
-                        <table class="results-table">
-                            <thead>
-                                <tr><th>Student</th><th>Completed Tasks</th><th>Completion Rate</th></tr>
-                            </thead>
-                            <tbody>
-                                ${test.exerciseResults.map(result => `
-                                    <tr>
-                                        <td>${result.studentName}</td>
-                                        <td>${result.total}</td>
-                                        <td>${result.completionRate}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                        
-                        <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
+                    <div id="testReport">
+                        <div class="exercise-results">
+                            <h3>✅ ${test.subject} - ${test.topic} Results</h3>
+                            <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> Exercise Checklist | <strong>Date:</strong> ${test.date}</p>
+                            
+                            <table class="results-table" border="1" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr><th>Student</th><th>Completed Tasks</th><th>Completion Rate</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${test.exerciseResults.map(result => `
+                                        <tr>
+                                            <td>${result.studentName}</td>
+                                            <td>${result.total}</td>
+                                            <td>${result.completionRate}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
+                    
+                    <button onclick="printTestReport()" style="background: green; color: white; padding: 10px; margin: 10px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
+                        🖨️ Print Test Report
+                    </button>
+                    <button onclick="openClass(${classId})" class="btn btn-secondary">Back to Class</button>
                 `;
             }
             
@@ -2412,6 +2429,238 @@
 
         function getLowestScore(scores) {
             return scores.length > 0 ? Math.min(...scores.map(s => s.percentage)) : 0;
+        }
+
+        // PRINT TEST REPORT FUNCTION
+        function printTestReport() {
+            const printContent = document.getElementById('testReport').innerHTML;
+            const printWindow = window.open('', '', 'height=600,width=800');
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Test Report</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                        h3 { color: #333; }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                    <p style="margin-top: 30px; font-size: 12px;">Generated by Ustaad Dost - ${new Date().toLocaleDateString()}</p>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        function calculateLetterGrade(percentage) {
+            if (percentage >= 90) return 'A+';
+            if (percentage >= 80) return 'A';
+            if (percentage >= 70) return 'B';
+            if (percentage >= 60) return 'C';
+            if (percentage >= 50) return 'D';
+            return 'F';
+        }
+
+        // STUDENT PROGRESS REPORT FUNCTIONS
+        function viewStudentProgress(classId, studentId) {
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
+            const student = currentClass.students.find(s => s.id == studentId);
+            
+            // Get all tests for this student
+            const studentTests = currentClass.scoresheets ? currentClass.scoresheets.map(test => {
+                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
+                return {
+                    subject: test.subject,
+                    topic: test.topic,
+                    date: test.date,
+                    score: studentScore || null,
+                    totalMarks: test.totalMarks
+                };
+            }).filter(test => test.score) : [];
+            
+            const progressHTML = `
+                <div class="student-progress">
+                    <h3>📈 ${student.name} - Progress Report</h3>
+                    
+                    <div class="report-buttons" style="margin: 20px 0;">
+                        <button onclick="printWeeklyProgress(${classId}, ${studentId})" style="background: blue; color: white; padding: 10px; margin: 5px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
+                            📅 Weekly Report
+                        </button>
+                        <button onclick="printMonthlyProgress(${classId}, ${studentId})" style="background: green; color: white; padding: 10px; margin: 5px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
+                            📅 Monthly Report
+                        </button>
+                        <button onclick="printYearlyProgress(${classId}, ${studentId})" style="background: purple; color: white; padding: 10px; margin: 5px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer;">
+                            📅 Yearly Report
+                        </button>
+                    </div>
+                    
+                    <div id="progressReport">
+                        <h4>Recent Test Results:</h4>
+                        ${studentTests.length > 0 ? `
+                            <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                                <tr style="background-color: #f2f2f2;">
+                                    <th>Subject</th>
+                                    <th>Topic</th>
+                                    <th>Date</th>
+                                    <th>Marks</th>
+                                    <th>Percentage</th>
+                                </tr>
+                                ${studentTests.map(test => `
+                                    <tr>
+                                        <td>${test.subject}</td>
+                                        <td>${test.topic}</td>
+                                        <td>${test.date}</td>
+                                        <td>${test.score.obtainedMarks}/${test.totalMarks}</td>
+                                        <td>${test.score.percentage}%</td>
+                                    </tr>
+                                `).join('')}
+                            </table>
+                        ` : '<p>No test results available yet.</p>'}
+                    </div>
+                    
+                    <button onclick="viewAllStudents(${classId})" class="btn btn-secondary">Back to Students</button>
+                </div>
+            `;
+            
+            document.getElementById('classDetails').innerHTML = progressHTML;
+        }
+
+        function printWeeklyProgress(classId, studentId) {
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
+            const student = currentClass.students.find(s => s.id == studentId);
+            
+            // Get tests from last 7 days
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            const weeklyTests = currentClass.scoresheets ? currentClass.scoresheets.filter(test => {
+                const testDate = new Date(test.date);
+                return testDate >= oneWeekAgo;
+            }).map(test => {
+                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
+                return { test, score: studentScore };
+            }).filter(item => item.score) : [];
+            
+            printProgressReport(student, weeklyTests, 'Weekly Progress Report');
+        }
+
+        function printMonthlyProgress(classId, studentId) {
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
+            const student = currentClass.students.find(s => s.id == studentId);
+            
+            // Get tests from last 30 days
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setDate(oneMonthAgo.getDate() - 30);
+            
+            const monthlyTests = currentClass.scoresheets ? currentClass.scoresheets.filter(test => {
+                const testDate = new Date(test.date);
+                return testDate >= oneMonthAgo;
+            }).map(test => {
+                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
+                return { test, score: studentScore };
+            }).filter(item => item.score) : [];
+            
+            printProgressReport(student, monthlyTests, 'Monthly Progress Report');
+        }
+
+        function printYearlyProgress(classId, studentId) {
+            const classes = getUserData('teacherClasses');
+            const currentClass = classes.find(c => c.id == classId);
+            const student = currentClass.students.find(s => s.id == studentId);
+            
+            // Get all tests for this student
+            const yearlyTests = currentClass.scoresheets ? currentClass.scoresheets.map(test => {
+                const studentScore = test.scores ? test.scores.find(score => score.studentId == studentId) : null;
+                return { test, score: studentScore };
+            }).filter(item => item.score) : [];
+            
+            printProgressReport(student, yearlyTests, 'Yearly Progress Report');
+        }
+
+        function printProgressReport(student, tests, reportType) {
+            const totalTests = tests.length;
+            const averageScore = totalTests > 0 ? 
+                Math.round(tests.reduce((sum, item) => sum + item.score.percentage, 0) / totalTests) : 0;
+            
+            const printContent = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h2>${reportType}</h2>
+                    <h3>Student: ${student.name}</h3>
+                    <p><strong>Father:</strong> ${student.fatherName || 'N/A'} | <strong>Contact:</strong> ${student.contact || 'N/A'}</p>
+                </div>
+                
+                <div style="margin: 20px 0;">
+                    <h4>Summary:</h4>
+                    <p><strong>Total Tests:</strong> ${totalTests}</p>
+                    <p><strong>Average Score:</strong> ${averageScore}%</p>
+                    <p><strong>Overall Grade:</strong> ${calculateLetterGrade(averageScore)}</p>
+                </div>
+                
+                ${totalTests > 0 ? `
+                    <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr style="background-color: #f2f2f2;">
+                            <th>Subject</th>
+                            <th>Topic</th>
+                            <th>Date</th>
+                            <th>Marks Obtained</th>
+                            <th>Total Marks</th>
+                            <th>Percentage</th>
+                            <th>Grade</th>
+                        </tr>
+                        ${tests.map(item => `
+                            <tr>
+                                <td>${item.test.subject}</td>
+                                <td>${item.test.topic}</td>
+                                <td>${item.test.date}</td>
+                                <td>${item.score.obtainedMarks}</td>
+                                <td>${item.test.totalMarks}</td>
+                                <td>${item.score.percentage}%</td>
+                                <td>${calculateLetterGrade(item.score.percentage)}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                ` : '<p>No tests available for this period.</p>'}
+                
+                <div style="margin-top: 40px;">
+                    <p><strong>Teacher's Comments:</strong> ____________________________</p>
+                    <br>
+                    <p><strong>Parent's Signature:</strong> ____________________________</p>
+                </div>
+            `;
+            
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>${reportType} - ${student.name}</title>
+                    <style>
+                        body { font-family: Arial; padding: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; font-weight: bold; }
+                    </style>
+                </head>
+                <body>
+                    ${printContent}
+                    <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
+                        Generated by Ustaad Dost - ${new Date().toLocaleDateString()}
+                    </p>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
         }
         
         // Picture upload functionality for student lists
