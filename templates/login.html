@@ -35,7 +35,7 @@
                 {% endif %}
             {% endwith %}
             
-            <form method="POST" class="auth-form">
+            <form method="POST" action="{{ url_for('login') }}" class="auth-form">
                 <div class="form-group">
                     <label for="phone_number">📱 Phone Number</label>
                     <input type="tel" id="phone_number" name="phone_number" required 
