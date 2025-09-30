@@ -3850,6 +3850,11 @@ Step by step explain kariye
 Grade {grade} ke bachon ke liye perfect level main adjust kar deti hun!
 Kaisa laga teacher? Aur specific help chahiye? 😊"""
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for deployment"""
+    return {'status': 'ok', 'app': 'USTAAD DOST'}, 200
+
 @app.route('/')
 def index():
     # Check if user is logged in
