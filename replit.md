@@ -95,3 +95,9 @@ Preferred communication style: Simple, everyday language.
 ### Environment Configuration
 - **Session Secret**: Environment variable support with fallback default
 - **Development Setup**: Local development server through Flask's built-in server
+
+### Deployment Configuration
+- **Deployment Type**: VM (Virtual Machine) deployment for persistent file storage
+- **Production Server**: Gunicorn WSGI server with multiple workers
+- **File Persistence**: All uploaded files (photos, textbooks, audio) persist across restarts
+- **Configuration**: Gunicorn binds to 0.0.0.0:5000 with port reuse enabled
