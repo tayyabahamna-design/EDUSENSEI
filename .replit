@@ -68,10 +68,6 @@ localPort = 44157
 externalPort = 3003
 
 [[ports]]
-localPort = 45935
-externalPort = 8080
-
-[[ports]]
 localPort = 45955
 externalPort = 5000
 
@@ -82,6 +78,10 @@ externalPort = 4200
 [[ports]]
 localPort = 46743
 externalPort = 8000
+
+[[ports]]
+localPort = 46859
+externalPort = 8080
 
 [deployment]
 deploymentTarget = "vm"
