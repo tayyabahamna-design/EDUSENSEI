@@ -1864,29 +1864,52 @@
             const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
             const currentClass = classes.find(c => c.id === classId);
             
+            if (!currentClass.students || currentClass.students.length === 0) {
+                document.getElementById('classDetails').innerHTML = `
+                    <div class="students-list">
+                        <h3>👥 Students in ${currentClass.name}</h3>
+                        <p style="text-align: center; padding: 40px; color: #666;">No students added yet. Add students first!</p>
+                        <button onclick="openClass(${classId})" class="back-btn">⬅️ Back to Class</button>
+                    </div>
+                `;
+                return;
+            }
+            
             let studentsHTML = `
                 <div class="students-list">
-                    <h3>👥 Students in ${currentClass.name}</h3>
+                    <h3>👥 Students in ${currentClass.name} (${currentClass.students.length} students)</h3>
                     
-                    <div class="students-grid">
-                        ${currentClass.students.map(student => `
-                            <div class="student-card">
-                                <div class="student-info">
-                                    <h4>${student.name}</h4>
-                                    <p class="student-details">
-                                        ${student.fatherName ? `Father: ${student.fatherName}` : 'Father: Not added'}<br>
-                                        ${student.contact ? `Contact: ${student.contact}` : 'Contact: Not added'}
-                                    </p>
-                                </div>
-                                <div class="student-actions">
-                                    <button onclick="editStudentProfile(${classId}, ${student.id})" class="edit-btn">✏️ Edit</button>
-                                    <button onclick="deleteStudent(${classId}, ${student.id})" class="delete-btn">🗑️</button>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
+                    <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <thead>
+                            <tr style="background: var(--sage-green-light); border-bottom: 2px solid var(--sage-green);">
+                                <th style="padding: 12px; text-align: left;">#</th>
+                                <th style="padding: 12px; text-align: left;">Student Name</th>
+                                <th style="padding: 12px; text-align: left;">Roll No</th>
+                                <th style="padding: 12px; text-align: left;">Guardian</th>
+                                <th style="padding: 12px; text-align: center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${currentClass.students.map((student, index) => `
+                                <tr style="border-bottom: 1px solid #ddd;">
+                                    <td style="padding: 12px;">${index + 1}</td>
+                                    <td style="padding: 12px;"><strong>${student.name}</strong></td>
+                                    <td style="padding: 12px;">${student.rollNumber || '-'}</td>
+                                    <td style="padding: 12px;">${student.guardian || student.fatherName || '-'}</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <button onclick="editStudentProfile(${classId}, ${student.id})" 
+                                                class="btn btn-sm btn-secondary" 
+                                                style="margin: 0 5px;">✏️ Edit</button>
+                                        <button onclick="deleteStudent(${classId}, ${student.id})" 
+                                                class="btn btn-sm" 
+                                                style="background: #dc3545; color: white; margin: 0 5px;">🗑️ Delete</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
                     
-                    <button onclick="openClass(${classId})" class="back-btn">⬅️ Back to Class</button>
+                    <button onclick="openClass(${classId})" class="btn btn-secondary">⬅️ Back to Class</button>
                 </div>
             `;
             
