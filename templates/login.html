@@ -43,49 +43,10 @@
                     <small class="form-help">Enter your phone number (e.g., 0300-1234567)</small>
                 </div>
                 
-                <div class="form-group">
-                    <label for="password">🔒 Password</label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Enter your password">
-                </div>
-                
                 <button type="submit" class="btn btn-primary btn-auth">
                     🚪 Login to USTAAD DOST
                 </button>
-                
-                <!-- ADD FORGET PASSWORD LINK -->
-                <div class="forgot-password-section">
-                    <a href="#" onclick="showForgotPassword()" class="forgot-link">
-                        🔒 Forgot Password?
-                    </a>
-                </div>
             </form>
-            
-            <!-- FORGET PASSWORD FORM (Hidden by default) -->
-            <div id="forgotPasswordForm" style="display:none;" class="forgot-form">
-                <h3>🔒 Reset Password</h3>
-                <p>Enter your registered phone number:</p>
-                
-                <input type="tel" id="resetPhone" placeholder="03xxxxxxxxx" pattern="[0-9]{11}">
-                <button onclick="sendResetCodeWithOptions()" class="btn btn-primary">Send Reset Code</button>
-                
-                <div id="resetOptions"></div>
-                
-                <div id="codeVerification" style="display:none;">
-                    <h4>Enter Verification Code:</h4>
-                    <input type="text" id="verificationCode" placeholder="Enter 4-digit code" maxlength="4">
-                    <button onclick="verifyResetCode()" class="btn btn-primary">Verify Code</button>
-                </div>
-                
-                <div id="newPasswordSection" style="display:none;">
-                    <h4>Create New Password:</h4>
-                    <input type="password" id="newPassword" placeholder="New Password (min 6 chars)">
-                    <input type="password" id="confirmNewPassword" placeholder="Confirm New Password">
-                    <button onclick="resetPassword()" class="btn btn-primary">Update Password</button>
-                </div>
-                
-                <button onclick="backToLogin()" class="back-btn">⬅️ Back to Login</button>
-            </div>
             
             <div class="auth-footer">
                 <p>New teacher? <a href="{{ url_for('register') }}" class="auth-link">Create an account</a></p>

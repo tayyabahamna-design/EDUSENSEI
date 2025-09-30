@@ -3861,10 +3861,9 @@ def index():
 def login():
     if request.method == 'POST':
         phone_number = normalize_phone_number(request.form.get('phone_number', ''))
-        password = request.form.get('password')
         
-        if not phone_number or not password:
-            flash('Please enter both phone number and password', 'error')
+        if not phone_number:
+            flash('Please enter your phone number', 'error')
             return render_template('login.html')
         
         conn = get_db_connection()
@@ -3874,10 +3873,10 @@ def login():
         
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, password_hash, name FROM users WHERE phone_number = %s", (phone_number,))
+            cursor.execute("SELECT id, name FROM users WHERE phone_number = %s", (phone_number,))
             user = cursor.fetchone()
             
-            if user and bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+            if user:
                 # Clear session to prevent session fixation
                 session.clear()
                 session['user_id'] = user['id']
@@ -3888,7 +3887,7 @@ def login():
                 flash(f'Welcome back, {user["name"]}!', 'success')
                 return redirect(url_for('index'))
             else:
-                flash('Invalid phone number or password', 'error')
+                flash('Phone number not found. Please register first.', 'error')
         except Exception as e:
             print(f"Login error occurred")  # Don't log sensitive details
             flash('Login failed. Please try again.', 'error')
@@ -3902,20 +3901,10 @@ def register():
     if request.method == 'POST':
         name = request.form.get('name')
         phone_number = normalize_phone_number(request.form.get('phone_number', ''))
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
         
         # Validation
-        if not all([name, phone_number, password, confirm_password]):
+        if not all([name, phone_number]):
             flash('Please fill in all required fields', 'error')
-            return render_template('register.html')
-        
-        if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return render_template('register.html')
-        
-        if len(password) < 6:
-            flash('Password must be at least 6 characters long', 'error')
             return render_template('register.html')
         
         conn = get_db_connection()
@@ -3931,12 +3920,11 @@ def register():
                 flash('Phone number already registered', 'error')
                 return render_template('register.html')
             
-            # Hash password and create user
-            password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+            # Create user (no password needed)
             cursor.execute("""
                 INSERT INTO users (name, phone_number, password_hash) 
                 VALUES (%s, %s, %s) RETURNING id
-            """, (name, phone_number, password_hash))
+            """, (name, phone_number, ''))
             
             result = cursor.fetchone()
             if result:
