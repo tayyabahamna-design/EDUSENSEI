@@ -2120,36 +2120,44 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     }
     
     /* Dashboard Cards */
-    .feature-cards {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        grid-template-columns: 1fr;
-        padding: 10px;
+    .feature-cards, .feature-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+        grid-template-columns: 1fr !important;
+        padding: 10px !important;
+        width: 100% !important;
     }
     
     .feature-card {
-        width: 100%;
-        min-height: auto;
-        padding: 1.5rem;
-        margin: 0;
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 1.5rem !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
     }
     
     .feature-card h3 {
-        font-size: 1.1rem;
-        margin-bottom: 0.75rem;
-        word-wrap: break-word;
+        font-size: 1.1rem !important;
+        margin-bottom: 0.75rem !important;
+        word-wrap: break-word !important;
+        white-space: normal !important;
     }
     
     .feature-card p {
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
-        line-height: 1.4;
+        font-size: 0.85rem !important;
+        margin-bottom: 1rem !important;
+        line-height: 1.4 !important;
+        white-space: normal !important;
     }
     
     .feature-icon {
-        font-size: 2.5rem;
-        margin-bottom: 0.75rem;
+        font-size: 2.5rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .card-content {
+        width: 100% !important;
     }
     
     /* Planner */
