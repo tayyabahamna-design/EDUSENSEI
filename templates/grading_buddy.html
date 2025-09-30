@@ -2413,14 +2413,16 @@
         }
         
         function processBulkImport() {
-            if (!window.currentClassId) {
-                alert('Please select a class first by clicking "👥 Students" from a class card.');
+            const selectedClassId = parseInt(document.getElementById('bulkImportClassSelect').value);
+            
+            if (!selectedClassId) {
+                alert('⚠️ Pehle class select karein!');
                 return;
             }
             
             const namesList = document.getElementById('bulkNamesList').value;
             if (!namesList.trim()) {
-                alert('Please enter at least one student name.');
+                alert('⚠️ Please enter at least one student name.');
                 return;
             }
             
@@ -2428,16 +2430,16 @@
             const names = namesList.split('\n').map(n => n.trim()).filter(n => n.length > 0);
             
             if (names.length === 0) {
-                alert('No valid names found.');
+                alert('⚠️ No valid names found.');
                 return;
             }
             
             // Get current class
             let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const classIndex = classes.findIndex(c => c.id === window.currentClassId);
+            const classIndex = classes.findIndex(c => c.id === selectedClassId);
             
             if (classIndex === -1) {
-                alert('Class not found!');
+                alert('⚠️ Class not found!');
                 return;
             }
             
@@ -2460,14 +2462,15 @@
             // Save back to localStorage
             localStorage.setItem('teacherClasses', JSON.stringify(classes));
             
-            alert(`✅ Successfully added ${addedCount} students to the class!`);
+            alert(`✅ Successfully added ${addedCount} students to ${classes[classIndex].name}!`);
             
             // Clear and close
             document.getElementById('bulkNamesList').value = '';
+            document.getElementById('bulkImportClassSelect').value = '';
             document.getElementById('bulkImportSection').style.display = 'none';
             
-            // Refresh class view if open
-            openClass(window.currentClassId);
+            // Refresh class list
+            loadExistingClasses();
         }
         
         function extractNamesFromImage() {
