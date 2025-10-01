@@ -1111,12 +1111,21 @@
         
         async function openGradingBuddy() {
             document.getElementById('gradingBuddy').style.display = 'block';
-            document.getElementById('gradingContent').innerHTML = '<p style="text-align: center; padding: 50px;">Loading your classes...</p>';
             
-            // Load from database first
-            await loadClassesFromDB();
+            // Show loading immediately
+            document.getElementById('gradingContent').innerHTML = '<p style="text-align: center; padding: 50px;">⏳ Loading...</p>';
             
-            showClassesList();
+            try {
+                // Load from database first
+                const classes = await loadClassesFromDB();
+                console.log('Data loaded, showing classes list');
+                
+                // Force UI update
+                showClassesList();
+            } catch (error) {
+                console.error('Error opening grading buddy:', error);
+                showClassesList(); // Show empty list if error
+            }
         }
 
         function showClassesList() {
