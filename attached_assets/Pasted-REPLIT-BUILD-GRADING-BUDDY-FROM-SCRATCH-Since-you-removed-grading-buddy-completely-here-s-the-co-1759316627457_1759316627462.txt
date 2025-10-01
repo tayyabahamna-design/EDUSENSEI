@@ -1,0 +1,1222 @@
+REPLIT - BUILD GRADING BUDDY FROM SCRATCH:
+Since you removed grading buddy completely, here's the complete new system:
+HTML STRUCTURE NEEDED:
+htmlCopy<!DOCTYPE html>
+<html>
+<head>
+    <title>Ustaad Dost</title>
+</head>
+<body>
+    <div id="app">
+        <div id="gradingBuddy" style="display:none;">
+            <h2>📊 Grading Buddy</h2>
+            <div id="gradingContent"></div>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+</html>
+COMPLETE NEW GRADING BUDDY SYSTEM:
+javascriptCopy// MAIN GRADING BUDDY FUNCTION
+function openGradingBuddy() {
+    document.getElementById('gradingBuddy').style.display = 'block';
+    showClassesList();
+}
+
+// SHOW ALL CLASSES
+function showClassesList() {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    
+    let html = `
+        <div class="classes-section">
+            <h3>Your Classes</h3>
+            <button onclick="createNewClass()" style="background: green; color: white; padding: 15px; margin: 10px;">
+                ➕ Create New Class
+            </button>
+            
+            <div class="classes-list">
+    `;
+    
+    if (classes.length === 0) {
+        html += `<p>No classes created yet.</p>`;
+    } else {
+        classes.forEach(cls => {
+            html += `
+                <div class="class-card" style="border: 2px solid #333; padding: 15px; margin: 10px; background: #f9f9f9;">
+                    <h4>${cls.name}</h4>
+                    <p>Students: ${cls.students ? cls.students.length : 0}</p>
+                    <p>Tests: ${cls.tests ? cls.tests.length : 0}</p>
+                    
+                    <button onclick="openClass(${cls.id})" style="background: blue; color: white; padding: 10px; margin: 5px;">
+                        📚 Open Class
+                    </button>
+                </div>
+            `;
+        });
+    }
+    
+    html += `</div></div>`;
+    document.getElementById('gradingContent').innerHTML = html;
+}
+
+// CREATE NEW CLASS
+function createNewClass() {
+    document.getElementById('gradingContent').innerHTML = `
+        <div class="create-class-form">
+            <h3>Create New Class</h3>
+            <input type="text" id="newClassName" placeholder="Class Name (e.g., Grade 3-A)" 
+                style="width: 100%; padding: 15px; font-size: 16px; margin: 10px 0;">
+            
+            <button onclick="saveNewClass()" style="background: green; color: white; padding: 15px 30px; margin: 10px;">
+                Create Class
+            </button>
+            <button onclick="showClassesList()" style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                Cancel
+            </button>
+        </div>
+    `;
+}
+
+function saveNewClass() {
+    const className = document.getElementById('newClassName').value.trim();
+    
+    if (!className) {
+        alert('Please enter class name!');
+        return;
+    }
+    
+    const newClass = {
+        id: Date.now(),
+        name: className,
+        students: [],
+        tests: []
+    };
+    
+    let classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    classes.push(newClass);
+    localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(classes));
+    
+    alert('✅ Class created successfully!');
+    showClassesList();
+}
+
+// OPEN INDIVIDUAL CLASS
+function openClass(classId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (!currentClass) {
+        alert('Class not found!');
+        return;
+    }
+    
+    document.getElementById('gradingContent').innerHTML = `
+        <div class="class-details">
+            <h3>📚 ${currentClass.name}</h3>
+            
+            <!-- CREATE NEW TEST BUTTON -->
+            <div class="new-test-section" style="text-align: center; margin: 20px 0;">
+                <button onclick="createNewTest(${classId})" 
+                    style="background: #007bff; color: white; padding: 20px 40px; font-size: 18px; border-radius: 10px; border: none; cursor: pointer;">
+                    ➕ Create New Test
+                </button>
+            </div>
+            
+            <div class="class-stats" style="display: flex; gap: 20px; margin: 20px 0;">
+                <div class="stat-box" style="border: 1px solid #ddd; padding: 15px; flex: 1; text-align: center;">
+                    <h4>${currentClass.students.length}</h4>
+                    <p>Students</p>
+                </div>
+                <div class="stat-box" style="border: 1px solid #ddd; padding: 15px; flex: 1; text-align: center;">
+                    <h4>${currentClass.tests ? currentClass.tests.length : 0}</h4>
+                    <p>Tests</p>
+                </div>
+            </div>
+            
+            <div class="class-sections">
+                <div class="section" style="margin: 20px 0;">
+                    <h4>👥 Manage Students</h4>
+                    <button onclick="addStudents(${classId})" style="background: green; color: white; padding: 12px 20px; margin: 5px;">
+                        Add Students
+                    </button>
+                    <button onclick="viewStudents(${classId})" style="background: blue; color: white; padding: 12px 20px; margin: 5px;">
+                        View Students
+                    </button>
+                </div>
+                
+                <div class="section" style="margin: 20px 0;">
+                    <h4>📊 Tests & Reports</h4>
+                    <button onclick="viewAllTests(${classId})" style="background: purple; color: white; padding: 12px 20px; margin: 5px;">
+                        View All Tests
+                    </button>
+                </div>
+            </div>
+            
+            <button onclick="showClassesList()" style="background: gray; color: white; padding: 15px 30px; margin: 20px 0;">
+                ⬅️ Back to Classes
+            </button>
+        </div>
+    `;
+}
+
+// ADD STUDENTS (BULK)
+function addStudents(classId) {
+    document.getElementById('gradingContent').innerHTML = `
+        <div class="add-students-form">
+            <h3>Add Students to Class</h3>
+            
+            <h4>Bulk Add Students (one name per line):</h4>
+            <textarea id="bulkStudentsInput" placeholder="Ahmed Ali
+Fatima Khan
+Hassan Ahmed
+Ayesha Sheikh
+Ali Raza" 
+                style="width: 100%; height: 200px; padding: 15px; font-size: 16px; margin: 10px 0;"></textarea>
+            
+            <button onclick="saveBulkStudents(${classId})" 
+                style="background: green; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                Add All Students
+            </button>
+            
+            <br><br>
+            
+            <h4>Or add single student:</h4>
+            <input type="text" id="singleStudentInput" placeholder="Student name" 
+                style="width: 100%; padding: 15px; font-size: 16px; margin: 10px 0;">
+            <button onclick="addSingleStudent(${classId})" 
+                style="background: blue; color: white; padding: 15px 30px; margin: 10px;">
+                Add Student
+            </button>
+            
+            <br><br>
+            <button onclick="openClass(${classId})" style="background: gray; color: white; padding: 15px 30px;">
+                Back to Class
+            </button>
+        </div>
+    `;
+}
+
+function saveBulkStudents(classId) {
+    const bulkText = document.getElementById('bulkStudentsInput').value.trim();
+    
+    if (!bulkText) {
+        alert('Please enter student names!');
+        return;
+    }
+    
+    const names = bulkText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+    
+    let classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const classIndex = classes.findIndex(c => c.id == classId);
+    
+    names.forEach(name => {
+        const newStudent = {
+            id: Date.now() + Math.random(),
+            name: name,
+            fatherName: '',
+            motherName: '',
+            contact: '',
+            address: '',
+            gender: ''
+        };
+        classes[classIndex].students.push(newStudent);
+    });
+    
+    localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(classes));
+    
+    alert(`✅ Added ${names.length} students successfully!`);
+    openClass(classId);
+}
+
+function addSingleStudent(classId) {
+    const name = document.getElementById('singleStudentInput').value.trim();
+    
+    if (!name) {
+        alert('Please enter student name!');
+        return;
+    }
+    
+    const newStudent = {
+        id: Date.now(),
+        name: name,
+        fatherName: '',
+        motherName: '',
+        contact: '',
+        address: '',
+        gender: ''
+    };
+    
+    let classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const classIndex = classes.findIndex(c => c.id == classId);
+    classes[classIndex].students.push(newStudent);
+    localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(classes));
+    
+    document.getElementById('singleStudentInput').value = '';
+    alert('✅ Student added successfully!');
+}
+
+// VIEW AND EDIT STUDENTS
+function viewStudents(classId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (!currentClass.students || currentClass.students.length === 0) {
+        document.getElementById('gradingContent').innerHTML = `
+            <h3>No students in this class yet.</h3>
+            <button onclick="addStudents(${classId})" style="background: green; color: white; padding: 15px;">
+                Add Students
+            </button>
+            <button onclick="openClass(${classId})" style="background: gray; color: white; padding: 15px;">
+                Back
+            </button>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="students-view">
+            <h3>👥 Students in ${currentClass.name}</h3>
+            
+            <div class="students-grid">
+    `;
+    
+    currentClass.students.forEach(student => {
+        html += `
+            <div class="student-card" style="border: 2px solid #333; padding: 15px; margin: 10px; background: white;">
+                <h4 style="color: #007bff;">${student.name}</h4>
+                <p><strong>Father:</strong> ${student.fatherName || 'Not added'}</p>
+                <p><strong>Contact:</strong> ${student.contact || 'Not added'}</p>
+                
+                <div class="student-actions">
+                    <button onclick="editStudent(${classId}, ${student.id})" 
+                        style="background: #28a745; color: white; padding: 8px 15px; margin: 3px;">
+                        ✏️ Edit
+                    </button>
+                    <button onclick="deleteStudent(${classId}, ${student.id})" 
+                        style="background: #dc3545; color: white; padding: 8px 15px; margin: 3px;">
+                        🗑️ Delete
+                    </button>
+                    <button onclick="studentReports(${classId}, ${student.id})" 
+                        style="background: #007bff; color: white; padding: 8px 15px; margin: 3px;">
+                        📊 Reports
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+            
+            <button onclick="addStudents(${classId})" style="background: green; color: white; padding: 15px; margin: 10px;">
+                Add More Students
+            </button>
+            <button onclick="openClass(${classId})" style="background: gray; color: white; padding: 15px; margin: 10px;">
+                Back to Class
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('gradingContent').innerHTML = html;
+}
+
+// EDIT STUDENT
+function editStudent(classId, studentId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    const student = currentClass.students.find(s => s.id == studentId);
+    
+    document.getElementById('gradingContent').innerHTML = `
+        <div class="edit-student-form">
+            <h3>✏️ Edit Student Profile</h3>
+            
+            <label>Student Name:</label>
+            <input type="text" id="editName" value="${student.name}" 
+                style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            
+            <label>Father's Name:</label>
+            <input type="text" id="editFather" value="${student.fatherName || ''}" 
+                style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+                
+            <label>Mother's Name:</label>
+            <input type="text" id="editMother" value="${student.motherName || ''}" 
+                style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            
+            <label>Guardian Contact:</label>
+            <input type="tel" id="editContact" value="${student.contact || ''}" 
+                style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            
+            <label>Address:</label>
+            <input type="text" id="editAddress" value="${student.address || ''}" 
+                style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            
+            <label>Gender:</label>
+            <select id="editGender" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+                <option value="">Select Gender</option>
+                <option value="Male" ${student.gender === 'Male' ? 'selected' : ''}>Male</option>
+                <option value="Female" ${student.gender === 'Female' ? 'selected' : ''}>Female</option>
+            </select>
+            
+            <button onclick="saveStudentEdit(${classId}, ${studentId})" 
+                style="background: green; color: white; padding: 15px 30px; margin: 10px;">
+                Save Changes
+            </button>
+            <button onclick="viewStudents(${classId})" 
+                style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                Cancel
+            </button>
+        </div>
+    `;
+}
+
+function saveStudentEdit(classId, studentId) {
+    const name = document.getElementById('editName').value.trim();
+    const father = document.getElementById('editFather').value.trim();
+    const mother = document.getElementById('editMother').value.trim();
+    const contact = document.getElementById('editContact').value.trim();
+    const address = document.getElementById('editAddress').value.trim();
+    const gender = document.getElementById('editGender').value;
+    
+    if (!name) {
+        alert('Student name is required!');
+        return;
+    }
+    
+    let classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const classIndex = classes.findIndex(c => c.id == classId);
+    const studentIndex = classes[classIndex].students.findIndex(s => s.id == studentId);
+    
+    classes[classIndex].students[studentIndex] = {
+        id: studentId,
+        name: name,
+        fatherName: father,
+        motherName: mother,
+        contact: contact,
+        address: address,
+        gender: gender
+    };
+    
+    localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(classes));
+    
+    alert('✅ Student profile updated!');
+    viewStudents(classId);
+}
+
+// DELETE STUDENT
+function deleteStudent(classId, studentId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    const student = currentClass.students.find(s => s.id == studentId);
+    
+    if (confirm(`Delete ${student.name}? This cannot be undone.`)) {
+        let updatedClasses = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+        const classIndex = updatedClasses.findIndex(c => c.id == classId);
+        
+        updatedClasses[classIndex].students = updatedClasses[classIndex].students.filter(s => s.id != studentId);
+        localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(updatedClasses));
+        
+        alert('✅ Student deleted!');
+        viewStudents(classId);
+    }
+}
+
+// CREATE NEW TEST
+function createNewTest(classId) {
+    document.getElementById('gradingContent').innerHTML = `
+        <div class="create-test-form">
+            <h3>📝 Create New Test</h3>
+            
+            <label>Subject:</label>
+            <select id="testSubject" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+                <option value="">Select Subject</option>
+                <option value="English">English</option>
+                <option value="Math">Math</option>
+                <option value="Urdu">Urdu</option>
+                <option value="Islamiyat">Islamiyat</option>
+                <option value="Science">Science</option>
+                <option value="Social Studies">Social Studies</option>
+                <option value="General Knowledge">General Knowledge</option>
+            </select>
+            
+            <label>Topic/Chapter:</label>
+            <input type="text" id="testTopic" placeholder="e.g., Chapter 5 - Nouns" 
+                style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            
+            <label>Test Type:</label>
+            <select id="testType" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+                <option value="">Select Type</option>
+                <option value="Written Test">Written Test</option>
+                <option value="Oral Test">Oral Test</option>
+                <option value="Quiz">Quiz</option>
+                <option value="Assignment">Assignment</option>
+                <option value="Homework">Homework</option>
+            </select>
+            
+            <label>Assessment Method:</label>
+            <div style="margin: 15px 0;">
+                <label style="display: block; margin: 5px 0;">
+                    <input type="radio" name="assessmentMethod" value="marks" checked> 
+                    Marks Based (e.g., 85/100)
+                </label>
+                <label style="display: block; margin: 5px 0;">
+                    <input type="radio" name="assessmentMethod" value="tick"> 
+                    Tick/Cross Based
+                </label>
+            </div>
+            
+            <div id="totalMarksSection">
+                <label>Total Marks:</label>
+                <input type="number" id="totalMarks" placeholder="100" 
+                    style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            </div>
+            
+            <button onclick="generateTest(${classId})" 
+                style="background: blue; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                Generate Test
+            </button>
+            <button onclick="openClass(${classId})" 
+                style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                Cancel
+            </button>
+        </div>
+    `;
+    
+    // Hide total marks for tick method
+    document.querySelectorAll('input[name="assessmentMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'tick') {
+                document.getElementById('totalMarksSection').style.display = 'none';
+            } else {
+                document.getElementById('totalMarksSection').style.display = 'block';
+            }
+        });
+    });
+}
+
+function generateTest(classId) {
+    const subject = document.getElementById('testSubject').value;
+    const topic = document.getElementById('testTopic').value;
+    const testType = document.getElementById('testType').value;
+    const method = document.querySelector('input[name="assessmentMethod"]:checked').value;
+    const totalMarks = document.getElementById('totalMarks').value;
+    
+    if (!subject || !topic || !testType) {
+        alert('Please fill all required fields!');
+        return;
+    }
+    
+    if (method === 'marks' && !totalMarks) {
+        alert('Please enter total marks!');
+        return;
+    }
+    
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (!currentClass.students || currentClass.students.length === 0) {
+        alert('Please add students first!');
+        addStudents(classId);
+        return;
+    }
+    
+    if (method === 'marks') {
+        showMarksTest(classId, subject, topic, testType, totalMarks);
+    } else {
+        showTickTest(classId, subject, topic, testType);
+    }
+}
+
+// MARKS BASED TEST
+function showMarksTest(classId, subject, topic, testType, totalMarks) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    let html = `
+        <div class="marks-test">
+            <div id="printableTest">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3>${subject} - ${topic}</h3>
+                    <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${testType}</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleDateString()} | <strong>Total Marks:</strong> ${totalMarks}</p>
+                </div>
+                
+                <table border="1" style="width: 100%; border-collapse: collapse;">
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="padding: 10px;">Roll No.</th>
+                        <th style="padding: 10px;">Student Name</th>
+                        <th style="padding: 10px;">Obtained Marks</th>
+                        <th style="padding: 10px;">Percentage</th>
+                        <th style="padding: 10px;">Grade</th>
+                    </tr>
+    `;
+    
+    currentClass.students.forEach((student, index) => {
+        html += `
+            <tr>
+                <td style="padding: 10px; text-align: center;">${index + 1}</td>
+                <td style="padding: 10px;">${student.name}</td>
+                <td style="padding: 10px; text-align: center;">
+                    <input type="number" id="marks_${student.id}" max="${totalMarks}" min="0" 
+                        onchange="calculateGrade(${student.id}, ${totalMarks})"
+                        style="width: 80px; padding: 5px; text-align: center;">
+                </td>
+                <td style="padding: 10px; text-align: center;">
+                    <span id="percent_${student.id}">-</span>
+                </td>
+                <td style="padding: 10px; text-align: center;">
+                    <span id="grade_${student.id}">-</span>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin: 20px;">
+                <button onclick="saveMarksTest(${classId}, '${subject}', '${topic}', '${testType}', ${totalMarks})" 
+                    style="background: green; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                    💾 Save Test
+                </button>
+                <button onclick="printTest()" 
+                    style="background: blue; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                    🖨️ Print Test
+                </button>
+                <button onclick="openClass(${classId})" 
+                    style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('gradingContent').innerHTML = html;
+}
+
+function calculateGrade(studentId, totalMarks) {
+    const marks = document.getElementById(`marks_${studentId}`).value;
+    if (marks !== '') {
+        const percentage = Math.round((marks / totalMarks) * 100);
+        document.getElementById(`percent_${studentId}`).textContent = percentage + '%';
+        
+        let grade = 'F';
+        if (percentage >= 90) grade = 'A+';
+        else if (percentage >= 80) grade = 'A';
+        else if (percentage >= 70) grade = 'B';
+        else if (percentage >= 60) grade = 'C';
+        else if (percentage >= 50) grade = 'D';
+        
+        document.getElementById(`grade_${studentId}`).textContent = grade;
+    }
+}
+
+function saveMarksTest(classId, subject, topic, testType, totalMarks) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    const testData = {
+        id: Date.now(),
+        subject: subject,
+        topic: topic,
+        testType: testType,
+        method: 'marks',
+        totalMarks: parseInt(totalMarks),
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        scores: []
+    };
+    
+    currentClass.students.forEach(student => {
+        const marks = document.getElementById(`marks_${student.id}`).value || 0;
+        const percentage = totalMarks > 0 ? Math.round((marks / totalMarks) * 100) : 0;
+        
+        testData.scores.push({
+            studentId: student.id,
+            studentName: student.name,
+            obtainedMarks: parseInt(marks),
+            percentage: percentage
+        });
+    });
+    
+    let updatedClasses = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const classIndex = updatedClasses.findIndex(c => c.id == classId);
+    
+    if (!updatedClasses[classIndex].tests) {
+        updatedClasses[classIndex].tests = [];
+    }
+    
+    updatedClasses[classIndex].tests.push(testData);
+    localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(updatedClasses));
+    
+    alert('✅ Test saved successfully!');
+    openClass(classId);
+}
+
+// TICK/CROSS TEST
+function showTickTest(classId, subject, topic, testType) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    let html = `
+        <div class="tick-test">
+            <div id="printableTickTest">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h3>${subject} - ${topic}</h3>
+                    <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${testType}</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleDateString()} | <strong>Assessment:</strong> Tick/Cross</p>
+                </div>
+                
+                <table border="1" style="width: 100%; border-collapse: collapse;">
+                    <tr style="background-color: #f2f2f2;">
+                        <th style="padding: 10px;">Student Name</th>
+                        <th style="padding: 10px;">Completed</th>
+                        <th style="padding: 10px;">Status</th>
+                    </tr>
+    `;
+    
+    currentClass.students.forEach(student => {
+        html += `
+            <tr>
+                <td style="padding: 10px;">${student.name}</td>
+                <td style="padding: 10px; text-align: center;">
+                    <input type="checkbox" id="tick_${student.id}" onchange="updateTickStatus(${student.id})"
+                        style="width: 20px; height: 20px;">
+                </td>
+                <td style="padding: 10px; text-align: center;">
+                    <span id="status_${student.id}" style="color: red;">❌ Not Completed</span>
+                </td>
+            </tr>
+        `;
+    });
+    
+    html += `
+                </table>
+            </div>
+            
+            <div style="text-align: center; margin: 20px;">
+                <button onclick="saveTickTest(${classId}, '${subject}', '${topic}', '${testType}')" 
+                    style="background: green; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                    💾 Save Test
+                </button>
+                <button onclick="printTickTest()" 
+                    style="background: blue; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                    🖨️ Print Test
+                </button>
+                <button onclick="openClass(${classId})" 
+                    style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('gradingContent').innerHTML = html;
+}
+
+function updateTickStatus(studentId) {
+    const checkbox = document.getElementById(`tick_${studentId}`);
+    const status = document.getElementById(`status_${studentId}`);
+    
+    if (checkbox.checked) {
+        status.innerHTML = '✅ Completed';
+        status.style.color = 'green';
+    } else {
+        status.innerHTML = '❌ Not Completed';
+        status.style.color = 'red';
+    }
+}
+
+function saveTickTest(classId, subject, topic, testType) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    const testData = {
+        id: Date.now(),
+        subject: subject,
+        topic: topic,
+        testType: testType,
+        method: 'tick',
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        scores: []
+    };
+    
+    currentClass.students.forEach(student => {
+        const completed = document.getElementById(`tick_${student.id}`).checked;
+        
+        testData.scores.push({
+            studentId: student.id,
+            studentName: student.name,
+            completed: completed,
+            status: completed ? 'Completed' : 'Not Completed'
+        });
+    });
+    
+    let updatedClasses = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const classIndex = updatedClasses.findIndex(c => c.id == classId);
+    
+    if (!updatedClasses[classIndex].tests) {
+        updatedClasses[classIndex].tests = [];
+    }
+    
+    updatedClasses[classIndex].tests.push(testData);
+    localStorage.setItem(getCurrentUser() + '_classes', JSON.stringify(updatedClasses));
+    
+    alert('✅ Test saved successfully!');
+    openClass(classId);
+}
+
+// PRINT FUNCTIONS
+function printTest() {
+    const printContent = document.getElementById('printableTest').innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Test Results</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid black; padding: 8px; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+            <p style="text-align: center; margin-top: 30px; font-size: 12px;">
+                Generated by Ustaad Dost - ${new Date().toLocaleString()}
+            </p>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function printTickTest() {
+    const printContent = document.getElementById('printableTickTest').innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Tick Test</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid black; padding: 8px; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+            <p style="text-align: center; margin-top: 30px; font-size: 12px;">
+                Generated by Ustaad Dost - ${new Date().toLocaleString()}
+            </p>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// STUDENT REPORTS
+function studentReports(classId, studentId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    const student = currentClass.students.find(s => s.id == studentId);
+    
+    // Get all tests for this student
+    const studentTests = currentClass.tests ? currentClass.tests.map(test => {
+        const studentScore = test.scores.find(score => score.studentId == studentId);
+        return { test, score: studentScore };
+    }).filter(item => item.score) : [];
+    
+    document.getElementById('gradingContent').innerHTML = `
+        <div class="student-reports">
+            <h3>📊 ${student.name} - Progress Reports</h3>
+            
+            <div class="report-buttons" style="text-align: center; margin: 20px 0;">
+                <button onclick="printWeeklyReport(${classId}, ${studentId})" 
+                    style="background: blue; color: white; padding: 12px 20px; margin: 8px;">
+                    📅 Weekly Report
+                </button>
+                <button onclick="printMonthlyReport(${classId}, ${studentId})" 
+                    style="background: green; color: white; padding: 12px 20px; margin: 8px;">
+                    📅 Monthly Report
+                </button>
+                <button onclick="printYearlyReport(${classId}, ${studentId})" 
+                    style="background: purple; color: white; padding: 12px 20px; margin: 8px;">
+                    📅 Yearly Report
+                </button>
+            </div>
+            
+            <div class="recent-tests">
+                <h4>Recent Test Results:</h4>
+                ${studentTests.length > 0 ? `
+                    <table border="1" style="width: 100%; border-collapse: collapse;">
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="padding: 8px;">Subject</th>
+                            <th style="padding: 8px;">Topic</th>
+                            <th style="padding: 8px;">Date</th>
+                            <th style="padding: 8px;">Result</th>
+                        </tr>
+                        ${studentTests.map(item => `
+                            <tr>
+                                <td style="padding: 8px;">${item.test.subject}</td>
+                                <td style="padding: 8px;">${item.test.topic}</td>
+                                <td style="padding: 8px;">${item.test.date}</td>
+                                <td style="padding: 8px;">
+                                    ${item.test.method === 'marks' ? 
+                                        `${item.score.obtainedMarks}/${item.test.totalMarks} (${item.score.percentage}%)` : 
+                                        item.score.status}
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                ` : '<p>No tests recorded yet.</p>'}
+            </div>
+            
+            <button onclick="viewStudents(${classId})" 
+                style="background: gray; color: white; padding: 15px 30px; margin: 20px;">
+                ⬅️ Back to Students
+            </button>
+        </div>
+    `;
+}
+
+function printWeeklyReport(classId, studentId) {
+    printStudentReport(classId, studentId, 'Weekly', 7);
+}
+
+function printMonthlyReport(classId, studentId) {
+    printStudentReport(classId, studentId, 'Monthly', 30);
+}
+
+function printYearlyReport(classId, studentId) {
+    printStudentReport(classId, studentId, 'Yearly', 365);
+}
+
+function printStudentReport(classId, studentId, reportType, days) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    const student = currentClass.students.find(s => s.id == studentId);
+    
+    // Filter tests by date range
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    const relevantTests = currentClass.tests ? currentClass.tests.filter(test => {
+        const testDate = new Date(test.date);
+        return testDate >= cutoffDate;
+    }).map(test => {
+        const studentScore = test.scores.find(score => score.studentId == studentId);
+        return { test, score: studentScore };
+    }).filter(item => item.score) : [];
+    
+    // Calculate average
+    let average = 0;
+    if (relevantTests.length > 0) {
+        const marksTests = relevantTests.filter(item => item.test.method === 'marks');
+        if (marksTests.length > 0) {
+            const totalPercentage = marksTests.reduce((sum, item) => sum + item.score.percentage, 0);
+            average = Math.round(totalPercentage / marksTests.length);
+        }
+    }
+    
+    const printContent = `
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2>${reportType} Progress Report</h2>
+            <h3>Student: ${student.name}</h3>
+            <p><strong>Class:</strong> ${currentClass.name}</p>
+            <p><strong>Father:</strong> ${student.fatherName || 'N/A'}</p>
+            <p><strong>Contact:</strong> ${student.contact || 'N/A'}</p>
+        </div>
+        
+        <div style="margin: 20px 0;">
+            <h4>Summary:</h4>
+            <p><strong>Total Tests:</strong> ${relevantTests.length}</p>
+            <p><strong>Average Score:</strong> ${average}%</p>
+            <p><strong>Period:</strong> Last ${days} days</p>
+        </div>
+        
+        ${relevantTests.length > 0 ? `
+            <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 8px;">Subject</th>
+                    <th style="padding: 8px;">Topic</th>
+                    <th style="padding: 8px;">Date</th>
+                    <th style="padding: 8px;">Type</th>
+                    <th style="padding: 8px;">Result</th>
+                </tr>
+                ${relevantTests.map(item => `
+                    <tr>
+                        <td style="padding: 8px;">${item.test.subject}</td>
+                        <td style="padding: 8px;">${item.test.topic}</td>
+                        <td style="padding: 8px;">${item.test.date}</td>
+                        <td style="padding: 8px;">${item.test.testType}</td>
+                        <td style="padding: 8px;">
+                            ${item.test.method === 'marks' ? 
+                                `${item.score.obtainedMarks}/${item.test.totalMarks} (${item.score.percentage}%)` : 
+                                item.score.status}
+                        </td>
+                    </tr>
+                `).join('')}
+            </table>
+        ` : '<p>No tests in this period.</p>'}
+        
+        <div style="margin-top: 40px;">
+            <p><strong>Teacher's Comments:</strong> ____________________________</p>
+            <br>
+            <p><strong>Parent's Signature:</strong> ____________________________</p>
+        </div>
+    `;
+    
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>${reportType} Report - ${student.name}</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid black; padding: 8px; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+            <p style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
+                Generated by Ustaad Dost - ${new Date().toLocaleString()}
+            </p>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// VIEW ALL TESTS
+function viewAllTests(classId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (!currentClass.tests || currentClass.tests.length === 0) {
+        document.getElementById('gradingContent').innerHTML = `
+            <h3>No tests created yet.</h3>
+            <button onclick="createNewTest(${classId})" style="background: blue; color: white; padding: 15px;">
+                Create First Test
+            </button>
+            <button onclick="openClass(${classId})" style="background: gray; color: white; padding: 15px;">
+                Back
+            </button>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="all-tests">
+            <h3>📊 All Tests for ${currentClass.name}</h3>
+            
+            <div class="tests-list">
+    `;
+    
+    currentClass.tests.forEach(test => {
+        html += `
+            <div class="test-card" style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; background: #f9f9f9;">
+                <h4>${test.subject} - ${test.topic}</h4>
+                <p><strong>Type:</strong> ${test.testType} | <strong>Method:</strong> ${test.method === 'marks' ? 'Marks Based' : 'Tick/Cross'}</p>
+                <p><strong>Date:</strong> ${test.date} ${test.time}</p>
+                ${test.method === 'marks' ? `<p><strong>Total Marks:</strong> ${test.totalMarks}</p>` : ''}
+                
+                <button onclick="viewTestResults(${classId}, ${test.id})" 
+                    style="background: blue; color: white; padding: 8px 15px; margin: 5px;">
+                    👁️ View Results
+                </button>
+                <button onclick="printTestResults(${classId}, ${test.id})" 
+                    style="background: green; color: white; padding: 8px 15px; margin: 5px;">
+                    🖨️ Print Results
+                </button>
+            </div>
+        `;
+    });
+    
+    html += `
+            </div>
+            
+            <button onclick="createNewTest(${classId})" 
+                style="background: blue; color: white; padding: 15px 30px; margin: 20px;">
+                ➕ Create New Test
+            </button>
+            <button onclick="openClass(${classId})" 
+                style="background: gray; color: white; padding: 15px 30px; margin: 20px;">
+                ⬅️ Back to Class
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('gradingContent').innerHTML = html;
+}
+
+function viewTestResults(classId, testId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    const test = currentClass.tests.find(t => t.id == testId);
+    
+    let html = `
+        <div class="test-results">
+            <h3>📊 ${test.subject} - ${test.topic} Results</h3>
+            <p><strong>Type:</strong> ${test.testType} | <strong>Date:</strong> ${test.date}</p>
+            
+            <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 8px;">Student Name</th>
+    `;
+    
+    if (test.method === 'marks') {
+        html += `
+                    <th style="padding: 8px;">Obtained Marks</th>
+                    <th style="padding: 8px;">Total Marks</th>
+                    <th style="padding: 8px;">Percentage</th>
+                </tr>
+        `;
+        
+        test.scores.forEach(score => {
+            html += `
+                <tr>
+                    <td style="padding: 8px;">${score.studentName}</td>
+                    <td style="padding: 8px;">${score.obtainedMarks}</td>
+                    <td style="padding: 8px;">${test.totalMarks}</td>
+                    <td style="padding: 8px;">${score.percentage}%</td>
+                </tr>
+            `;
+        });
+    } else {
+        html += `
+                    <th style="padding: 8px;">Status</th>
+                </tr>
+        `;
+        
+        test.scores.forEach(score => {
+            html += `
+                <tr>
+                    <td style="padding: 8px;">${score.studentName}</td>
+                    <td style="padding: 8px; color: ${score.completed ? 'green' : 'red'};">
+                        ${score.status}
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    
+    html += `
+            </table>
+            
+            <div style="text-align: center; margin: 20px;">
+                <button onclick="printTestResults(${classId}, ${testId})" 
+                    style="background: green; color: white; padding: 15px 30px; margin: 10px;">
+                    🖨️ Print Results
+                </button>
+                <button onclick="viewAllTests(${classId})" 
+                    style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                    ⬅️ Back to Tests
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('gradingContent').innerHTML = html;
+}
+
+function printTestResults(classId, testId) {
+    const classes = JSON.parse(localStorage.getItem(getCurrentUser() + '_classes') || '[]');
+    const currentClass = classes.find(c => c.id == classId);
+    const test = currentClass.tests.find(t => t.id == testId);
+    
+    let printContent = `
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h2>${test.subject} - ${test.topic}</h2>
+            <h3>Test Results</h3>
+            <p><strong>Class:</strong> ${currentClass.name}</p>
+            <p><strong>Type:</strong> ${test.testType} | <strong>Date:</strong> ${test.date}</p>
+        </div>
+        
+        <table border="1" style="width: 100%; border-collapse: collapse;">
+            <tr style="background-color: #f2f2f2;">
+                <th style="padding: 10px;">Student Name</th>
+    `;
+    
+    if (test.method === 'marks') {
+        printContent += `
+                <th style="padding: 10px;">Obtained Marks</th>
+                <th style="padding: 10px;">Total Marks</th>
+                <th style="padding: 10px;">Percentage</th>
+            </tr>
+        `;
+        
+        test.scores.forEach(score => {
+            printContent += `
+                <tr>
+                    <td style="padding: 10px;">${score.studentName}</td>
+                    <td style="padding: 10px; text-align: center;">${score.obtainedMarks}</td>
+                    <td style="padding: 10px; text-align: center;">${test.totalMarks}</td>
+                    <td style="padding: 10px; text-align: center;">${score.percentage}%</td>
+                </tr>
+            `;
+        });
+    } else {
+        printContent += `
+                <th style="padding: 10px;">Status</th>
+            </tr>
+        `;
+        
+        test.scores.forEach(score => {
+            printContent += `
+                <tr>
+                    <td style="padding: 10px;">${score.studentName}</td>
+                    <td style="padding: 10px; text-align: center;">${score.status}</td>
+                </tr>
+            `;
+        });
+    }
+    
+    printContent += `</table>`;
+    
+    const printWindow = window.open('', '', 'height=600,width=800');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Test Results - ${test.subject}</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid black; padding: 8px; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+            <p style="text-align: center; margin-top: 30px; font-size: 12px;">
+                Generated by Ustaad Dost - ${new Date().toLocaleString()}
+            </p>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+// HELPER FUNCTION
+function getCurrentUser() {
+    const user = JSON.parse(localStorage.getItem('ustaadDostUser') || '{}');
+    return user.phone || 'default';
+}
+HTML BUTTON TO OPEN GRADING BUDDY:
+htmlCopy<button onclick="openGradingBuddy()">📊 Grading Buddy</button>
+This is a complete working grading buddy system built from scratch with all the features you requested.Add to Conversation

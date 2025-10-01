@@ -4,7 +4,7 @@
 
 USTAAD DOST is a comprehensive teacher assistant application designed specifically for Pakistani educators teaching grades 1-5. The platform combines traditional teaching management with AI-powered educational tools, featuring a soothing eye-friendly design with soft blues, greens, and warm neutrals.
 
-The application serves Pakistani teachers with two core modules: Yearly Planner for curriculum scheduling and AI Chatbox for curriculum-specific educational content generation. Built as a progressive web app with offline capabilities, it supports the complete Pakistani curriculum (Math, English, Urdu, Islamiyat, General Knowledge, Social Studies, Science) with multilingual support.
+The application serves Pakistani teachers with three core modules: Yearly Planner for curriculum scheduling, Grading Buddy for class and assessment management, and AI Chatbox for curriculum-specific educational content generation. Built as a progressive web app with offline capabilities, it supports the complete Pakistani curriculum (Math, English, Urdu, Islamiyat, General Knowledge, Social Studies, Science) with multilingual support.
 
 ## User Preferences
 
@@ -45,7 +45,17 @@ Preferred communication style: Simple, everyday language.
 - Individual entry editing with progress tracking
 - Monthly/yearly class count displays
 
-**2. AI Chatbox Module:**
+**2. Grading Buddy Module:**
+- Class Management: Create and manage multiple classes with student rosters
+- Student Management: Bulk add students, edit profiles (name, father/mother name, contact, address, gender)
+- Test Creation: Marks-based (e.g., 85/100) or Tick/Cross assessment methods
+- Grade Calculation: Automatic percentage and grade computation (A+, A, B, C, D, E, F)
+- Test Types: Written Test, Oral Test, Quiz, Assignment, Homework
+- Reports: Full progress reports and subject-wise reports for students
+- Print Functionality: Print test sheets and results for physical records
+- Data Storage: All data stored in localStorage per user (phone number based)
+
+**3. AI Chatbox Module:**
 - Multimodal inputs: text, camera capture, image upload, voice notes (Urdu/English)
 - Pakistani curriculum navigation: Grade → Subject → Chapter → Topic
 - Content generation: Lesson Plans, Teaching Strategies, Activities, Assessments
@@ -62,9 +72,11 @@ Preferred communication style: Simple, everyday language.
 - **Progressive Features**: Editable profiles with persistent data storage
 
 ### Recent Updates (October 2025)
-- **Simplified Authentication**: Removed password system - login with phone number only
-- **Module Cleanup**: Removed Grading Buddy feature entirely
-- **Bug Fixes**: Resolved 67+ code errors including undefined variables and database connection issues
+- **Grading Buddy Rebuilt**: Complete new implementation with localStorage-based data management
+- **Simplified Authentication**: Phone number only login system
+- **Enhanced Features**: Added marks-based and tick/cross assessment methods
+- **Print Support**: Full printing capability for tests and progress reports
+- **Student Management**: Comprehensive student profile editing with bulk add support
 
 ## External Dependencies
 
