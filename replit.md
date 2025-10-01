@@ -45,13 +45,17 @@ Preferred communication style: Simple, everyday language.
 - Individual entry editing with progress tracking
 - Monthly/yearly class count displays
 
-**2. Grading Buddy Module:**
-- Class management with sections for grades 1-5
-- Student profile management with guardian contacts and CNIC integration
-- Customizable scoresheets with automatic date/time stamps
-- Screener grading with 7-task checkbox system
-- PDF report generation for individual students and classes
-- Progress dashboards and analytics
+**2. Grading Buddy Module (Simplified v2.0):**
+- Simple class creation without subject requirements
+- Bulk student addition (paste multiple names at once)
+- Individual student addition with quick input
+- Subject-based scoresheet creation (English, Math, Urdu, Islamiyat, Science, Social Studies, General Knowledge)
+- Dual assessment types:
+  - **Marks-based scoresheets**: Total marks, obtained marks, percentage, and grade calculation
+  - **Tick/Cross scoresheets**: Simple completion tracking
+- Print functionality for all scoresheets
+- Data separation by teacher phone number using localStorage
+- Student and scoresheet management per class
 
 **3. AI Chatbox Module:**
 - Multimodal inputs: text, camera capture, image upload, voice notes (Urdu/English)
@@ -61,11 +65,18 @@ Preferred communication style: Simple, everyday language.
 - OpenAI integration with curriculum-specific knowledge base
 
 ### Authentication and Authorization
-- **Phone Authentication**: Login system using phone number and password
+- **Phone Authentication**: Login system using phone number and password with bcrypt hashing
+- **Password Security**: All passwords encrypted with bcrypt salt and hash (minimum 6 characters)
+- **Password Verification**: Login validates password hash before granting access
 - **Profile Management**: Complete teacher profiles with CNIC, address, email, photo upload
-- **Session Security**: Secure session management with teacher access controls
+- **Session Security**: Secure session cookies with HTTPONLY and SECURE flags enabled
 - **Data Privacy**: Individual teacher data isolation with secure access patterns
 - **Progressive Features**: Editable profiles with persistent data storage
+
+### Recent Updates (October 2025)
+- **Security Enhancements**: Added password hashing and verification to login/registration
+- **Grading Buddy Rebuild**: Simplified interface with localStorage-based data management
+- **Bug Fixes**: Resolved 67+ code errors including undefined variables and database connection issues
 
 ## External Dependencies
 
