@@ -1027,6 +1027,10 @@ Ayesha Ahmad"
         }
 
         window.onload = function() {
+            const phoneNumber = '{{ phone_number }}';
+            if (phoneNumber) {
+                localStorage.setItem('ustaadDostUser', JSON.stringify({ phone: phoneNumber }));
+            }
             showGradingBuddy();
         };
     </script>
