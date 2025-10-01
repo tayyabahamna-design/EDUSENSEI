@@ -10,21 +10,34 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 99999)|random }}">
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
     <script>
-        // FORCE CLEAR OLD CACHED DATA ON PAGE LOAD
-        const APP_VERSION = 'v3.0';
+        // FORCE CLEAR OLD CACHED DATA - v4.0 COMPLETE FIX
+        const APP_VERSION = 'v4.0_FIXED';
         const storedVersion = localStorage.getItem('app_version');
+        
+        // NUCLEAR OPTION: Clear everything if not v4.0
         if (storedVersion !== APP_VERSION) {
-            console.log('New version detected, clearing cache...');
+            console.log('🔥 CLEARING ALL CACHE - New version v4.0');
+            // Clear ALL localStorage
             localStorage.clear();
+            // Clear ALL sessionStorage
+            sessionStorage.clear();
+            // Set new version
             localStorage.setItem('app_version', APP_VERSION);
-            location.reload(true);
+            // Force hard reload
+            window.location.reload(true);
         }
     </script>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <h1 class="nav-title">📊 Grading Buddy <span style="font-size: 12px; background: #00ff00; color: black; padding: 2px 8px; border-radius: 3px; font-weight: bold;">v3.0 ✓</span></h1>
+            <h1 class="nav-title">📊 Grading Buddy <span style="font-size: 12px; background: #ff0000; color: white; padding: 2px 8px; border-radius: 3px; font-weight: bold; animation: blink 1s infinite;">v4.0 CLEAR CACHE!</span></h1>
+            <style>
+                @keyframes blink {
+                    0%, 50% { opacity: 1; }
+                    51%, 100% { opacity: 0.3; }
+                }
+            </style>
             <div class="nav-menu">
                 <a href="{{ url_for('index') }}" class="nav-link">🏠 Dashboard</a>
                 <span class="nav-welcome">Welcome, {{ session.user_name }}!</span>
