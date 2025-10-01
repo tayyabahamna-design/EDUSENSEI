@@ -4599,7 +4599,10 @@ def grading_buddy():
     # Check if user is logged in
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('grading_buddy.html', posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    return render_template('grading_buddy.html', 
+                         posthog_key=POSTHOG_KEY, 
+                         posthog_host=POSTHOG_HOST,
+                         phone_number=session.get('phone_number', ''))
 
 @app.route('/chatbot')
 def chatbot():
