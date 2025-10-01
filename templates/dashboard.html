@@ -1673,6 +1673,10 @@ Ali Raza"
             if (method === 'marks') {
                 showMarksTest(classId, subject, topic, testType, totalMarks);
             } else {
+                // Store test details for tick/cross assessment
+                window.currentTestSubject = subject;
+                window.currentTestTopic = topic;
+                window.currentTestType = testType;
                 showTickTest(classId, subject, topic, testType);
             }
         }
@@ -1821,38 +1825,24 @@ Ali Raza"
                         <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()} | <strong>Students:</strong> ${currentClass.students.length}</p>
                     </div>
                     
-                    <table border="1" style="width: 100%; border-collapse: collapse;">
-                        <tr style="background-color: #f2f2f2;">
-                            <th style="padding: 10px;">Roll No.</th>
-                            <th style="padding: 10px;">Student Name</th>
-                            <th style="padding: 10px;">Status</th>
-                        </tr>
-            `;
-            
-            currentClass.students.forEach((student, index) => {
-                html += `
-                    <tr>
-                        <td style="padding: 10px; text-align: center;">${index + 1}</td>
-                        <td style="padding: 10px;">${student.name}</td>
-                        <td style="padding: 10px; text-align: center;">
-                            <select id="tick_${student.id}" style="padding: 5px; font-size: 14px;">
-                                <option value="">Select</option>
-                                <option value="✓ Completed">✓ Completed</option>
-                                <option value="✗ Incomplete">✗ Incomplete</option>
-                                <option value="⭐ Excellent">⭐ Excellent</option>
-                            </select>
-                        </td>
-                    </tr>
-                `;
-            });
-            
-            html += `
-                    </table>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+                        <h4 style="margin: 0 0 10px 0;">📝 Add Tasks to Assess</h4>
+                        <div id="tasksList"></div>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <input type="text" id="newTaskInput" placeholder="Enter task name (e.g., Homework Completed, Brought Book)" 
+                                style="flex: 1; padding: 10px; border: 2px solid #ddd; border-radius: 5px; font-size: 14px;">
+                            <button onclick="addTaskToList()" style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                                ➕ Add Task
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div id="tickTableContainer"></div>
                     
                     <div style="text-align: center; margin: 20px;">
-                        <button onclick="saveTickTest(${classId}, '${subject}', '${topic}', '${testType}')" 
-                            style="background: green; color: white; padding: 15px 30px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
-                            💾 Save Test Results
+                        <button onclick="generateTickTable(${classId})" 
+                            style="background: #007bff; color: white; padding: 15px 30px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                            📋 Generate Assessment Table
                         </button>
                         <button onclick="openClass(${classId})" 
                             style="background: gray; color: white; padding: 15px 30px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
@@ -1863,24 +1853,130 @@ Ali Raza"
             `;
             
             document.getElementById('gradingContent').innerHTML = html;
+            
+            // Initialize tasks array
+            window.currentTasks = [];
+        }
+        
+        function addTaskToList() {
+            const taskInput = document.getElementById('newTaskInput');
+            const taskName = taskInput.value.trim();
+            
+            if (!taskName) {
+                alert('Please enter a task name!');
+                return;
+            }
+            
+            if (!window.currentTasks) {
+                window.currentTasks = [];
+            }
+            
+            window.currentTasks.push(taskName);
+            taskInput.value = '';
+            
+            // Update tasks display
+            const tasksList = document.getElementById('tasksList');
+            tasksList.innerHTML = window.currentTasks.map((task, index) => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border-radius: 5px; margin: 5px 0;">
+                    <span style="font-weight: 500;">${index + 1}. ${task}</span>
+                    <button onclick="removeTask(${index})" style="background: #dc3545; color: white; padding: 5px 10px; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">
+                        🗑️ Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        function removeTask(index) {
+            window.currentTasks.splice(index, 1);
+            addTaskToList(); // Refresh display
+        }
+        
+        function generateTickTable(classId) {
+            if (!window.currentTasks || window.currentTasks.length === 0) {
+                alert('Please add at least one task!');
+                return;
+            }
+            
+            const userPhone = getCurrentUser()?.phone || 'default';
+            const classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            const currentClass = classes.find(c => c.id == classId);
+            
+            let tableHtml = `
+                <div style="overflow-x: auto;">
+                    <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                        <tr style="background-color: #f2f2f2;">
+                            <th style="padding: 10px; position: sticky; left: 0; background: #f2f2f2;">Roll No.</th>
+                            <th style="padding: 10px; position: sticky; left: 60px; background: #f2f2f2;">Student Name</th>
+            `;
+            
+            // Add task columns
+            window.currentTasks.forEach(task => {
+                tableHtml += `<th style="padding: 10px; min-width: 100px;">${task}</th>`;
+            });
+            
+            tableHtml += `</tr>`;
+            
+            // Add student rows
+            currentClass.students.forEach((student, index) => {
+                tableHtml += `
+                    <tr>
+                        <td style="padding: 10px; text-align: center; position: sticky; left: 0; background: white;">${index + 1}</td>
+                        <td style="padding: 10px; position: sticky; left: 60px; background: white; font-weight: 500;">${student.name}</td>
+                `;
+                
+                window.currentTasks.forEach((task, taskIndex) => {
+                    tableHtml += `
+                        <td style="padding: 10px; text-align: center;">
+                            <select id="task_${student.id}_${taskIndex}" style="padding: 5px; font-size: 14px; width: 100%;">
+                                <option value="">-</option>
+                                <option value="✓">✓</option>
+                                <option value="✗">✗</option>
+                            </select>
+                        </td>
+                    `;
+                });
+                
+                tableHtml += `</tr>`;
+            });
+            
+            tableHtml += `
+                    </table>
+                </div>
+                
+                <div style="text-align: center; margin: 20px;">
+                    <button onclick="saveMultiTaskTickTest(${classId})" 
+                        style="background: green; color: white; padding: 15px 30px; margin: 10px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px;">
+                        💾 Save Assessment Results
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('tickTableContainer').innerHTML = tableHtml;
         }
 
-        function saveTickTest(classId, subject, topic, testType) {
+        function saveMultiTaskTickTest(classId) {
             const userPhone = getCurrentUser()?.phone || 'default';
             let classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
             const classIndex = classes.findIndex(c => c.id == classId);
             const currentClass = classes[classIndex];
             
+            // Get test details from global context
+            const subject = window.currentTestSubject;
+            const topic = window.currentTestTopic;
+            const testType = window.currentTestType;
+            
             const scores = [];
             currentClass.students.forEach(student => {
-                const tickSelect = document.getElementById('tick_' + student.id);
-                const status = tickSelect.value || 'Not graded';
+                const taskResults = {};
+                window.currentTasks.forEach((task, taskIndex) => {
+                    const taskSelect = document.getElementById(`task_${student.id}_${taskIndex}`);
+                    taskResults[task] = taskSelect.value || '-';
+                });
                 
                 scores.push({
                     studentId: student.id,
                     studentName: student.name,
-                    status: status,
-                    completed: status.includes('✓') || status.includes('⭐')
+                    tasks: taskResults
                 });
             });
             
@@ -1889,9 +1985,10 @@ Ali Raza"
                 subject: subject,
                 topic: topic,
                 testType: testType,
-                method: 'tick',
+                method: 'tick_multi',
                 date: new Date().toLocaleDateString(),
                 time: new Date().toLocaleTimeString(),
+                tasks: window.currentTasks,
                 scores: scores
             };
             
@@ -1902,7 +1999,7 @@ Ali Raza"
             
             localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
             
-            alert('✅ Test results saved successfully!');
+            alert('✅ Multi-task assessment saved successfully!');
             openClass(classId);
         }
 
@@ -1935,7 +2032,7 @@ Ali Raza"
                 html += `
                     <div class="test-card" style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; background: #f9f9f9; border-radius: 8px;">
                         <h4>${test.subject} - ${test.topic}</h4>
-                        <p><strong>Type:</strong> ${test.testType} | <strong>Method:</strong> ${test.method === 'marks' ? 'Marks Based' : 'Tick/Cross'}</p>
+                        <p><strong>Type:</strong> ${test.testType} | <strong>Method:</strong> ${test.method === 'marks' ? 'Marks Based' : (test.method === 'tick_multi' ? 'Multi-Task Tick/Cross' : 'Tick/Cross')}</p>
                         <p><strong>Date:</strong> ${test.date} ${test.time}</p>
                         ${test.method === 'marks' ? `<p><strong>Total Marks:</strong> ${test.totalMarks}</p>` : ''}
                         
@@ -2001,6 +2098,22 @@ Ali Raza"
                             <td style="padding: 8px;">${score.percentage}%</td>
                         </tr>
                     `;
+                });
+            } else if (test.method === 'tick_multi') {
+                // Multi-task tick/cross display
+                test.tasks.forEach(task => {
+                    html += `<th style="padding: 8px;">${task}</th>`;
+                });
+                html += `</tr>`;
+                
+                test.scores.forEach(score => {
+                    html += `<tr><td style="padding: 8px; font-weight: 500;">${score.studentName}</td>`;
+                    test.tasks.forEach(task => {
+                        const mark = score.tasks[task] || '-';
+                        const color = mark === '✓' ? 'green' : (mark === '✗' ? 'red' : 'gray');
+                        html += `<td style="padding: 8px; text-align: center; color: ${color}; font-weight: bold; font-size: 18px;">${mark}</td>`;
+                    });
+                    html += `</tr>`;
                 });
             } else {
                 html += `
@@ -2075,6 +2188,21 @@ Ali Raza"
                             <td style="padding: 10px; text-align: center;">${score.percentage}%</td>
                         </tr>
                     `;
+                });
+            } else if (test.method === 'tick_multi') {
+                // Multi-task print format
+                test.tasks.forEach(task => {
+                    printContent += `<th style="padding: 10px;">${task}</th>`;
+                });
+                printContent += `</tr>`;
+                
+                test.scores.forEach(score => {
+                    printContent += `<tr><td style="padding: 10px; font-weight: 500;">${score.studentName}</td>`;
+                    test.tasks.forEach(task => {
+                        const mark = score.tasks[task] || '-';
+                        printContent += `<td style="padding: 10px; text-align: center; font-weight: bold; font-size: 16px;">${mark}</td>`;
+                    });
+                    printContent += `</tr>`;
                 });
             } else {
                 printContent += `
