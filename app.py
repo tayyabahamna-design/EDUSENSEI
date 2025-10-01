@@ -4646,10 +4646,19 @@ def grading_buddy():
     # Check if user is logged in
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    return render_template('grading_buddy.html', 
+    
+    response = make_response(render_template('grading_buddy.html', 
                          posthog_key=POSTHOG_KEY, 
                          posthog_host=POSTHOG_HOST,
-                         phone_number=session.get('phone_number', ''))
+                         phone_number=session.get('phone_number', ''),
+                         version=int(datetime.now().timestamp())))
+    
+    # Force browser to reload (no cache)
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    
+    return response
 
 @app.route('/chatbot')
 def chatbot():
