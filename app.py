@@ -5579,6 +5579,195 @@ def remove_file():
         print(f"File removal error: {e}")
         return jsonify({'error': 'File removal failed'}), 500
 
+# ==================== GRADING BUDDY API ROUTES ====================
+
+@app.route('/api/grading/save-classes', methods=['POST'])
+def save_grading_classes():
+    """Save all grading buddy classes data to database"""
+    try:
+        user_phone = session.get('phone')
+        if not user_phone:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        data = request.get_json()
+        classes = data.get('classes', [])
+        
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Clear existing data for this user
+        cur.execute("DELETE FROM grading_classes WHERE user_phone = %s", (user_phone,))
+        
+        # Save each class
+        for cls in classes:
+            # Insert class
+            cur.execute("""
+                INSERT INTO grading_classes (user_phone, class_id, name)
+                VALUES (%s, %s, %s)
+                RETURNING id
+            """, (user_phone, cls['id'], cls['name']))
+            
+            class_db_id = cur.fetchone()[0]
+            
+            # Insert students
+            for student in cls.get('students', []):
+                cur.execute("""
+                    INSERT INTO grading_students 
+                    (class_db_id, student_id, name, father_name, mother_name, contact, address, gender)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    class_db_id, student['id'], student['name'],
+                    student.get('fatherName'), student.get('motherName'),
+                    student.get('contact'), student.get('address'), student.get('gender')
+                ))
+            
+            # Insert tests
+            for test in cls.get('tests', []):
+                cur.execute("""
+                    INSERT INTO grading_tests 
+                    (class_db_id, test_id, subject, topic, test_type, method, total_marks, tasks, test_date, test_time)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                """, (
+                    class_db_id, test['id'], test['subject'], test['topic'],
+                    test['testType'], test['method'], test.get('totalMarks'),
+                    json.dumps(test.get('tasks', [])), test['date'], test['time']
+                ))
+                
+                test_db_id = cur.fetchone()[0]
+                
+                # Insert test scores
+                for score in test.get('scores', []):
+                    cur.execute("""
+                        INSERT INTO grading_test_scores 
+                        (test_db_id, student_id, student_name, obtained_marks, percentage, status, completed, tasks)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        test_db_id, score.get('studentId'), score.get('studentName'),
+                        score.get('obtainedMarks'), score.get('percentage'),
+                        score.get('status'), score.get('completed'),
+                        json.dumps(score.get('tasks', {}))
+                    ))
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'message': 'Data saved successfully'})
+        
+    except Exception as e:
+        print(f"Save classes error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/grading/load-classes', methods=['GET'])
+def load_grading_classes():
+    """Load all grading buddy classes data from database"""
+    try:
+        user_phone = session.get('phone')
+        if not user_phone:
+            return jsonify({'error': 'Not authenticated'}), 401
+        
+        conn = get_db_connection()
+        cur = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Load classes
+        cur.execute("""
+            SELECT id, class_id, name 
+            FROM grading_classes 
+            WHERE user_phone = %s
+            ORDER BY created_at
+        """, (user_phone,))
+        
+        classes_data = cur.fetchall()
+        classes = []
+        
+        for class_row in classes_data:
+            class_obj = {
+                'id': class_row['class_id'],
+                'name': class_row['name'],
+                'students': [],
+                'tests': []
+            }
+            
+            # Load students for this class
+            cur.execute("""
+                SELECT student_id, name, father_name, mother_name, contact, address, gender
+                FROM grading_students
+                WHERE class_db_id = %s
+                ORDER BY created_at
+            """, (class_row['id'],))
+            
+            students = cur.fetchall()
+            for student in students:
+                class_obj['students'].append({
+                    'id': student['student_id'],
+                    'name': student['name'],
+                    'fatherName': student['father_name'],
+                    'motherName': student['mother_name'],
+                    'contact': student['contact'],
+                    'address': student['address'],
+                    'gender': student['gender']
+                })
+            
+            # Load tests for this class
+            cur.execute("""
+                SELECT id, test_id, subject, topic, test_type, method, total_marks, tasks, test_date, test_time
+                FROM grading_tests
+                WHERE class_db_id = %s
+                ORDER BY created_at
+            """, (class_row['id'],))
+            
+            tests = cur.fetchall()
+            for test_row in tests:
+                test_obj = {
+                    'id': test_row['test_id'],
+                    'subject': test_row['subject'],
+                    'topic': test_row['topic'],
+                    'testType': test_row['test_type'],
+                    'method': test_row['method'],
+                    'totalMarks': test_row['total_marks'],
+                    'tasks': json.loads(test_row['tasks']) if test_row['tasks'] else [],
+                    'date': test_row['test_date'],
+                    'time': test_row['test_time'],
+                    'scores': []
+                }
+                
+                # Load scores for this test
+                cur.execute("""
+                    SELECT student_id, student_name, obtained_marks, percentage, status, completed, tasks
+                    FROM grading_test_scores
+                    WHERE test_db_id = %s
+                    ORDER BY created_at
+                """, (test_row['id'],))
+                
+                scores = cur.fetchall()
+                for score in scores:
+                    score_obj = {
+                        'studentId': score['student_id'],
+                        'studentName': score['student_name'],
+                        'obtainedMarks': score['obtained_marks'],
+                        'percentage': float(score['percentage']) if score['percentage'] else None,
+                        'status': score['status'],
+                        'completed': score['completed'],
+                        'tasks': json.loads(score['tasks']) if score['tasks'] else {}
+                    }
+                    test_obj['scores'].append(score_obj)
+                
+                class_obj['tests'].append(test_obj)
+            
+            classes.append(class_obj)
+        
+        cur.close()
+        conn.close()
+        
+        return jsonify({'success': True, 'classes': classes})
+        
+    except Exception as e:
+        print(f"Load classes error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+# ==================== END GRADING BUDDY API ====================
+
 if __name__ == '__main__':
     # Initialize upload directories
     init_upload_directories()

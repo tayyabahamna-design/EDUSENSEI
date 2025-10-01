@@ -53,7 +53,12 @@ Preferred communication style: Simple, everyday language.
 - Test Types: Written Test, Oral Test, Quiz, Assignment, Homework
 - Reports: Full progress reports and subject-wise reports for students
 - Print Functionality: Print test sheets and results for physical records
-- Data Storage: All data stored in localStorage per user (phone number based)
+- **Data Persistence**: PostgreSQL database with cross-device synchronization
+  - Database Tables: grading_classes, grading_students, grading_tests, grading_test_scores
+  - Auto-sync: Data automatically saves to database on every change
+  - Cross-device: Access same data from any device with same phone number
+  - Periodic backup: Auto-save every 2 minutes
+  - Logout sync: Data saved to database before logout
 
 **3. AI Chatbox Module:**
 - Multimodal inputs: text, camera capture, image upload, voice notes (Urdu/English)
@@ -72,7 +77,13 @@ Preferred communication style: Simple, everyday language.
 - **Progressive Features**: Editable profiles with persistent data storage
 
 ### Recent Updates (October 2025)
-- **Grading Buddy Rebuilt**: Complete new implementation with localStorage-based data management
+- **Database Persistence (Oct 1)**: Full PostgreSQL integration for Grading Buddy with cross-device sync
+  - Automatic save to database on every change
+  - Load data from database on login (works across any device)
+  - Periodic auto-save every 2 minutes
+  - Data synced before logout
+  - Backend API endpoints: `/api/grading/save-classes`, `/api/grading/load-classes`
+- **Grading Buddy Rebuilt**: Complete new implementation with database-based data management
 - **Simplified Authentication**: Phone number only login system
 - **Enhanced Features**: Added marks-based and tick/cross assessment methods
 - **Print Support**: Full printing capability for tests and progress reports

@@ -712,8 +712,15 @@
             return savedUser ? JSON.parse(savedUser) : null;
         }
         
-        function logout() {
+        async function logout() {
             console.log("Logging out user..."); // Debug log
+            
+            // Save grading data to database before logout
+            const classes = getClasses();
+            if (classes && classes.length > 0) {
+                await saveClassesToDB(classes);
+                console.log("Data synced before logout");
+            }
             
             // Clear saved session from localStorage
             localStorage.removeItem('ustaadDostUser');
@@ -1045,14 +1052,73 @@
         
         // ==================== GRADING BUDDY SYSTEM ====================
         
-        function openGradingBuddy() {
+        // Database sync functions
+        async function loadClassesFromDB() {
+            try {
+                const response = await fetch('/api/grading/load-classes');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const userPhone = getCurrentUser()?.phone || 'default';
+                    localStorage.setItem(userPhone + '_classes', JSON.stringify(data.classes));
+                    return data.classes;
+                }
+                return [];
+            } catch (error) {
+                console.error('Load classes error:', error);
+                return JSON.parse(localStorage.getItem(getCurrentUser()?.phone + '_classes') || '[]');
+            }
+        }
+        
+        async function saveClassesToDB(classes) {
+            try {
+                const response = await fetch('/api/grading/save-classes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ classes: classes })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    console.log('✅ Data synced to database');
+                }
+            } catch (error) {
+                console.error('Save classes error:', error);
+            }
+        }
+        
+        function getClasses() {
+            const userPhone = getCurrentUser()?.phone || 'default';
+            return JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+        }
+        
+        function saveClasses(classes) {
+            const userPhone = getCurrentUser()?.phone || 'default';
+            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            // Auto-save to database
+            saveClassesToDB(classes);
+        }
+        
+        // Periodic auto-save every 2 minutes
+        setInterval(() => {
+            const classes = getClasses();
+            if (classes && classes.length > 0) {
+                saveClassesToDB(classes);
+            }
+        }, 120000); // 2 minutes
+        
+        async function openGradingBuddy() {
             document.getElementById('gradingBuddy').style.display = 'block';
+            document.getElementById('gradingContent').innerHTML = '<p style="text-align: center; padding: 50px;">Loading your classes...</p>';
+            
+            // Load from database first
+            await loadClassesFromDB();
+            
             showClassesList();
         }
 
         function showClassesList() {
-            const userPhone = getCurrentUser()?.phone || 'default';
-            const classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            const classes = getClasses();
             
             let html = `
                 <div class="classes-section">
@@ -1118,18 +1184,16 @@
                 tests: []
             };
             
-            const userPhone = getCurrentUser()?.phone || 'default';
-            let classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            let classes = getClasses();
             classes.push(newClass);
-            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            saveClasses(classes);
             
             alert('✅ Class created successfully!');
             showClassesList();
         }
 
         function openClass(classId) {
-            const userPhone = getCurrentUser()?.phone || 'default';
-            const classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            const classes = getClasses();
             const currentClass = classes.find(c => c.id == classId);
             
             if (!currentClass) {
@@ -1231,8 +1295,7 @@ Ali Raza"
             
             const names = bulkText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
             
-            const userPhone = getCurrentUser()?.phone || 'default';
-            let classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            let classes = getClasses();
             const classIndex = classes.findIndex(c => c.id == classId);
             
             names.forEach(name => {
@@ -1248,7 +1311,7 @@ Ali Raza"
                 classes[classIndex].students.push(newStudent);
             });
             
-            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            saveClasses(classes);
             
             alert(`✅ Added ${names.length} students successfully!`);
             openClass(classId);
@@ -1272,11 +1335,10 @@ Ali Raza"
                 gender: ''
             };
             
-            const userPhone = getCurrentUser()?.phone || 'default';
-            let classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            let classes = getClasses();
             const classIndex = classes.findIndex(c => c.id == classId);
             classes[classIndex].students.push(newStudent);
-            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            saveClasses(classes);
             
             document.getElementById('singleStudentInput').value = '';
             alert('✅ Student added successfully!');
@@ -1424,7 +1486,7 @@ Ali Raza"
                 gender: gender
             };
             
-            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            saveClasses(classes);
             
             alert('✅ Student profile updated!');
             viewStudents(classId);
@@ -1441,7 +1503,7 @@ Ali Raza"
                 const classIndex = updatedClasses.findIndex(c => c.id == classId);
                 
                 updatedClasses[classIndex].students = updatedClasses[classIndex].students.filter(s => s.id != studentId);
-                localStorage.setItem(userPhone + '_classes', JSON.stringify(updatedClasses));
+                saveClasses(updatedClasses);
                 
                 alert('✅ Student deleted!');
                 viewStudents(classId);
@@ -1805,7 +1867,7 @@ Ali Raza"
             }
             classes[classIndex].tests.push(newTest);
             
-            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            saveClasses(classes);
             
             alert('✅ Test results saved successfully!');
             openClass(classId);
@@ -2009,7 +2071,7 @@ Ali Raza"
             }
             classes[classIndex].tests.push(newTest);
             
-            localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            saveClasses(classes);
             
             alert('✅ Multi-task assessment saved successfully!');
             openClass(classId);
