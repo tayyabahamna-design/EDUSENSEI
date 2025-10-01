@@ -1,0 +1,365 @@
+SIMPLE CLASS & SCORESHEET FIX:
+Keep everything same. Only fix class creation and scoresheet flow:
+FIX 1 - REMOVE SUBJECT FROM CLASS CREATION
+javascriptCopyfunction addClass() {
+    document.getElementById('addClassForm').innerHTML = `
+        <h3>Create New Class</h3>
+        <input type="text" id="className" placeholder="Class Name (e.g., Grade 3-A)" style="width: 100%; padding: 12px; margin: 10px 0; font-size: 16px;">
+        <button onclick="saveClass()" style="background: green; color: white; padding: 12px 20px; margin: 10px;">Create Class</button>
+        <button onclick="cancelAddClass()" style="background: gray; color: white; padding: 12px 20px; margin: 10px;">Cancel</button>
+    `;
+    document.getElementById('addClassForm').style.display = 'block';
+}
+
+function saveClass() {
+    const className = document.getElementById('className').value.trim();
+    
+    if (!className) {
+        alert('Please enter class name!');
+        return;
+    }
+    
+    const newClass = {
+        id: Date.now(),
+        name: className,
+        students: [],
+        scoresheets: []
+    };
+    
+    let classes = getUserData('teacherClasses');
+    classes.push(newClass);
+    saveUserData('teacherClasses', classes);
+    
+    alert('✅ Class created! Now add students.');
+    loadExistingClasses();
+    document.getElementById('addClassForm').style.display = 'none';
+}
+FIX 2 - SCORESHEET WITH SUBJECT SELECTION
+javascriptCopyfunction createNewTest(classId) {
+    const subjects = ['English', 'Math', 'Urdu', 'Islamiyat', 'Science', 'Social Studies', 'General Knowledge', 'Computer'];
+    
+    const testFormHTML = `
+        <div class="create-test-form">
+            <h3>📝 Create New Scoresheet</h3>
+            
+            <label>Select Subject:</label>
+            <select id="testSubject" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+                <option value="">Choose Subject</option>
+                ${subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('')}
+            </select>
+            
+            <label>Test Topic/Chapter:</label>
+            <input type="text" id="testTopic" placeholder="e.g., Chapter 5 - Nouns" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            
+            <label>Test Type:</label>
+            <select id="testType" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+                <option value="">Select Type</option>
+                <option value="Written Test">Written Test</option>
+                <option value="Oral Test">Oral Test</option>
+                <option value="Quiz">Quiz</option>
+                <option value="Assignment">Assignment</option>
+                <option value="Class Work">Class Work</option>
+                <option value="Homework">Homework</option>
+            </select>
+            
+            <label>Assessment Method:</label>
+            <div style="margin: 10px 0;">
+                <label><input type="radio" name="assessmentMethod" value="marks" checked> Marks Based (e.g., 85/100)</label><br>
+                <label><input type="radio" name="assessmentMethod" value="tick"> Tick/Cross Based</label>
+            </div>
+            
+            <div id="marksSection">
+                <label>Total Marks:</label>
+                <input type="number" id="totalMarks" placeholder="100" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px;">
+            </div>
+            
+            <button onclick="generateScoresheet(${classId})" style="background: blue; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                📊 Generate Scoresheet
+            </button>
+            <button onclick="openClass(${classId})" style="background: gray; color: white; padding: 15px 30px; margin: 10px;">Cancel</button>
+        </div>
+    `;
+    
+    document.getElementById('classDetails').innerHTML = testFormHTML;
+    
+    // Hide marks section when tick/cross selected
+    document.querySelectorAll('input[name="assessmentMethod"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const marksSection = document.getElementById('marksSection');
+            if (this.value === 'tick') {
+                marksSection.style.display = 'none';
+            } else {
+                marksSection.style.display = 'block';
+            }
+        });
+    });
+}
+
+function generateScoresheet(classId) {
+    const subject = document.getElementById('testSubject').value;
+    const topic = document.getElementById('testTopic').value;
+    const testType = document.getElementById('testType').value;
+    const method = document.querySelector('input[name="assessmentMethod"]:checked').value;
+    const totalMarks = document.getElementById('totalMarks').value;
+    
+    if (!subject || !topic || !testType) {
+        alert('Please fill all required fields!');
+        return;
+    }
+    
+    if (method === 'marks' && !totalMarks) {
+        alert('Please enter total marks!');
+        return;
+    }
+    
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (!currentClass.students || currentClass.students.length === 0) {
+        alert('Please add students first!');
+        manualStudentAdd(classId);
+        return;
+    }
+    
+    const scoresheetData = {
+        id: Date.now(),
+        subject: subject,
+        topic: topic,
+        testType: testType,
+        method: method,
+        totalMarks: method === 'marks' ? parseInt(totalMarks) : null,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        scores: []
+    };
+    
+    if (method === 'marks') {
+        showMarksScoresheet(classId, scoresheetData);
+    } else {
+        showTickScoresheet(classId, scoresheetData);
+    }
+}
+FIX 3 - MARKS BASED SCORESHEET
+javascriptCopyfunction showMarksScoresheet(classId, scoresheetData) {
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    let scoresheetHTML = `
+        <div class="scoresheet" id="printableScoresheet">
+            <div class="scoresheet-header">
+                <h3>📊 ${scoresheetData.subject} - ${scoresheetData.topic}</h3>
+                <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${scoresheetData.testType}</p>
+                <p><strong>Date:</strong> ${scoresheetData.date} | <strong>Total Marks:</strong> ${scoresheetData.totalMarks}</p>
+            </div>
+            
+            <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 10px;">Roll No.</th>
+                    <th style="padding: 10px;">Student Name</th>
+                    <th style="padding: 10px;">Obtained Marks</th>
+                    <th style="padding: 10px;">Percentage</th>
+                    <th style="padding: 10px;">Grade</th>
+                </tr>
+                ${currentClass.students.map((student, index) => `
+                    <tr>
+                        <td style="padding: 10px; text-align: center;">${index + 1}</td>
+                        <td style="padding: 10px;">${student.name}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <input type="number" id="marks_${student.id}" max="${scoresheetData.totalMarks}" min="0" 
+                                onchange="calculatePercentage(${student.id}, ${scoresheetData.totalMarks})"
+                                style="width: 80px; padding: 5px; text-align: center; font-size: 16px;">
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span id="percentage_${student.id}">-</span>
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span id="grade_${student.id}">-</span>
+                        </td>
+                    </tr>
+                `).join('')}
+            </table>
+        </div>
+        
+        <div class="scoresheet-actions" style="text-align: center; margin: 20px;">
+            <button onclick="saveScoresheet(${classId}, '${JSON.stringify(scoresheetData).replace(/'/g, "\\'")}', 'marks')" 
+                style="background: green; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                💾 Save Scoresheet
+            </button>
+            <button onclick="printScoresheet()" 
+                style="background: blue; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                🖨️ Print Scoresheet
+            </button>
+            <button onclick="openClass(${classId})" 
+                style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                Cancel
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('classDetails').innerHTML = scoresheetHTML;
+}
+
+function calculatePercentage(studentId, totalMarks) {
+    const obtainedMarks = document.getElementById(`marks_${studentId}`).value;
+    if (obtainedMarks !== '') {
+        const percentage = Math.round((obtainedMarks / totalMarks) * 100);
+        document.getElementById(`percentage_${studentId}`).textContent = percentage + '%';
+        
+        let grade = 'F';
+        if (percentage >= 90) grade = 'A+';
+        else if (percentage >= 80) grade = 'A';
+        else if (percentage >= 70) grade = 'B';
+        else if (percentage >= 60) grade = 'C';
+        else if (percentage >= 50) grade = 'D';
+        
+        document.getElementById(`grade_${studentId}`).textContent = grade;
+    }
+}
+
+function printScoresheet() {
+    const printContent = document.getElementById('printableScoresheet').innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>Scoresheet</title>
+            <style>
+                body { font-family: Arial; padding: 20px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border: 1px solid black; padding: 8px; }
+                th { background-color: #f2f2f2; }
+            </style>
+        </head>
+        <body>
+            ${printContent}
+            <p style="text-align: center; margin-top: 30px;">Generated by Ustaad Dost - ${new Date().toLocaleString()}</p>
+        </body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+FIX 4 - TICK/CROSS SCORESHEET
+javascriptCopyfunction showTickScoresheet(classId, scoresheetData) {
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    let tickHTML = `
+        <div class="tick-scoresheet" id="printableTickSheet">
+            <div class="scoresheet-header">
+                <h3>✅ ${scoresheetData.subject} - ${scoresheetData.topic}</h3>
+                <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${scoresheetData.testType}</p>
+                <p><strong>Date:</strong> ${scoresheetData.date} | <strong>Assessment:</strong> Tick/Cross Based</p>
+            </div>
+            
+            <table border="1" style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr style="background-color: #f2f2f2;">
+                    <th style="padding: 10px;">Student Name</th>
+                    <th style="padding: 10px;">Completed</th>
+                    <th style="padding: 10px;">Status</th>
+                </tr>
+                ${currentClass.students.map(student => `
+                    <tr>
+                        <td style="padding: 10px;">${student.name}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <input type="checkbox" id="tick_${student.id}" onchange="updateTickStatus(${student.id})"
+                                style="width: 20px; height: 20px;">
+                        </td>
+                        <td style="padding: 10px; text-align: center;">
+                            <span id="status_${student.id}">Not Completed</span>
+                        </td>
+                    </tr>
+                `).join('')}
+            </table>
+        </div>
+        
+        <div class="scoresheet-actions" style="text-align: center; margin: 20px;">
+            <button onclick="saveScoresheet(${classId}, '${JSON.stringify(scoresheetData).replace(/'/g, "\\'")}', 'tick')" 
+                style="background: green; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                💾 Save Scoresheet
+            </button>
+            <button onclick="printTickSheet()" 
+                style="background: blue; color: white; padding: 15px 30px; margin: 10px; font-size: 16px;">
+                🖨️ Print Scoresheet
+            </button>
+            <button onclick="openClass(${classId})" 
+                style="background: gray; color: white; padding: 15px 30px; margin: 10px;">
+                Cancel
+            </button>
+        </div>
+    `;
+    
+    document.getElementById('classDetails').innerHTML = tickHTML;
+}
+
+function updateTickStatus(studentId) {
+    const isChecked = document.getElementById(`tick_${studentId}`).checked;
+    const statusSpan = document.getElementById(`status_${studentId}`);
+    
+    if (isChecked) {
+        statusSpan.textContent = '✅ Completed';
+        statusSpan.style.color = 'green';
+    } else {
+        statusSpan.textContent = '❌ Not Completed';
+        statusSpan.style.color = 'red';
+    }
+}
+FIX 5 - SAVE SCORESHEET
+javascriptCopyfunction saveScoresheet(classId, scoresheetDataStr, method) {
+    const scoresheetData = JSON.parse(scoresheetDataStr.replace(/\\'/g, "'"));
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    // Collect scores based on method
+    if (method === 'marks') {
+        scoresheetData.scores = currentClass.students.map(student => {
+            const obtainedMarks = document.getElementById(`marks_${student.id}`).value || 0;
+            const percentage = scoresheetData.totalMarks > 0 ? 
+                Math.round((obtainedMarks / scoresheetData.totalMarks) * 100) : 0;
+            
+            return {
+                studentId: student.id,
+                studentName: student.name,
+                obtainedMarks: parseInt(obtainedMarks),
+                percentage: percentage
+            };
+        });
+    } else {
+        scoresheetData.scores = currentClass.students.map(student => {
+            const isCompleted = document.getElementById(`tick_${student.id}`).checked;
+            
+            return {
+                studentId: student.id,
+                studentName: student.name,
+                completed: isCompleted,
+                status: isCompleted ? 'Completed' : 'Not Completed'
+            };
+        });
+    }
+    
+    // Add to class scoresheets
+    let updatedClasses = getUserData('teacherClasses');
+    const classIndex = updatedClasses.findIndex(c => c.id == classId);
+    
+    if (!updatedClasses[classIndex].scoresheets) {
+        updatedClasses[classIndex].scoresheets = [];
+    }
+    
+    updatedClasses[classIndex].scoresheets.push(scoresheetData);
+    saveUserData('teacherClasses', updatedClasses);
+    
+    alert('✅ Scoresheet saved successfully!');
+    openClass(classId);
+}
+NOW FLOW IS:
+
+✅ Create class (no subject selection)
+✅ Add students in bulk
+✅ Create scoresheet → select subject at this point
+✅ Choose marks-based or tick-based
+✅ Print scoresheet
+✅ Progress reports (weekly/monthly/yearly) available in student profiles
+
+Keep everything else unchanged.
