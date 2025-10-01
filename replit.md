@@ -54,11 +54,12 @@ Preferred communication style: Simple, everyday language.
 - Reports: Full progress reports and subject-wise reports for students
 - Print Functionality: Print test sheets and results for physical records
 - **Data Persistence**: PostgreSQL database with cross-device synchronization
-  - Database Tables: grading_classes, grading_students, grading_tests, grading_test_scores
+  - Database Table: `grading_data` (stores entire class structure as JSON)
   - Auto-sync: Data automatically saves to database on every change
   - Cross-device: Access same data from any device with same phone number
   - Periodic backup: Auto-save every 2 minutes
   - Logout sync: Data saved to database before logout
+  - Simple & Reliable: JSON storage for maximum compatibility
 
 **3. AI Chatbox Module:**
 - Multimodal inputs: text, camera capture, image upload, voice notes (Urdu/English)
