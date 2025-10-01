@@ -22,7 +22,6 @@
             <h1 class="nav-title">🌟 USTAAD DOST</h1>
             <div class="nav-menu">
                 <button id="plannerNavBtn" class="nav-button">📅 Planner</button>
-                <button id="gradingNavBtn" class="nav-button">📊 Grading</button>
                 <button id="chatNavBtn" class="nav-button">🤖 Chat</button>
                 <button id="profileNavBtn" class="nav-button">👤 Profile</button>
                 <div class="user-status">
@@ -61,16 +60,6 @@
                         <p>Academic year planning | سال بھر کا منصوبہ</p>
                     </div>
                     <button id="yearlyPlannerBtn" class="btn btn-primary btn-large">📅 Start Planning</button>
-                </div>
-                
-                <!-- Grading Buddy Feature -->
-                <div class="feature-card grading-buddy">
-                    <div class="card-content">
-                        <div class="feature-icon">📊</div>
-                        <h3>📊 Grading Buddy</h3>
-                        <p>Student tracking & reports | طلباء کی نگرانی</p>
-                    </div>
-                    <button id="gradingBuddyBtn" class="btn btn-primary btn-large">📊 Manage Grades</button>
                 </div>
                 
                 <!-- AI Chatbox Feature -->
@@ -124,11 +113,6 @@
         <div id="yearlyPlanner" style="display:none;">
             <h2>📅 Yearly Planner</h2>
             <p>Loading planner...</p>
-        </div>
-        
-        <!-- Grading Buddy Section -->
-        <div id="gradingBuddy" style="display:none;">
-            <!-- Will be populated by loadGradingBuddy() -->
         </div>
         
         <!-- Chatbot Section -->
@@ -287,7 +271,7 @@
         }
         
         
-        .yearly-planner, .grading-buddy, .ai-chatbox {
+        .yearly-planner, .ai-chatbox {
             border-top: 1px solid var(--gray-200);
         }
         
@@ -414,148 +398,6 @@
             border: 1px solid rgba(168, 213, 232, 0.3);
         }
         
-        /* Grading Buddy Styles */
-        .grading-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .class-management {
-            background: var(--warm-white);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: var(--shadow-md);
-            margin-bottom: 20px;
-        }
-        
-        .add-btn {
-            background: var(--sage-green);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .add-btn:hover {
-            background: var(--sage-green-dark);
-            transform: translateY(-2px);
-        }
-        
-        .class-card {
-            background: white;
-            border: 2px solid var(--border-gray);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            transition: all 0.3s ease;
-        }
-        
-        .class-card:hover {
-            border-color: var(--soft-blue);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-        }
-        
-        .class-card h4 {
-            color: var(--soft-blue-dark);
-            margin-bottom: 10px;
-        }
-        
-        .class-card button {
-            background: var(--soft-blue);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            margin-right: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .class-card button:hover {
-            background: var(--soft-blue-dark);
-            transform: translateY(-1px);
-        }
-        
-        #addClassForm {
-            background: var(--light-gray);
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        
-        #addClassForm input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid var(--border-gray);
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-        
-        #addClassForm button {
-            background: var(--sage-green);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-right: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .class-detail-view {
-            background: var(--warm-white);
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: var(--shadow-md);
-            margin-top: 20px;
-        }
-        
-        .add-students-options {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .add-students-options button {
-            background: var(--mint-green);
-            color: var(--gray-700);
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .student-profile {
-            background: white;
-            border: 1px solid var(--border-gray);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-        
-        .student-profile h5 {
-            color: var(--soft-blue-dark);
-            margin-bottom: 8px;
-        }
-        
-        .student-profile button {
-            background: var(--warm-pink);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        
         /* Profile Edit Styles */
         .profile-edit {
             max-width: 600px;
@@ -671,7 +513,7 @@
                 flex-direction: column;
             }
             
-            .grading-container, .profile-edit {
+            .profile-edit {
                 padding: 10px;
             }
         }
@@ -682,205 +524,8 @@
         function hideAllSections() {
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('yearlyPlanner').style.display = 'none';
-            document.getElementById('gradingBuddy').style.display = 'none';
             document.getElementById('chatbot').style.display = 'none';
             document.getElementById('profileSection').style.display = 'none';
-        }
-        
-        // Grading Buddy Functions
-        function loadGradingBuddy() {
-            document.getElementById('gradingBuddy').innerHTML = `
-                <div class="grading-container">
-                    <h2>📊 Grading Buddy</h2>
-                    
-                    <div class="class-management">
-                        <h3>Your Classes</h3>
-                        <button onclick="addClass()" class="add-btn">➕ Add New Class</button>
-                        
-                        <div id="classList">
-                            <!-- Classes will appear here -->
-                        </div>
-                    </div>
-                    
-                    <div id="addClassForm" style="display:none;">
-                        <h3>Create New Class</h3>
-                        <input type="text" id="className" placeholder="Class Name (e.g., Grade 3-A)">
-                        <input type="text" id="classSubject" placeholder="Subject">
-                        <button onclick="saveClass()">Save Class</button>
-                        <button onclick="cancelAddClass()">Cancel</button>
-                    </div>
-                    
-                    <div id="classDetails" style="display:none;">
-                        <!-- Individual class management will load here -->
-                    </div>
-                </div>
-            `;
-            
-            loadExistingClasses();
-        }
-        
-        function addClass() {
-            document.getElementById('addClassForm').style.display = 'block';
-        }
-        
-        function cancelAddClass() {
-            document.getElementById('addClassForm').style.display = 'none';
-            document.getElementById('className').value = '';
-            document.getElementById('classSubject').value = '';
-        }
-        
-        function saveClass() {
-            const className = document.getElementById('className').value;
-            const subject = document.getElementById('classSubject').value;
-            
-            if (className && subject) {
-                // Save class to storage
-                const newClass = {
-                    id: Date.now(),
-                    name: className,
-                    subject: subject,
-                    students: []
-                };
-                
-                let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-                classes.push(newClass);
-                localStorage.setItem('teacherClasses', JSON.stringify(classes));
-                
-                // Refresh class list
-                loadExistingClasses();
-                document.getElementById('addClassForm').style.display = 'none';
-                document.getElementById('className').value = '';
-                document.getElementById('classSubject').value = '';
-            } else {
-                alert('Please enter both class name and subject!');
-            }
-        }
-        
-        function loadExistingClasses() {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const classListDiv = document.getElementById('classList');
-            
-            classListDiv.innerHTML = classes.map(cls => `
-                <div class="class-card">
-                    <h4>${cls.name} - ${cls.subject}</h4>
-                    <p>Students: ${cls.students.length}</p>
-                    <button onclick="openClass(${cls.id})">📚 Open Class</button>
-                    <button onclick="editClass(${cls.id})">✏️ Edit</button>
-                </div>
-            `).join('');
-        }
-        
-        function openClass(classId) {
-            const classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const currentClass = classes.find(c => c.id === classId);
-            
-            if (!currentClass) {
-                alert('Class not found!');
-                return;
-            }
-            
-            document.getElementById('classDetails').style.display = 'block';
-            document.getElementById('classDetails').innerHTML = `
-                <div class="class-detail-view">
-                    <h3>📚 ${currentClass.name} - ${currentClass.subject}</h3>
-                    
-                    <div class="student-management">
-                        <h4>Students (${currentClass.students.length})</h4>
-                        
-                        <div class="add-students-options">
-                            <button onclick="manualAddStudent(${classId})">➕ Add Student Manually</button>
-                            <button onclick="uploadStudentPicture(${classId})">📸 Upload Student List Picture</button>
-                        </div>
-                        
-                        <div id="pictureUpload_${classId}" style="display:none;">
-                            <input type="file" id="studentListImage_${classId}" accept="image/*">
-                            <button onclick="extractStudentNames(${classId})">Extract Names from Picture</button>
-                        </div>
-                        
-                        <div id="studentList_${classId}">
-                            ${currentClass.students.map(student => `
-                                <div class="student-profile">
-                                    <h5>${student.name}</h5>
-                                    <p>Father: ${student.fatherName || 'Not added'}</p>
-                                    <p>Mother: ${student.motherName || 'Not added'}</p>
-                                    <p>Contact: ${student.contact || 'Not added'}</p>
-                                    <button onclick="editStudentProfile(${classId}, ${student.id})">✏️ Edit Profile</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function uploadStudentPicture(classId) {
-            document.getElementById(`pictureUpload_${classId}`).style.display = 'block';
-        }
-        
-        function extractStudentNames(classId) {
-            // Simulate name extraction (you can add OCR later)
-            const extractedNames = [
-                "Ahmed Ali", "Fatima Sheikh", "Hassan Khan", "Ayesha Ahmad", "Ali Raza"
-            ];
-            
-            // Add these students to class
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const classIndex = classes.findIndex(c => c.id === classId);
-            
-            if (classIndex === -1) {
-                alert('Class not found!');
-                return;
-            }
-            
-            extractedNames.forEach(name => {
-                classes[classIndex].students.push({
-                    id: Date.now() + Math.random(),
-                    name: name,
-                    fatherName: '',
-                    motherName: '',
-                    contact: '',
-                    address: ''
-                });
-            });
-            
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
-            
-            // Refresh class view
-            openClass(classId);
-            alert(`✅ Added ${extractedNames.length} students from picture!`);
-        }
-        
-        function manualAddStudent(classId) {
-            const studentName = prompt('Enter student name:');
-            if (!studentName) return;
-            
-            let classes = JSON.parse(localStorage.getItem('teacherClasses') || '[]');
-            const classIndex = classes.findIndex(c => c.id === classId);
-            
-            if (classIndex === -1) {
-                alert('Class not found!');
-                return;
-            }
-            
-            classes[classIndex].students.push({
-                id: Date.now(),
-                name: studentName,
-                fatherName: '',
-                motherName: '',
-                contact: '',
-                address: ''
-            });
-            
-            localStorage.setItem('teacherClasses', JSON.stringify(classes));
-            openClass(classId);
-        }
-        
-        function editStudentProfile(classId, studentId) {
-            alert('Student profile editing will be available in next update!');
-        }
-        
-        function editClass(classId) {
-            alert('Class editing will be available in next update!');
         }
         
         // Profile Edit Functions
@@ -957,7 +602,6 @@
             // Add CORRECT listeners for navigation
             setTimeout(function() {
                 const plannerBtn = document.getElementById('plannerNavBtn');
-                const gradingBtn = document.getElementById('gradingNavBtn');
                 const chatBtn = document.getElementById('chatNavBtn');
                 const profileBtn = document.getElementById('profileNavBtn');
                 
@@ -967,15 +611,6 @@
                         hideAllSections();
                         document.getElementById('yearlyPlanner').style.display = 'block';
                         loadYearlyPlanner();
-                    };
-                }
-                
-                if (gradingBtn) {
-                    gradingBtn.onclick = function() {
-                        console.log('Grading clicked');
-                        hideAllSections();
-                        document.getElementById('gradingBuddy').style.display = 'block';
-                        loadGradingBuddy();
                     };
                 }
                 
@@ -1030,17 +665,6 @@
                 }
             });
 
-            document.getElementById('gradingBuddyBtn').addEventListener('click', function() {
-                hideAllSections();
-                document.getElementById('gradingBuddy').style.display = 'block';
-                loadGradingBuddy();
-                if (typeof posthog !== 'undefined' && typeof posthog.capture === 'function') {
-                    posthog.capture('feature_accessed', {
-                        feature: 'Grading Buddy',
-                        from: 'dashboard'
-                    });
-                }
-            });
         });
         
         // Session management functions
@@ -1174,7 +798,6 @@
             testResults.push(testLoginSystem());
             testResults.push(testNavigation());
             testResults.push(testYearlyPlanner());
-            testResults.push(testGradingBuddy());
             testResults.push(testChatbot());
             testResults.push(testProfileEdit());
             
@@ -1208,7 +831,6 @@
                 // Test if navigation elements exist
                 const navButtons = [
                     'plannerNavBtn',
-                    'gradingNavBtn', 
                     'chatNavBtn',
                     'profileNavBtn'
                 ];
@@ -1249,30 +871,6 @@
             return { feature: "Yearly Planner", status: "❌ FAIL", details: "Storage not working" };
         }
 
-        function testGradingBuddy() {
-            console.log("Testing: Grading Buddy");
-            
-            try {
-                // Test class creation and storage
-                const testClass = {
-                    id: 12345,
-                    name: "Test Class",
-                    subject: "English",
-                    students: [{ id: 1, name: "Test Student" }]
-                };
-                
-                localStorage.setItem('teacherClasses', JSON.stringify([testClass]));
-                const retrieved = JSON.parse(localStorage.getItem('teacherClasses'));
-                
-                if (retrieved[0].name === "Test Class") {
-                    return { feature: "Grading Buddy", status: "✅ PASS", details: "Class storage working" };
-                }
-            } catch (error) {
-                return { feature: "Grading Buddy", status: "❌ FAIL", details: error.message };
-            }
-            
-            return { feature: "Grading Buddy", status: "❌ FAIL", details: "Class storage failed" };
-        }
 
         function testChatbot() {
             console.log("Testing: U-Dost Chatbot");
@@ -1394,7 +992,6 @@
             // Simulate clicks and check if correct sections open
             const navTests = [
                 { button: 'plannerNavBtn', expectedSection: 'yearlyPlanner' },
-                { button: 'gradingNavBtn', expectedSection: 'gradingBuddy' },
                 { button: 'chatNavBtn', expectedSection: 'chatbot' }
             ];
             
