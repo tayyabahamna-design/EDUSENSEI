@@ -1564,9 +1564,16 @@ Ali Raza"
         }
 
         function createNewTest(classId) {
+            const userPhone = getCurrentUser()?.phone || 'default';
+            const classes = JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            const currentClass = classes.find(c => c.id == classId);
+            
             document.getElementById('gradingContent').innerHTML = `
                 <div class="create-test-form">
-                    <h3>📝 Create New Test</h3>
+                    <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #007bff;">
+                        <h3 style="margin: 0; color: #007bff;">📝 Create New Test for ${currentClass.name}</h3>
+                        <p style="margin: 5px 0 0 0; color: #666;">Students in this test: ${currentClass.students.length}</p>
+                    </div>
                     
                     <label>Subject:</label>
                     <select id="testSubject" style="width: 100%; padding: 12px; margin: 8px 0; font-size: 16px; border: 2px solid #ddd; border-radius: 5px;">
@@ -1678,10 +1685,11 @@ Ali Raza"
             let html = `
                 <div class="marks-test">
                     <div id="printableTest">
-                        <div style="text-align: center; margin-bottom: 20px;">
-                            <h3>${subject} - ${topic}</h3>
-                            <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${testType}</p>
-                            <p><strong>Date:</strong> ${new Date().toLocaleDateString()} | <strong>Total Marks:</strong> ${totalMarks}</p>
+                        <div style="text-align: center; margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                            <h2 style="margin: 0; color: white;">${currentClass.name}</h2>
+                            <h3 style="margin: 10px 0; color: white;">${subject} - ${topic}</h3>
+                            <p style="margin: 5px 0;"><strong>Type:</strong> ${testType} | <strong>Total Marks:</strong> ${totalMarks}</p>
+                            <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()} | <strong>Students:</strong> ${currentClass.students.length}</p>
                         </div>
                         
                         <table border="1" style="width: 100%; border-collapse: collapse;">
@@ -1806,10 +1814,11 @@ Ali Raza"
             
             let html = `
                 <div class="tick-test">
-                    <div style="text-align: center; margin-bottom: 20px;">
-                        <h3>${subject} - ${topic}</h3>
-                        <p><strong>Class:</strong> ${currentClass.name} | <strong>Type:</strong> ${testType}</p>
-                        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    <div style="text-align: center; margin-bottom: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px;">
+                        <h2 style="margin: 0; color: white;">${currentClass.name}</h2>
+                        <h3 style="margin: 10px 0; color: white;">${subject} - ${topic}</h3>
+                        <p style="margin: 5px 0;"><strong>Type:</strong> ${testType} | <strong>Assessment:</strong> Tick/Cross</p>
+                        <p style="margin: 5px 0;"><strong>Date:</strong> ${new Date().toLocaleDateString()} | <strong>Students:</strong> ${currentClass.students.length}</p>
                     </div>
                     
                     <table border="1" style="width: 100%; border-collapse: collapse;">
