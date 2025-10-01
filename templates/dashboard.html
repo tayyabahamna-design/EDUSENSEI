@@ -1058,17 +1058,19 @@
                 const response = await fetch('/api/grading/load-classes');
                 const data = await response.json();
                 
-                if (data.success) {
+                if (data.success && data.classes) {
                     const userPhone = getCurrentUser()?.phone || 'default';
-                    localStorage.setItem(userPhone + '_classes', JSON.stringify(data.classes));
-                    console.log(`✅ Loaded ${data.classes.length} classes from database`);
-                    return data.classes;
+                    const classes = Array.isArray(data.classes) ? data.classes : [];
+                    localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+                    console.log(`✅ Loaded ${classes.length} classes from database`);
+                    return classes;
                 }
-                console.log('⚠️ Load failed:', data);
+                console.log('⚠️ Load failed or no data:', data);
                 return [];
             } catch (error) {
                 console.error('❌ Load classes error:', error);
-                return JSON.parse(localStorage.getItem(getCurrentUser()?.phone + '_classes') || '[]');
+                const fallback = JSON.parse(localStorage.getItem(getCurrentUser()?.phone + '_classes') || '[]');
+                return Array.isArray(fallback) ? fallback : [];
             }
         }
         
@@ -1129,7 +1131,13 @@
         }
 
         function showClassesList() {
-            const classes = getClasses();
+            let classes = getClasses();
+            
+            // Ensure classes is always an array
+            if (!Array.isArray(classes)) {
+                console.warn('Classes is not an array, resetting to empty array');
+                classes = [];
+            }
             
             let html = `
                 <div class="classes-section">
