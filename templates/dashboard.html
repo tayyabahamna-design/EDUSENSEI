@@ -1874,8 +1874,19 @@ Ali Raza"
             window.currentTasks.push(taskName);
             taskInput.value = '';
             
-            // Update tasks display
+            // Update display
+            updateTasksDisplay();
+        }
+        
+        function updateTasksDisplay() {
             const tasksList = document.getElementById('tasksList');
+            if (!tasksList) return;
+            
+            if (!window.currentTasks || window.currentTasks.length === 0) {
+                tasksList.innerHTML = '<p style="color: #666; font-style: italic;">No tasks added yet</p>';
+                return;
+            }
+            
             tasksList.innerHTML = window.currentTasks.map((task, index) => `
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: white; border-radius: 5px; margin: 5px 0;">
                     <span style="font-weight: 500;">${index + 1}. ${task}</span>
@@ -1887,8 +1898,9 @@ Ali Raza"
         }
         
         function removeTask(index) {
+            if (!window.currentTasks) return;
             window.currentTasks.splice(index, 1);
-            addTaskToList(); // Refresh display
+            updateTasksDisplay();
         }
         
         function generateTickTable(classId) {
