@@ -1061,11 +1061,13 @@
                 if (data.success) {
                     const userPhone = getCurrentUser()?.phone || 'default';
                     localStorage.setItem(userPhone + '_classes', JSON.stringify(data.classes));
+                    console.log(`✅ Loaded ${data.classes.length} classes from database`);
                     return data.classes;
                 }
+                console.log('⚠️ Load failed:', data);
                 return [];
             } catch (error) {
-                console.error('Load classes error:', error);
+                console.error('❌ Load classes error:', error);
                 return JSON.parse(localStorage.getItem(getCurrentUser()?.phone + '_classes') || '[]');
             }
         }
