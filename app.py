@@ -497,22 +497,25 @@ def cleanup_old_files():
                         file_id = metadata['id']
                         file_type = metadata['type']
                         
+                        file_path = None
                         if file_type == 'audio':
                             file_path = os.path.join(AUDIO_DIR, f"{file_id}.webm")
                         elif file_type == 'image':
                             # Find the actual file (could have different extensions)
                             for ext in ['.jpg', '.jpeg', '.png', '.webp', '.gif']:
-                                file_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
-                                if os.path.exists(file_path):
+                                potential_path = os.path.join(IMAGES_DIR, f"{file_id}{ext}")
+                                if os.path.exists(potential_path):
+                                    file_path = potential_path
                                     break
                         elif file_type == 'document':
                             # Find the actual file
                             for ext in ['.pdf', '.txt', '.docx']:
-                                file_path = os.path.join(DOCS_DIR, f"{file_id}{ext}")
-                                if os.path.exists(file_path):
+                                potential_path = os.path.join(DOCS_DIR, f"{file_id}{ext}")
+                                if os.path.exists(potential_path):
+                                    file_path = potential_path
                                     break
                         
-                        if os.path.exists(file_path):
+                        if file_path and os.path.exists(file_path):
                             os.remove(file_path)
                         
                         # Remove metadata file
@@ -4431,17 +4434,24 @@ def copy_template_to_year(template_id):
     
     user_id = session['user_id']
     
-    # Verify template belongs to user
-    cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
-    template = cursor.fetchone()
-    if not template:
-        flash('Template not found', 'error')
+    # Get database connection
+    conn = get_db_connection()
+    if not conn:
+        flash('Database connection error', 'error')
         return redirect(url_for('yearly_planner'))
     
-    if request.method == 'POST':
-        academic_year = request.form.get('academic_year', '2024-2025')
+    try:
+        cursor = conn.cursor()
+        # Verify template belongs to user
+        cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
+        template = cursor.fetchone()
+        if not template:
+            flash('Template not found', 'error')
+            return redirect(url_for('yearly_planner'))
         
-        try:
+        if request.method == 'POST':
+            academic_year = request.form.get('academic_year', '2024-2025')
+            
             # Get template periods
             cursor.execute(
                 """SELECT day_of_week, period_number, subject, start_time, end_time 
@@ -4486,15 +4496,17 @@ def copy_template_to_year(template_id):
             conn.commit()
             flash('Yearly plan created successfully! (52 weeks × 5 days = 260 school days)', 'success')
             return redirect(url_for('view_yearly_calendar', template_id=template_id))
-            
-        except Exception as e:
-            conn.rollback()
-            flash('Error creating yearly plan. Please try again.', 'error')
-    
-    return render_template('copy_to_year.html', 
-                         template=template,
-                         template_id=template_id,
-                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+        
+        return render_template('copy_to_year.html', 
+                             template=template,
+                             template_id=template_id,
+                             posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    except Exception as e:
+        conn.rollback()
+        flash('Error in copy_template_to_year', 'error')
+        return redirect(url_for('yearly_planner'))
+    finally:
+        conn.close()
 
 @app.route('/yearly-planner/calendar/<int:template_id>')
 def view_yearly_calendar(template_id):
@@ -4504,58 +4516,71 @@ def view_yearly_calendar(template_id):
     
     user_id = session['user_id']
     
-    # Get template info
-    cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
-    template = cursor.fetchone()
-    if not template:
-        flash('Template not found', 'error')
+    # Get database connection
+    conn = get_db_connection()
+    if not conn:
+        flash('Database connection error', 'error')
         return redirect(url_for('yearly_planner'))
     
-    # Get calendar entries for this template
-    cursor.execute(
-        """SELECT week_number, date, day_of_week, period_number, subject, 
-           start_time, end_time, is_modified, id as entry_id
-           FROM yearly_schedule_entries 
-           WHERE user_id = %s AND template_id = %s 
-           ORDER BY week_number, day_of_week, period_number""", 
-        (user_id, template_id)
-    )
-    raw_entries = cursor.fetchall()
-    
-    # Group entries by (week_number, date, day_of_week) in Python
-    from collections import defaultdict
-    grouped_data = defaultdict(lambda: {"periods": []})
-    
-    for entry in raw_entries:
-        key = (entry['week_number'], entry['date'], entry['day_of_week'])
+    try:
+        cursor = conn.cursor()
+        # Get template info
+        cursor.execute("SELECT * FROM weekly_templates WHERE id = %s AND user_id = %s", (template_id, user_id))
+        template = cursor.fetchone()
+        if not template:
+            flash('Template not found', 'error')
+            return redirect(url_for('yearly_planner'))
         
-        # Set basic day info if not already set
-        if 'week_number' not in grouped_data[key]:
-            grouped_data[key]['week_number'] = entry['week_number']
-            grouped_data[key]['date'] = entry['date']
-            grouped_data[key]['day_of_week'] = entry['day_of_week']
+        # Get calendar entries for this template
+        cursor.execute(
+            """SELECT week_number, date, day_of_week, period_number, subject, 
+               start_time, end_time, is_modified, id as entry_id
+               FROM yearly_schedule_entries 
+               WHERE user_id = %s AND template_id = %s 
+               ORDER BY week_number, day_of_week, period_number""", 
+            (user_id, template_id)
+        )
+        raw_entries = cursor.fetchall()
         
-        # Add period info as native Python dict
-        period_data = {
-            'period_number': entry['period_number'],
-            'subject': entry['subject'],
-            'start_time': entry['start_time'],
-            'end_time': entry['end_time'],
-            'is_modified': entry['is_modified'],
-            'entry_id': entry['entry_id']
-        }
-        grouped_data[key]['periods'].append(period_data)
-    
-    # Convert to list format expected by template, ensuring chronological order
-    calendar_data = []
-    for (week_number, date, day_of_week), day_info in sorted(grouped_data.items(), key=lambda x: (x[0][0], x[0][2])):
-        calendar_data.append(day_info)
-    
-    return render_template('yearly_calendar.html', 
-                         template=template,
-                         calendar_data=calendar_data,
-                         template_id=template_id,
-                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+        # Group entries by (week_number, date, day_of_week) in Python
+        from collections import defaultdict
+        grouped_data = defaultdict(lambda: {"periods": []})
+        
+        for entry in raw_entries:
+            key = (entry['week_number'], entry['date'], entry['day_of_week'])
+            
+            # Set basic day info if not already set
+            if 'week_number' not in grouped_data[key]:
+                grouped_data[key]['week_number'] = entry['week_number']
+                grouped_data[key]['date'] = entry['date']
+                grouped_data[key]['day_of_week'] = entry['day_of_week']
+            
+            # Add period info as native Python dict
+            period_data = {
+                'period_number': entry['period_number'],
+                'subject': entry['subject'],
+                'start_time': entry['start_time'],
+                'end_time': entry['end_time'],
+                'is_modified': entry['is_modified'],
+                'entry_id': entry['entry_id']
+            }
+            grouped_data[key]['periods'].append(period_data)
+        
+        # Convert to list format expected by template, ensuring chronological order
+        calendar_data = []
+        for (week_number, date, day_of_week), day_info in sorted(grouped_data.items(), key=lambda x: (x[0][0], x[0][2])):
+            calendar_data.append(day_info)
+        
+        return render_template('yearly_calendar.html', 
+                             template=template,
+                             calendar_data=calendar_data,
+                             template_id=template_id,
+                             posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    except Exception as e:
+        flash('Error loading calendar', 'error')
+        return redirect(url_for('yearly_planner'))
+    finally:
+        conn.close()
 
 @app.route('/yearly-planner/edit-day/<date>')
 def edit_day(date):
@@ -4565,24 +4590,37 @@ def edit_day(date):
     
     user_id = session['user_id']
     
-    # Get entries for this specific day
-    cursor.execute(
-        """SELECT id, period_number, subject, start_time, end_time, is_modified
-           FROM yearly_schedule_entries 
-           WHERE user_id = %s AND date = %s 
-           ORDER BY period_number""", 
-        (user_id, date)
-    )
-    day_entries = cursor.fetchall()
-    
-    if not day_entries:
-        flash('No entries found for this date', 'error')
+    # Get database connection
+    conn = get_db_connection()
+    if not conn:
+        flash('Database connection error', 'error')
         return redirect(url_for('yearly_planner'))
     
-    return render_template('edit_day.html', 
-                         date=date,
-                         day_entries=day_entries,
-                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    try:
+        cursor = conn.cursor()
+        # Get entries for this specific day
+        cursor.execute(
+            """SELECT id, period_number, subject, start_time, end_time, is_modified
+               FROM yearly_schedule_entries 
+               WHERE user_id = %s AND date = %s 
+               ORDER BY period_number""", 
+            (user_id, date)
+        )
+        day_entries = cursor.fetchall()
+        
+        if not day_entries:
+            flash('No entries found for this date', 'error')
+            return redirect(url_for('yearly_planner'))
+        
+        return render_template('edit_day.html', 
+                             date=date,
+                             day_entries=day_entries,
+                             posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+    except Exception as e:
+        flash('Error loading day entries', 'error')
+        return redirect(url_for('yearly_planner'))
+    finally:
+        conn.close()
 
 @app.route('/yearly-planner/update-day', methods=['POST'])
 def update_day():
