@@ -5638,8 +5638,10 @@ def load_grading_classes():
         cur.close()
         conn.close()
         
-        if result and result[0]:
-            classes = json.loads(result[0]) if isinstance(result[0], str) else result[0]
+        if result:
+            # Access the first column of the result
+            classes_data = result[0] if isinstance(result, tuple) else result
+            classes = json.loads(classes_data) if isinstance(classes_data, str) else classes_data
             print(f"✅ Loaded {len(classes)} classes for {user_phone}")
             return jsonify({'success': True, 'classes': classes})
         else:
