@@ -5585,7 +5585,7 @@ def remove_file():
 def save_grading_classes():
     """Save all grading buddy classes data to database"""
     try:
-        user_phone = session.get('phone')
+        user_phone = session.get('phone_number')
         if not user_phone:
             return jsonify({'error': 'Not authenticated'}), 401
         
@@ -5663,7 +5663,7 @@ def save_grading_classes():
 def load_grading_classes():
     """Load all grading buddy classes data from database"""
     try:
-        user_phone = session.get('phone')
+        user_phone = session.get('phone_number')
         if not user_phone:
             return jsonify({'error': 'Not authenticated'}), 401
         
