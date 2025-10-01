@@ -1,0 +1,399 @@
+COMPLETE CODE FIX - IMPLEMENT ALL CHANGES:
+1. FIX CLASS CREATION - REMOVE SUBJECT
+javascriptCopyfunction addClass() {
+    document.getElementById('addClassForm').innerHTML = `
+        <h3>Create New Class</h3>
+        <input type="text" id="className" placeholder="Class Name (e.g., Grade 3-A)">
+        <button onclick="saveClass()">Create Class</button>
+        <button onclick="cancelAddClass()">Cancel</button>
+    `;
+    document.getElementById('addClassForm').style.display = 'block';
+}
+
+function saveClass() {
+    const className = document.getElementById('className').value;
+    
+    if (className) {
+        const newClass = {
+            id: Date.now(),
+            name: className,
+            students: [],
+            scoresheets: []
+        };
+        
+        let classes = getUserData('teacherClasses');
+        classes.push(newClass);
+        saveUserData('teacherClasses', classes);
+        
+        alert('Class created successfully!');
+        loadExistingClasses();
+        document.getElementById('addClassForm').style.display = 'none';
+    }
+}
+2. FIX SCORESHEET WITH SUBJECT SELECTION
+javascriptCopyfunction createNewTest(classId) {
+    document.getElementById('classDetails').innerHTML = `
+        <h3>Create New Scoresheet</h3>
+        
+        <label>Subject:</label>
+        <select id="testSubject">
+            <option value="">Select Subject</option>
+            <option value="English">English</option>
+            <option value="Math">Math</option>
+            <option value="Urdu">Urdu</option>
+            <option value="Islamiyat">Islamiyat</option>
+            <option value="Science">Science</option>
+            <option value="Social Studies">Social Studies</option>
+            <option value="General Knowledge">General Knowledge</option>
+        </select>
+        
+        <label>Topic:</label>
+        <input type="text" id="testTopic" placeholder="Test topic">
+        
+        <label>Assessment Type:</label>
+        <input type="radio" name="assessmentType" value="marks" checked> Marks Based
+        <input type="radio" name="assessmentType" value="tick"> Tick/Cross Based
+        
+        <div id="marksInput">
+            <label>Total Marks:</label>
+            <input type="number" id="totalMarks" placeholder="100">
+        </div>
+        
+        <button onclick="generateScoresheet(${classId})">Create Scoresheet</button>
+        <button onclick="openClass(${classId})">Cancel</button>
+    `;
+    
+    // Hide marks input for tick type
+    document.querySelectorAll('input[name="assessmentType"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.value === 'tick') {
+                document.getElementById('marksInput').style.display = 'none';
+            } else {
+                document.getElementById('marksInput').style.display = 'block';
+            }
+        });
+    });
+}
+
+function generateScoresheet(classId) {
+    const subject = document.getElementById('testSubject').value;
+    const topic = document.getElementById('testTopic').value;
+    const type = document.querySelector('input[name="assessmentType"]:checked').value;
+    const totalMarks = document.getElementById('totalMarks').value;
+    
+    if (!subject || !topic) {
+        alert('Please fill all fields!');
+        return;
+    }
+    
+    if (type === 'marks' && !totalMarks) {
+        alert('Please enter total marks!');
+        return;
+    }
+    
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    if (type === 'marks') {
+        showMarksScoresheet(classId, subject, topic, totalMarks, currentClass);
+    } else {
+        showTickScoresheet(classId, subject, topic, currentClass);
+    }
+}
+3. MARKS SCORESHEET
+javascriptCopyfunction showMarksScoresheet(classId, subject, topic, totalMarks, currentClass) {
+    let html = `
+        <div id="scoresheetToPrint">
+            <h3>${subject} - ${topic}</h3>
+            <p>Class: ${currentClass.name} | Total Marks: ${totalMarks}</p>
+            <p>Date: ${new Date().toLocaleDateString()}</p>
+            
+            <table border="1">
+                <tr>
+                    <th>Student Name</th>
+                    <th>Obtained Marks</th>
+                    <th>Percentage</th>
+                    <th>Grade</th>
+                </tr>
+    `;
+    
+    currentClass.students.forEach(student => {
+        html += `
+            <tr>
+                <td>${student.name}</td>
+                <td><input type="number" id="marks_${student.id}" max="${totalMarks}" min="0" onchange="calculateGrade(${student.id}, ${totalMarks})"></td>
+                <td><span id="percent_${student.id}">-</span></td>
+                <td><span id="grade_${student.id}">-</span></td>
+            </tr>
+        `;
+    });
+    
+    html += `
+            </table>
+        </div>
+        <button onclick="saveMarksScoresheet(${classId}, '${subject}', '${topic}', ${totalMarks})">Save</button>
+        <button onclick="printScoresheet()">Print</button>
+        <button onclick="openClass(${classId})">Back</button>
+    `;
+    
+    document.getElementById('classDetails').innerHTML = html;
+}
+
+function calculateGrade(studentId, totalMarks) {
+    const marks = document.getElementById(`marks_${studentId}`).value;
+    if (marks) {
+        const percent = Math.round((marks / totalMarks) * 100);
+        document.getElementById(`percent_${studentId}`).textContent = percent + '%';
+        
+        let grade = 'F';
+        if (percent >= 90) grade = 'A+';
+        else if (percent >= 80) grade = 'A';
+        else if (percent >= 70) grade = 'B';
+        else if (percent >= 60) grade = 'C';
+        else if (percent >= 50) grade = 'D';
+        
+        document.getElementById(`grade_${studentId}`).textContent = grade;
+    }
+}
+
+function saveMarksScoresheet(classId, subject, topic, totalMarks) {
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    const scoresheet = {
+        id: Date.now(),
+        subject: subject,
+        topic: topic,
+        totalMarks: totalMarks,
+        type: 'marks',
+        date: new Date().toLocaleDateString(),
+        scores: []
+    };
+    
+    currentClass.students.forEach(student => {
+        const marks = document.getElementById(`marks_${student.id}`).value || 0;
+        const percent = totalMarks > 0 ? Math.round((marks / totalMarks) * 100) : 0;
+        
+        scoresheet.scores.push({
+            studentId: student.id,
+            studentName: student.name,
+            obtainedMarks: parseInt(marks),
+            percentage: percent
+        });
+    });
+    
+    let updatedClasses = getUserData('teacherClasses');
+    const classIndex = updatedClasses.findIndex(c => c.id == classId);
+    updatedClasses[classIndex].scoresheets.push(scoresheet);
+    saveUserData('teacherClasses', updatedClasses);
+    
+    alert('Scoresheet saved!');
+    openClass(classId);
+}
+4. TICK SCORESHEET
+javascriptCopyfunction showTickScoresheet(classId, subject, topic, currentClass) {
+    let html = `
+        <div id="tickSheetToPrint">
+            <h3>${subject} - ${topic}</h3>
+            <p>Class: ${currentClass.name}</p>
+            <p>Date: ${new Date().toLocaleDateString()}</p>
+            
+            <table border="1">
+                <tr>
+                    <th>Student Name</th>
+                    <th>Completed</th>
+                    <th>Status</th>
+                </tr>
+    `;
+    
+    currentClass.students.forEach(student => {
+        html += `
+            <tr>
+                <td>${student.name}</td>
+                <td><input type="checkbox" id="tick_${student.id}" onchange="updateStatus(${student.id})"></td>
+                <td><span id="status_${student.id}">Not Done</span></td>
+            </tr>
+        `;
+    });
+    
+    html += `
+            </table>
+        </div>
+        <button onclick="saveTickScoresheet(${classId}, '${subject}', '${topic}')">Save</button>
+        <button onclick="printTickSheet()">Print</button>
+        <button onclick="openClass(${classId})">Back</button>
+    `;
+    
+    document.getElementById('classDetails').innerHTML = html;
+}
+
+function updateStatus(studentId) {
+    const checkbox = document.getElementById(`tick_${studentId}`);
+    const status = document.getElementById(`status_${studentId}`);
+    
+    if (checkbox.checked) {
+        status.textContent = 'Completed';
+        status.style.color = 'green';
+    } else {
+        status.textContent = 'Not Done';
+        status.style.color = 'red';
+    }
+}
+
+function saveTickScoresheet(classId, subject, topic) {
+    const classes = getUserData('teacherClasses');
+    const currentClass = classes.find(c => c.id == classId);
+    
+    const scoresheet = {
+        id: Date.now(),
+        subject: subject,
+        topic: topic,
+        type: 'tick',
+        date: new Date().toLocaleDateString(),
+        scores: []
+    };
+    
+    currentClass.students.forEach(student => {
+        const completed = document.getElementById(`tick_${student.id}`).checked;
+        
+        scoresheet.scores.push({
+            studentId: student.id,
+            studentName: student.name,
+            completed: completed,
+            status: completed ? 'Completed' : 'Not Done'
+        });
+    });
+    
+    let updatedClasses = getUserData('teacherClasses');
+    const classIndex = updatedClasses.findIndex(c => c.id == classId);
+    updatedClasses[classIndex].scoresheets.push(scoresheet);
+    saveUserData('teacherClasses', updatedClasses);
+    
+    alert('Scoresheet saved!');
+    openClass(classId);
+}
+5. BULK STUDENT ADD
+javascriptCopyfunction manualStudentAdd(classId) {
+    document.getElementById('studentAddInterface').innerHTML = `
+        <h4>Add Students</h4>
+        
+        <h5>Bulk Add (paste names, one per line):</h5>
+        <textarea id="bulkStudents" placeholder="Ahmed Ali
+Fatima Khan  
+Hassan Ahmed
+Ayesha Sheikh" rows="8" style="width: 100%; padding: 10px;"></textarea>
+        
+        <button onclick="addBulkStudents(${classId})" style="background: green; color: white; padding: 15px;">
+            Add All Students
+        </button>
+        
+        <br><br>
+        <h5>Or add single student:</h5>
+        <input type="text" id="singleStudent" placeholder="Student name">
+        <button onclick="addSingleStudent(${classId})">Add Student</button>
+        
+        <br><br>
+        <button onclick="openClass(${classId})">Back to Class</button>
+    `;
+}
+
+function addBulkStudents(classId) {
+    const bulkText = document.getElementById('bulkStudents').value.trim();
+    
+    if (!bulkText) {
+        alert('Please enter student names!');
+        return;
+    }
+    
+    const names = bulkText.split('\n').map(name => name.trim()).filter(name => name.length > 0);
+    
+    let classes = getUserData('teacherClasses');
+    const classIndex = classes.findIndex(c => c.id == classId);
+    
+    names.forEach(name => {
+        const student = {
+            id: Date.now() + Math.random(),
+            name: name,
+            fatherName: '',
+            motherName: '',
+            contact: '',
+            address: '',
+            gender: ''
+        };
+        classes[classIndex].students.push(student);
+    });
+    
+    saveUserData('teacherClasses', classes);
+    alert(`${names.length} students added!`);
+    openClass(classId);
+}
+
+function addSingleStudent(classId) {
+    const name = document.getElementById('singleStudent').value.trim();
+    
+    if (!name) {
+        alert('Please enter student name!');
+        return;
+    }
+    
+    const student = {
+        id: Date.now(),
+        name: name,
+        fatherName: '',
+        motherName: '',
+        contact: '',
+        address: '',
+        gender: ''
+    };
+    
+    let classes = getUserData('teacherClasses');
+    const classIndex = classes.findIndex(c => c.id == classId);
+    classes[classIndex].students.push(student);
+    saveUserData('teacherClasses', classes);
+    
+    document.getElementById('singleStudent').value = '';
+    alert('Student added!');
+}
+6. PRINT FUNCTIONS
+javascriptCopyfunction printScoresheet() {
+    const content = document.getElementById('scoresheetToPrint').innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    
+    printWindow.document.write(`
+        <html>
+        <head><title>Scoresheet</title>
+        <style>
+            body { font-family: Arial; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 8px; }
+        </style>
+        </head>
+        <body>${content}</body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+
+function printTickSheet() {
+    const content = document.getElementById('tickSheetToPrint').innerHTML;
+    const printWindow = window.open('', '', 'height=600,width=800');
+    
+    printWindow.document.write(`
+        <html>
+        <head><title>Tick Sheet</title>
+        <style>
+            body { font-family: Arial; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid black; padding: 8px; }
+        </style>
+        </head>
+        <body>${content}</body>
+        </html>
+    `);
+    
+    printWindow.document.close();
+    printWindow.print();
+}
+NOW COPY ALL THIS CODE AND REPLACE YOUR EXISTING FUNCTIONS WITH THESE!Add to Conversation
