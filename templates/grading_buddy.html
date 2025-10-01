@@ -3,13 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Grading Buddy - USTAAD DOST</title>
+    <meta http-equiv="Expires" content="-1">
+    <title>Grading Buddy - USTAAD DOST v3.0</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ range(1, 99999)|random }}">
-    <!-- Make sure this is in your HTML -->
     <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script>
+        // FORCE CLEAR OLD CACHED DATA ON PAGE LOAD
+        const APP_VERSION = 'v3.0';
+        const storedVersion = localStorage.getItem('app_version');
+        if (storedVersion !== APP_VERSION) {
+            console.log('New version detected, clearing cache...');
+            localStorage.clear();
+            localStorage.setItem('app_version', APP_VERSION);
+            location.reload(true);
+        }
+    </script>
 </head>
 <body>
     <nav class="navbar">
