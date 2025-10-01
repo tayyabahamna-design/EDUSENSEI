@@ -178,7 +178,7 @@ app.config['MAX_CONTENT_LENGTH'] = 12 * 1024 * 1024  # 12MB max file size
 
 # Session configuration for proper persistence - 7 days to match localStorage
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=7)
-app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
+app.config['SESSION_COOKIE_SECURE'] = True  # Secure cookies for production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
@@ -4631,7 +4631,14 @@ def update_day():
     user_id = session['user_id']
     date = request.form.get('date')
     
+    # Get database connection
+    conn = get_db_connection()
+    if not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('edit_day', date=date))
+    
     try:
+        cursor = conn.cursor()
         # Update each period for this day
         for i in range(1, 6):  # 5 periods
             entry_id = request.form.get(f'entry_id_{i}')
@@ -4651,6 +4658,8 @@ def update_day():
     except Exception as e:
         conn.rollback()
         flash('Error saving changes. Please try again.', 'error')
+    finally:
+        conn.close()
     
     return redirect(url_for('edit_day', date=date))
 
@@ -5006,8 +5015,9 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
         
         # STORE CONVERSATION CONTEXT for natural conversation continuation
         if ai_response:
+            activity_type_value = session.get('activity_type', content_type)
             session['last_topic'] = topic
-            session['last_activity_type'] = activity_type if 'activity_type' in session else content_type
+            session['last_activity_type'] = activity_type_value
             session['last_subject'] = subject
             session['last_grade'] = grade
             session['last_feature'] = content_type
@@ -5015,10 +5025,11 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
         
         if not ai_response:
             # Use Pakistani teacher fallback with clean parameters instead of technical prompt
+            activity_type_value = session.get('activity_type', content_type)
             session_context_clean = {
                 'grade': session.get('grade', grade),  # Use session grade directly, fallback to grade variable
                 'subject': subject,
-                'activity_type': activity_type if 'activity_type' in session else content_type,
+                'activity_type': activity_type_value,
                 'selected_feature': content_type,
                 'definition_length': session.get('definition_length', 'one_line')  # Ensure definition length is passed
             }
@@ -5026,7 +5037,7 @@ IMPORTANT: You are U-DOST, a friendly Pakistani teacher assistant. Generate cont
             
             # Store context even for fallback responses
             session['last_topic'] = topic
-            session['last_activity_type'] = activity_type if 'activity_type' in session else content_type
+            session['last_activity_type'] = activity_type_value
             session['last_subject'] = subject
             session['last_grade'] = grade
             session['last_feature'] = content_type
