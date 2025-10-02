@@ -120,7 +120,17 @@ Preferred communication style: Simple, everyday language.
 - **Development Setup**: Local development server through Flask's built-in server
 
 ### Deployment Configuration
-- **Deployment Type**: VM (Virtual Machine) deployment for persistent file storage
+- **Deployment Type**: Autoscale deployment for efficient resource usage
 - **Production Server**: Gunicorn WSGI server with multiple workers
 - **File Persistence**: All uploaded files (photos, textbooks, audio) persist across restarts
 - **Configuration**: Gunicorn binds to 0.0.0.0:5000 with port reuse enabled
+
+### Production Database Setup
+When you publish the app, Replit automatically provisions a production database:
+- **Automatic Setup**: Production database is created automatically when you publish
+- **Same Code**: Your existing code continues to work - the DATABASE_URL environment variable automatically points to the production database
+- **Data Separation**: Development and production databases are completely separate
+- **No Migration Needed**: Your grading_data table structure transfers automatically
+- **Cross-Device Sync**: Teachers can login from any device and access their data
+- **Security**: Production database has enhanced security and backup features
+- **How to Publish**: Click the "Publish" button in Replit - database setup happens automatically
