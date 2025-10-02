@@ -1138,6 +1138,7 @@
         // Periodic auto-save every 2 minutes
         setInterval(() => {
             const classes = getClasses();
+            console.log('⏰ Auto-save triggered, classes from localStorage:', classes);
             if (classes && classes.length > 0) {
                 saveClassesToDB(classes);
             }
