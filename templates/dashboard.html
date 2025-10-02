@@ -1102,13 +1102,21 @@
         }
         
         async function saveClasses(classes) {
+            console.log('💾 saveClasses called with', classes.length, 'classes');
             const userPhone = getCurrentUser()?.phone || 'default';
             localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
+            console.log('📦 Saved to localStorage for user:', userPhone);
+            
             // Auto-save to database
+            console.log('🔄 Calling saveClassesToDB...');
             const saved = await saveClassesToDB(classes);
+            console.log('✅ saveClassesToDB returned:', saved);
+            
             if (saved) {
                 // Reload from database to ensure sync
+                console.log('🔄 Reloading from database...');
                 await loadClassesFromDB();
+                console.log('✅ Reload complete');
             }
         }
         
