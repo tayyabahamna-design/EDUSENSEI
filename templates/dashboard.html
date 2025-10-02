@@ -1086,6 +1086,11 @@
         
         async function saveClassesToDB(classes) {
             try {
+                console.log('🔥 saveClassesToDB called with:', classes);
+                console.log('🔥 typeof classes:', typeof classes);
+                console.log('🔥 Array.isArray(classes):', Array.isArray(classes));
+                console.log('🔥 JSON.stringify(classes):', JSON.stringify(classes).substring(0, 300));
+                
                 const response = await fetch('/api/grading/save-classes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
