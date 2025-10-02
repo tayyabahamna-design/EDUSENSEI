@@ -3884,11 +3884,11 @@ def login():
             if user:
                 # Clear session to prevent session fixation
                 session.clear()
+                session.permanent = True  # Enable permanent session FIRST
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
                 session['phone_number'] = phone_number
                 session['login_time'] = datetime.now().isoformat()
-                session.permanent = True  # Enable permanent session
                 flash(f'Welcome back, {user["name"]}!', 'success')
                 return redirect(url_for('index'))
             else:
@@ -3938,6 +3938,7 @@ def register():
                 
                 # Clear any existing session data and log in the new user
                 session.clear()
+                session.permanent = True  # Enable permanent session FIRST
                 session['user_id'] = user_id
                 session['user_name'] = name
                 session['phone_number'] = phone_number
@@ -5586,11 +5587,16 @@ def save_grading_classes():
     """Save all grading buddy classes data to database"""
     try:
         user_phone = session.get('phone_number')
+        print(f"📞 Save attempt - Phone from session: {user_phone}")
+        print(f"🔑 Session keys: {list(session.keys())}")
+        
         if not user_phone:
-            return jsonify({'error': 'Not authenticated'}), 401
+            print("❌ No phone number in session - authentication failed")
+            return jsonify({'error': 'Not authenticated', 'message': 'Session expired. Please refresh and login again.'}), 401
         
         data = request.get_json()
         classes = data.get('classes', [])
+        print(f"💾 Attempting to save {len(classes)} classes for {user_phone}")
         
         conn = get_db_connection()
         cur = conn.cursor()
@@ -5611,7 +5617,7 @@ def save_grading_classes():
         return jsonify({'success': True, 'message': 'Data saved successfully'})
         
     except Exception as e:
-        print(f"Save classes error: {e}")
+        print(f"❌ Save classes error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
