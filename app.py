@@ -5597,17 +5597,23 @@ def save_grading_classes():
         data = request.get_json()
         classes = data.get('classes', [])
         print(f"💾 Attempting to save {len(classes)} classes for {user_phone}")
+        print(f"📦 Raw request data: {data}")
+        print(f"📦 Classes to save: {classes}")
+        print(f"📦 JSON dump of classes: {json.dumps(classes)}")
         
         conn = get_db_connection()
         cur = conn.cursor()
         
         # Use UPSERT to insert or update the data
+        json_data = json.dumps(classes)
+        print(f"📦 About to insert JSON: {json_data}")
+        
         cur.execute("""
             INSERT INTO grading_data (user_phone, classes_data, updated_at)
-            VALUES (%s, %s, CURRENT_TIMESTAMP)
+            VALUES (%s, %s::jsonb, CURRENT_TIMESTAMP)
             ON CONFLICT (user_phone) 
-            DO UPDATE SET classes_data = %s, updated_at = CURRENT_TIMESTAMP
-        """, (user_phone, json.dumps(classes), json.dumps(classes)))
+            DO UPDATE SET classes_data = %s::jsonb, updated_at = CURRENT_TIMESTAMP
+        """, (user_phone, json_data, json_data))
         
         conn.commit()
         cur.close()
