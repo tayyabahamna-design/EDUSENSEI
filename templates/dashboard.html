@@ -1085,9 +1085,14 @@
                 const data = await response.json();
                 if (data.success) {
                     console.log('✅ Data synced to database');
+                    return true;
+                } else if (data.error === 'Not authenticated') {
+                    alert('⚠️ Session expired! Please refresh the page and login again.');
+                    return false;
                 }
             } catch (error) {
-                console.error('Save classes error:', error);
+                console.error('❌ Save classes error:', error);
+                return false;
             }
         }
         
@@ -1096,11 +1101,15 @@
             return JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
         }
         
-        function saveClasses(classes) {
+        async function saveClasses(classes) {
             const userPhone = getCurrentUser()?.phone || 'default';
             localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
             // Auto-save to database
-            saveClassesToDB(classes);
+            const saved = await saveClassesToDB(classes);
+            if (saved) {
+                // Reload from database to ensure sync
+                await loadClassesFromDB();
+            }
         }
         
         // Periodic auto-save every 2 minutes
@@ -1188,7 +1197,7 @@
             `;
         }
 
-        function saveNewClass() {
+        async function saveNewClass() {
             const className = document.getElementById('newClassName').value.trim();
             
             if (!className) {
@@ -1205,7 +1214,7 @@
             
             let classes = getClasses();
             classes.push(newClass);
-            saveClasses(classes);
+            await saveClasses(classes);
             
             alert('✅ Class created successfully!');
             showClassesList();
@@ -1304,7 +1313,7 @@ Ali Raza"
             `;
         }
 
-        function saveBulkStudents(classId) {
+        async function saveBulkStudents(classId) {
             const bulkText = document.getElementById('bulkStudentsInput').value.trim();
             
             if (!bulkText) {
@@ -1330,13 +1339,13 @@ Ali Raza"
                 classes[classIndex].students.push(newStudent);
             });
             
-            saveClasses(classes);
+            await saveClasses(classes);
             
             alert(`✅ Added ${names.length} students successfully!`);
             openClass(classId);
         }
 
-        function addSingleStudent(classId) {
+        async function addSingleStudent(classId) {
             const name = document.getElementById('singleStudentInput').value.trim();
             
             if (!name) {
@@ -1357,7 +1366,7 @@ Ali Raza"
             let classes = getClasses();
             const classIndex = classes.findIndex(c => c.id == classId);
             classes[classIndex].students.push(newStudent);
-            saveClasses(classes);
+            await saveClasses(classes);
             
             document.getElementById('singleStudentInput').value = '';
             alert('✅ Student added successfully!');
