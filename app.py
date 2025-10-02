@@ -5649,6 +5649,7 @@ def load_grading_classes():
             classes_data = result[0] if isinstance(result, tuple) else result
             classes = json.loads(classes_data) if isinstance(classes_data, str) else classes_data
             print(f"✅ Loaded {len(classes)} classes for {user_phone}")
+            print(f"📦 Sending response: {json.dumps({'success': True, 'classes': classes})[:200]}")
             return jsonify({'success': True, 'classes': classes})
         else:
             print(f"No data found for {user_phone}")

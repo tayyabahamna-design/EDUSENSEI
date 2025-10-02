@@ -1055,12 +1055,22 @@
         // Database sync functions
         async function loadClassesFromDB() {
             try {
+                console.log('🔄 Fetching classes from database...');
                 const response = await fetch('/api/grading/load-classes');
+                console.log('📡 Response status:', response.status);
+                
                 const data = await response.json();
+                console.log('📦 Raw response data:', JSON.stringify(data).substring(0, 200));
+                console.log('🔍 data.success:', data.success);
+                console.log('🔍 data.classes:', data.classes);
+                console.log('🔍 typeof data.classes:', typeof data.classes);
+                console.log('🔍 Array.isArray(data.classes):', Array.isArray(data.classes));
                 
                 if (data.success && data.classes) {
                     const userPhone = getCurrentUser()?.phone || 'default';
                     const classes = Array.isArray(data.classes) ? data.classes : [];
+                    console.log('📋 Final classes array length:', classes.length);
+                    console.log('📋 Classes data:', JSON.stringify(classes).substring(0, 300));
                     localStorage.setItem(userPhone + '_classes', JSON.stringify(classes));
                     console.log(`✅ Loaded ${classes.length} classes from database`);
                     return classes;
