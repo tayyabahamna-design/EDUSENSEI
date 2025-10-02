@@ -96,5 +96,5 @@ localPort = 46743
 externalPort = 8000
 
 [deployment]
-deploymentTarget = "gce"
+deploymentTarget = "autoscale"
 run = ["sh", "-c", "gunicorn --bind=0.0.0.0:5000 --reuse-port --workers=4 app:app"]
