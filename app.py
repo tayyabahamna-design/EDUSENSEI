@@ -5644,32 +5644,32 @@ def load_grading_classes():
         cur.close()
         conn.close()
         
-        if result:
-            # Access the first column of the result (JSONB type returns as Python object)
-            classes_data = result[0] if isinstance(result, tuple) else result
+        print(f"🔍 Raw result from DB: {result}")
+        print(f"🔍 Type of result: {type(result)}")
+        
+        if result and result[0]:
+            classes_data = result[0]
+            print(f"🔍 classes_data type: {type(classes_data)}")
+            print(f"🔍 classes_data value: {classes_data}")
             
-            # JSONB columns return as Python objects (list/dict), not strings
-            # Only parse if it's actually a string
-            if isinstance(classes_data, str):
-                classes = json.loads(classes_data)
-            elif isinstance(classes_data, list):
+            # JSONB columns in psycopg2 can return as list, dict, or str
+            if isinstance(classes_data, list):
                 classes = classes_data
+            elif isinstance(classes_data, str):
+                classes = json.loads(classes_data)
             else:
-                # If it's something else, try to convert
-                classes = list(classes_data) if classes_data else []
+                classes = []
             
             print(f"✅ Loaded {len(classes)} classes for {user_phone}")
-            print(f"📦 Type of classes: {type(classes)}")
-            print(f"📦 Sending response: {json.dumps({'success': True, 'classes': classes})[:200]}")
+            print(f"📦 Final classes: {classes}")
             
-            # Make absolutely sure we're returning a list
-            return jsonify({'success': True, 'classes': list(classes) if classes else []})
+            return jsonify({'success': True, 'classes': classes})
         else:
             print(f"No data found for {user_phone}")
             return jsonify({'success': True, 'classes': []})
         
     except Exception as e:
-        print(f"Load classes error: {e}")
+        print(f"❌ Load classes error: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
