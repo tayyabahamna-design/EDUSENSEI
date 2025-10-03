@@ -5647,38 +5647,22 @@ def load_grading_classes():
         """, (user_phone,))
         
         result = cur.fetchone()
-        
-        print(f"🔍 Raw result from DB: {result}")
-        print(f"🔍 Type of result: {type(result)}")
-        print(f"🔍 Result length: {len(result) if result else 0}")
-        if result:
-            print(f"🔍 Result[0]: {result[0]}")
-            print(f"🔍 Type of result[0]: {type(result[0])}")
-        
         cur.close()
         conn.close()
         
-        if result and result[0]:
-            classes_data = result[0]
-            print(f"🔍 classes_data type: {type(classes_data)}")
-            print(f"🔍 classes_data value: {classes_data}")
-            print(f"🔍 classes_data repr: {repr(classes_data)}")
+        if result:
+            # RealDictRow access - use column name, not index
+            classes_data = result['classes_data'] if 'classes_data' in result else result[0]
             
-            # JSONB columns in psycopg2 can return as list, dict, or str
+            # JSONB columns in psycopg2 return as Python list/dict
             if isinstance(classes_data, list):
                 classes = classes_data
-                print(f"📋 Using list directly")
             elif isinstance(classes_data, str):
                 classes = json.loads(classes_data)
-                print(f"📋 Parsed from JSON string")
             else:
                 classes = []
-                print(f"⚠️ Unknown type, returning empty")
             
             print(f"✅ Loaded {len(classes)} classes for {user_phone}")
-            print(f"📦 Final classes to return: {classes}")
-            print(f"📦 Final JSON response: {json.dumps({'success': True, 'classes': classes})[:300]}")
-            
             return jsonify({'success': True, 'classes': classes})
         else:
             print(f"No data found for {user_phone}")
