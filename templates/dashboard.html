@@ -1109,7 +1109,25 @@
         
         function getClasses() {
             const userPhone = getCurrentUser()?.phone || 'default';
-            return JSON.parse(localStorage.getItem(userPhone + '_classes') || '[]');
+            const stored = localStorage.getItem(userPhone + '_classes');
+            
+            if (!stored) return [];
+            
+            try {
+                const parsed = JSON.parse(stored);
+                
+                // Check for corrupted data - if it contains string "classes_data", it's corrupted
+                if (Array.isArray(parsed) && parsed.length === 1 && parsed[0] === 'classes_data') {
+                    console.warn('🧹 Detected corrupted localStorage data, clearing it');
+                    localStorage.removeItem(userPhone + '_classes');
+                    return [];
+                }
+                
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                console.error('Error parsing classes from localStorage:', e);
+                return [];
+            }
         }
         
         async function saveClasses(classes) {
