@@ -784,8 +784,24 @@
         function handleDashboardLoad() {
             console.log("Dashboard loaded, checking session..."); // Debug log
             
-            // Always sync localStorage with Flask session if Flask session exists
+            // Clean up any corrupted grading data immediately
             const userPhone = "{{ session.get('phone_number', '') }}";
+            if (userPhone) {
+                const stored = localStorage.getItem(userPhone + '_classes');
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        if (Array.isArray(parsed) && parsed.length === 1 && parsed[0] === 'classes_data') {
+                            console.warn('🧹 Detected corrupted localStorage data on load, clearing it');
+                            localStorage.removeItem(userPhone + '_classes');
+                        }
+                    } catch (e) {
+                        console.error('Error checking classes data:', e);
+                    }
+                }
+            }
+            
+            // Always sync localStorage with Flask session if Flask session exists
             const userName = "{{ session.get('user_name', '') }}";
             const loginTime = "{{ session.get('login_time', '') }}";
             
