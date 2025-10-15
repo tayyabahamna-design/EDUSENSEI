@@ -791,12 +791,24 @@
                 if (stored) {
                     try {
                         const parsed = JSON.parse(stored);
-                        if (Array.isArray(parsed) && parsed.length === 1 && parsed[0] === 'classes_data') {
-                            console.warn('🧹 Detected corrupted localStorage data on load, clearing it');
+                        let needsCleanup = false;
+                        
+                        // Check for various corruption patterns
+                        if (!Array.isArray(parsed)) {
+                            needsCleanup = true;
+                        } else if (parsed.length === 1 && parsed[0] === 'classes_data') {
+                            needsCleanup = true;
+                        } else if (parsed.length > 0 && typeof parsed[0] === 'string') {
+                            needsCleanup = true;
+                        }
+                        
+                        if (needsCleanup) {
+                            console.warn('🧹 Detected corrupted localStorage data, clearing it');
                             localStorage.removeItem(userPhone + '_classes');
                         }
                     } catch (e) {
-                        console.error('Error checking classes data:', e);
+                        console.error('Error checking classes data, clearing corrupted storage:', e);
+                        localStorage.removeItem(userPhone + '_classes');
                     }
                 }
             }
@@ -1132,16 +1144,31 @@
             try {
                 const parsed = JSON.parse(stored);
                 
-                // Check for corrupted data - if it contains string "classes_data", it's corrupted
-                if (Array.isArray(parsed) && parsed.length === 1 && parsed[0] === 'classes_data') {
-                    console.warn('🧹 Detected corrupted localStorage data, clearing it');
+                // Validate data structure - check for various corruption patterns
+                if (!Array.isArray(parsed)) {
+                    console.warn('🧹 Invalid data type in localStorage, clearing it');
                     localStorage.removeItem(userPhone + '_classes');
                     return [];
                 }
                 
-                return Array.isArray(parsed) ? parsed : [];
+                // Check for corrupted placeholder data
+                if (parsed.length === 1 && parsed[0] === 'classes_data') {
+                    console.warn('🧹 Detected corrupted placeholder data, clearing it');
+                    localStorage.removeItem(userPhone + '_classes');
+                    return [];
+                }
+                
+                // Check if array contains strings instead of objects (corruption)
+                if (parsed.length > 0 && typeof parsed[0] === 'string') {
+                    console.warn('🧹 Detected string data instead of objects, clearing it');
+                    localStorage.removeItem(userPhone + '_classes');
+                    return [];
+                }
+                
+                return parsed;
             } catch (e) {
-                console.error('Error parsing classes from localStorage:', e);
+                console.error('Error parsing classes from localStorage, clearing corrupted data:', e);
+                localStorage.removeItem(userPhone + '_classes');
                 return [];
             }
         }
