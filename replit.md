@@ -15,7 +15,12 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Architecture
 - **Template Engine**: Jinja2 templates with Flask for server-side rendering
 - **Styling**: Custom CSS with CSS Grid and Flexbox for responsive layouts
-- **Color Scheme**: Pink, yellow, and blue theme with CSS custom properties for consistent theming
+- **Color Scheme**: Regal & Minimal design system with CSS custom properties for consistent theming
+  - Primary Accent: Deep Emerald Green (#004D40) - for prominent text, buttons, and navigation
+  - Highlight Accent: Soft Gold (#C8A35C) - for accents, borders, and hover effects
+  - Background: Light Off-White Gray (#F9FAFB) - clean, professional canvas
+  - Cards: Pure White (#FFFFFF) - sharp, clean card backgrounds
+  - Text: Soft Dark Gray (#374151) for body text, Deep Emerald Green for headings
 - **User Interface**: Multi-page application with navigation bar and modular components
 - **Client-side Interactivity**: Vanilla JavaScript for dynamic features like chat interface and form interactions
 
