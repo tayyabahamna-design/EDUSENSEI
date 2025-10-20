@@ -4172,8 +4172,11 @@ def edit_template_periods(template_id):
                 {'start': '8:00', 'end': '8:40'},
                 {'start': '8:40', 'end': '9:20'},
                 {'start': '9:20', 'end': '10:00'},
-                {'start': '10:20', 'end': '11:00'},  # After break
-                {'start': '11:00', 'end': '11:40'}
+                {'start': '10:00', 'end': '10:40'},
+                {'start': '11:00', 'end': '11:40'},  # After break
+                {'start': '11:40', 'end': '12:20'},
+                {'start': '12:20', 'end': '1:00'},
+                {'start': '1:00', 'end': '1:40'}
             ]
             
             # Only process days up to Saturday if include_saturday is True, otherwise only Monday-Friday
