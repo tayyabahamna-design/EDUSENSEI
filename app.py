@@ -4157,7 +4157,7 @@ def edit_template_periods(template_id):
             cursor.execute("DELETE FROM weekly_template_periods WHERE template_id = %s", (template_id,))
             
             # Save new periods
-            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+            days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
             periods = [
                 {'start': '8:00', 'end': '8:40'},
                 {'start': '8:40', 'end': '9:20'},

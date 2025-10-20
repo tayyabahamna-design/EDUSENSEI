@@ -51,27 +51,27 @@
                 <p class="form-subtitle">
                     Creating template: <strong>{{ template.template_name }}</strong> for Grade {{ template.grade }}
                 </p>
-                <p class="schedule-info">Fill in subjects for each period (5 periods × 5 days = 25 total periods)</p>
+                <p class="schedule-info">Fill in subjects for each period (5 periods × 6 days = 30 total periods)</p>
+
+                <div class="day-tabs">
+                    <button class="tab-button active" data-day="monday">Monday</button>
+                    <button class="tab-button" data-day="tuesday">Tuesday</button>
+                    <button class="tab-button" data-day="wednesday">Wednesday</button>
+                    <button class="tab-button" data-day="thursday">Thursday</button>
+                    <button class="tab-button" data-day="friday">Friday</button>
+                    <button class="tab-button" data-day="saturday">Saturday</button>
+                </div>
 
                 <form method="POST" class="schedule-form">
-                    <div class="schedule-grid">
-                        <!-- Header Row -->
-                        <div class="grid-header">
-                            <div class="time-header">Time</div>
-                            <div class="day-header">Monday</div>
-                            <div class="day-header">Tuesday</div>
-                            <div class="day-header">Wednesday</div>
-                            <div class="day-header">Thursday</div>
-                            <div class="day-header">Friday</div>
-                        </div>
-
-                        <!-- Period 1: 8:00-8:40 -->
-                        <div class="period-row">
-                            <div class="time-slot">
-                                <strong>Period 1</strong><br>
-                                <small>8:00 - 8:40</small>
-                            </div>
-                            <div class="subject-slot">
+                    
+                    <div class="tab-content active" id="monday-content">
+                        <h2 class="day-title">Monday Schedule</h2>
+                        <div class="day-schedule">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 1</span>
+                                    <span class="period-time">8:00 - 8:40</span>
+                                </div>
                                 <select name="monday_period_1" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -83,63 +83,12 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
-                                <select name="tuesday_period_1" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="wednesday_period_1" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="thursday_period_1" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="friday_period_1" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Period 2: 8:40-9:20 -->
-                        <div class="period-row">
-                            <div class="time-slot">
-                                <strong>Period 2</strong><br>
-                                <small>8:40 - 9:20</small>
-                            </div>
-                            <div class="subject-slot">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 2</span>
+                                    <span class="period-time">8:40 - 9:20</span>
+                                </div>
                                 <select name="monday_period_2" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -151,63 +100,12 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
-                                <select name="tuesday_period_2" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="wednesday_period_2" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="thursday_period_2" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="friday_period_2" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Period 3: 9:20-10:00 -->
-                        <div class="period-row">
-                            <div class="time-slot">
-                                <strong>Period 3</strong><br>
-                                <small>9:20 - 10:00</small>
-                            </div>
-                            <div class="subject-slot">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 3</span>
+                                    <span class="period-time">9:20 - 10:00</span>
+                                </div>
                                 <select name="monday_period_3" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -219,70 +117,16 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
-                                <select name="tuesday_period_3" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="wednesday_period_3" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="thursday_period_3" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="friday_period_3" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Break Notice -->
-                        <div class="break-row">
-                            <div class="break-notice" colspan="6">
+                            <div class="break-card">
                                 ☕ <strong>Break Time</strong> (10:00 - 10:20)
                             </div>
-                        </div>
 
-                        <!-- Period 4: 10:20-11:00 -->
-                        <div class="period-row">
-                            <div class="time-slot">
-                                <strong>Period 4</strong><br>
-                                <small>10:20 - 11:00</small>
-                            </div>
-                            <div class="subject-slot">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 4</span>
+                                    <span class="period-time">10:20 - 11:00</span>
+                                </div>
                                 <select name="monday_period_4" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -294,63 +138,12 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
-                                <select name="tuesday_period_4" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="wednesday_period_4" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="thursday_period_4" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                            <div class="subject-slot">
-                                <select name="friday_period_4" class="subject-select">
-                                    <option value="">Select Subject...</option>
-                                    <option value="English">📚 English</option>
-                                    <option value="Math">🔢 Mathematics</option>
-                                    <option value="Urdu">🇵🇰 Urdu</option>
-                                    <option value="Islamiyat">🕌 Islamiyat</option>
-                                    <option value="Science">🔬 Science</option>
-                                    <option value="Social Studies">📊 Social Studies</option>
-                                    <option value="General Knowledge">🌍 General Knowledge</option>
-                                </select>
-                            </div>
-                        </div>
 
-                        <!-- Period 5: 11:00-11:40 -->
-                        <div class="period-row">
-                            <div class="time-slot">
-                                <strong>Period 5</strong><br>
-                                <small>11:00 - 11:40</small>
-                            </div>
-                            <div class="subject-slot">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 5</span>
+                                    <span class="period-time">11:00 - 11:40</span>
+                                </div>
                                 <select name="monday_period_5" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -362,7 +155,89 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tuesday-content">
+                        <h2 class="day-title">Tuesday Schedule</h2>
+                        <div class="day-schedule">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 1</span>
+                                    <span class="period-time">8:00 - 8:40</span>
+                                </div>
+                                <select name="tuesday_period_1" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 2</span>
+                                    <span class="period-time">8:40 - 9:20</span>
+                                </div>
+                                <select name="tuesday_period_2" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 3</span>
+                                    <span class="period-time">9:20 - 10:00</span>
+                                </div>
+                                <select name="tuesday_period_3" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="break-card">
+                                ☕ <strong>Break Time</strong> (10:00 - 10:20)
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 4</span>
+                                    <span class="period-time">10:20 - 11:00</span>
+                                </div>
+                                <select name="tuesday_period_4" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 5</span>
+                                    <span class="period-time">11:00 - 11:40</span>
+                                </div>
                                 <select name="tuesday_period_5" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -374,7 +249,89 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="wednesday-content">
+                        <h2 class="day-title">Wednesday Schedule</h2>
+                        <div class="day-schedule">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 1</span>
+                                    <span class="period-time">8:00 - 8:40</span>
+                                </div>
+                                <select name="wednesday_period_1" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 2</span>
+                                    <span class="period-time">8:40 - 9:20</span>
+                                </div>
+                                <select name="wednesday_period_2" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 3</span>
+                                    <span class="period-time">9:20 - 10:00</span>
+                                </div>
+                                <select name="wednesday_period_3" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="break-card">
+                                ☕ <strong>Break Time</strong> (10:00 - 10:20)
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 4</span>
+                                    <span class="period-time">10:20 - 11:00</span>
+                                </div>
+                                <select name="wednesday_period_4" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 5</span>
+                                    <span class="period-time">11:00 - 11:40</span>
+                                </div>
                                 <select name="wednesday_period_5" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -386,7 +343,89 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="thursday-content">
+                        <h2 class="day-title">Thursday Schedule</h2>
+                        <div class="day-schedule">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 1</span>
+                                    <span class="period-time">8:00 - 8:40</span>
+                                </div>
+                                <select name="thursday_period_1" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 2</span>
+                                    <span class="period-time">8:40 - 9:20</span>
+                                </div>
+                                <select name="thursday_period_2" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 3</span>
+                                    <span class="period-time">9:20 - 10:00</span>
+                                </div>
+                                <select name="thursday_period_3" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="break-card">
+                                ☕ <strong>Break Time</strong> (10:00 - 10:20)
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 4</span>
+                                    <span class="period-time">10:20 - 11:00</span>
+                                </div>
+                                <select name="thursday_period_4" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 5</span>
+                                    <span class="period-time">11:00 - 11:40</span>
+                                </div>
                                 <select name="thursday_period_5" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
@@ -398,8 +437,184 @@
                                     <option value="General Knowledge">🌍 General Knowledge</option>
                                 </select>
                             </div>
-                            <div class="subject-slot">
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="friday-content">
+                        <h2 class="day-title">Friday Schedule</h2>
+                        <div class="day-schedule">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 1</span>
+                                    <span class="period-time">8:00 - 8:40</span>
+                                </div>
+                                <select name="friday_period_1" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 2</span>
+                                    <span class="period-time">8:40 - 9:20</span>
+                                </div>
+                                <select name="friday_period_2" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 3</span>
+                                    <span class="period-time">9:20 - 10:00</span>
+                                </div>
+                                <select name="friday_period_3" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="break-card">
+                                ☕ <strong>Break Time</strong> (10:00 - 10:20)
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 4</span>
+                                    <span class="period-time">10:20 - 11:00</span>
+                                </div>
+                                <select name="friday_period_4" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 5</span>
+                                    <span class="period-time">11:00 - 11:40</span>
+                                </div>
                                 <select name="friday_period_5" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="saturday-content">
+                        <h2 class="day-title">Saturday Schedule</h2>
+                        <div class="day-schedule">
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 1</span>
+                                    <span class="period-time">8:00 - 8:40</span>
+                                </div>
+                                <select name="saturday_period_1" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 2</span>
+                                    <span class="period-time">8:40 - 9:20</span>
+                                </div>
+                                <select name="saturday_period_2" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 3</span>
+                                    <span class="period-time">9:20 - 10:00</span>
+                                </div>
+                                <select name="saturday_period_3" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="break-card">
+                                ☕ <strong>Break Time</strong> (10:00 - 10:20)
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 4</span>
+                                    <span class="period-time">10:20 - 11:00</span>
+                                </div>
+                                <select name="saturday_period_4" class="subject-select">
+                                    <option value="">Select Subject...</option>
+                                    <option value="English">📚 English</option>
+                                    <option value="Math">🔢 Mathematics</option>
+                                    <option value="Urdu">🇵🇰 Urdu</option>
+                                    <option value="Islamiyat">🕌 Islamiyat</option>
+                                    <option value="Science">🔬 Science</option>
+                                    <option value="Social Studies">📊 Social Studies</option>
+                                    <option value="General Knowledge">🌍 General Knowledge</option>
+                                </select>
+                            </div>
+
+                            <div class="period-card">
+                                <div class="period-header">
+                                    <span class="period-label">Period 5</span>
+                                    <span class="period-time">11:00 - 11:40</span>
+                                </div>
+                                <select name="saturday_period_5" class="subject-select">
                                     <option value="">Select Subject...</option>
                                     <option value="English">📚 English</option>
                                     <option value="Math">🔢 Mathematics</option>
@@ -471,7 +686,7 @@
         }
         
         .main-content {
-            max-width: 1400px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 30px 20px;
         }
@@ -536,88 +751,141 @@
         
         .schedule-info {
             color: var(--soft-blue-dark);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-weight: 500;
         }
-        
-        .schedule-grid {
-            max-width: 1200px;
+
+        .day-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: 2px solid var(--gray-300);
+            background: white;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--gray-600);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            border-color: var(--soft-blue);
+            color: var(--soft-blue-dark);
+            transform: translateY(-2px);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
+            color: white;
+            border-color: var(--soft-blue-dark);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .day-title {
+            color: var(--gray-700);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+
+        .day-schedule {
+            max-width: 600px;
             margin: 0 auto;
             text-align: left;
         }
-        
-        .grid-header {
-            display: grid;
-            grid-template-columns: 120px repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--soft-blue);
-        }
-        
-        .time-header, .day-header {
-            font-weight: 700;
-            color: var(--gray-700);
-            text-align: center;
-            padding: 10px;
-        }
-        
-        .day-header {
-            background: linear-gradient(135deg, var(--soft-blue), var(--soft-blue-dark));
-            color: white;
-            border-radius: 8px;
-        }
-        
-        .period-row {
-            display: grid;
-            grid-template-columns: 120px repeat(5, 1fr);
-            gap: 10px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-        
-        .time-slot {
-            background: var(--sage-green);
-            color: white;
-            padding: 15px 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-        
-        .subject-slot {
+
+        .period-card {
             background: white;
-            border-radius: 8px;
             border: 2px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
         }
-        
+
+        .period-card:hover {
+            border-color: var(--soft-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .period-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .period-label {
+            font-weight: 700;
+            color: var(--soft-blue-dark);
+            font-size: 1.1rem;
+        }
+
+        .period-time {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+            background: var(--gray-100);
+            padding: 4px 12px;
+            border-radius: 6px;
+        }
+
         .subject-select {
             width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            background: white;
-            font-size: 0.9rem;
+            padding: 12px 15px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            background: var(--gray-50);
+            font-size: 1rem;
             color: var(--gray-700);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
-        
+
         .subject-select:focus {
-            outline: 2px solid var(--soft-blue);
+            outline: none;
+            border-color: var(--soft-blue);
+            background: white;
         }
-        
-        .break-row {
-            display: grid;
-            grid-template-columns: 1fr;
-            margin: 20px 0;
+
+        .subject-select:hover {
+            border-color: var(--soft-blue);
         }
-        
-        .break-notice {
+
+        .break-card {
             background: linear-gradient(135deg, var(--warm-yellow), var(--warm-yellow-dark));
             color: var(--gray-700);
             padding: 15px;
             border-radius: 10px;
             text-align: center;
             font-weight: 600;
+            margin: 20px 0;
         }
         
         .form-actions {
@@ -681,15 +949,22 @@
             .form-container {
                 padding: 30px 20px;
             }
-            
-            .grid-header, .period-row {
-                grid-template-columns: 1fr;
-                gap: 5px;
+
+            .day-tabs {
+                gap: 8px;
             }
-            
-            .time-slot {
-                order: -1;
-                margin-bottom: 10px;
+
+            .tab-button {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
+
+            .day-schedule {
+                padding: 0 10px;
+            }
+
+            .period-card {
+                padding: 15px;
             }
             
             .form-actions {
@@ -699,13 +974,27 @@
     </style>
 
     <script>
-        // Pre-populate existing periods if editing
         document.addEventListener('DOMContentLoaded', function() {
-            const existingPeriods = {{ existing_periods | tojsonfilter | safe }};
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetDay = this.getAttribute('data-day');
+                    
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    this.classList.add('active');
+                    document.getElementById(targetDay + '-content').classList.add('active');
+                });
+            });
+
+            const existingPeriods = {{ existing_periods | tojson | safe }};
             
             existingPeriods.forEach(function(period) {
-                const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
-                const dayName = dayNames[period[0] - 1]; // Convert 1-5 to array index
+                const dayNames = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const dayName = dayNames[period[0] - 1];
                 const periodNum = period[1];
                 const subject = period[2];
                 
