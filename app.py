@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, send_file, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, send_file, redirect, url_for, flash, make_response
 import json
 import os
 import uuid
@@ -4223,11 +4223,15 @@ def edit_template_periods(template_id):
         finally:
             conn.close()
     
-    return render_template('edit_template_periods.html', 
+    response = make_response(render_template('edit_template_periods.html', 
                          template=template, 
                          existing_periods=existing_periods,
                          template_id=template_id,
-                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST)
+                         posthog_key=POSTHOG_KEY, posthog_host=POSTHOG_HOST))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/yearly-planner/template/<int:template_id>/copy-to-year', methods=['GET', 'POST'])
 def copy_template_to_year(template_id):
