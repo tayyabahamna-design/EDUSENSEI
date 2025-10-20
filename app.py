@@ -4153,6 +4153,16 @@ def edit_template_periods(template_id):
         
         try:
             cursor = conn.cursor()
+            
+            # Get Saturday preference
+            include_saturday = request.form.get('include_saturday', 'false') == 'true'
+            
+            # Update template with Saturday preference
+            cursor.execute(
+                "UPDATE weekly_templates SET include_saturday = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s",
+                (include_saturday, template_id)
+            )
+            
             # Clear existing periods for this template
             cursor.execute("DELETE FROM weekly_template_periods WHERE template_id = %s", (template_id,))
             
@@ -4166,7 +4176,12 @@ def edit_template_periods(template_id):
                 {'start': '11:00', 'end': '11:40'}
             ]
             
+            # Only process days up to Saturday if include_saturday is True, otherwise only Monday-Friday
+            max_day_idx = 6 if include_saturday else 5
+            
             for day_idx, day in enumerate(days, 1):
+                if day_idx > max_day_idx:
+                    break
                 for period_idx, period_time in enumerate(periods, 1):
                     subject = request.form.get(f'{day.lower()}_period_{period_idx}')
                     if subject:
@@ -4255,12 +4270,17 @@ def copy_template_to_year(template_id):
                 (user_id, academic_year, template_id)
             )
             
-            # Generate entries for 52 weeks (260 school days)
+            # Generate entries for 52 weeks
             from datetime import datetime, timedelta
             start_date = datetime(2024, 8, 1)  # Academic year starts August 1st
             
+            # Check if template includes Saturday
+            include_saturday = template.get('include_saturday', False)
+            max_day_of_week = 6 if include_saturday else 5
+            total_days = 52 * max_day_of_week
+            
             for week_num in range(1, 53):  # 52 weeks
-                for day_of_week in range(1, 6):  # Monday to Friday
+                for day_of_week in range(1, max_day_of_week + 1):  # Monday to Friday (or Saturday if included)
                     # Calculate the date for this day
                     days_offset = (week_num - 1) * 7 + (day_of_week - 1)
                     current_date = start_date + timedelta(days=days_offset)
@@ -4279,7 +4299,8 @@ def copy_template_to_year(template_id):
                         )
             
             conn.commit()
-            flash('Yearly plan created successfully! (52 weeks × 5 days = 260 school days)', 'success')
+            days_text = f'52 weeks × {max_day_of_week} days = {total_days} school days'
+            flash(f'Yearly plan created successfully! ({days_text})', 'success')
             return redirect(url_for('view_yearly_calendar', template_id=template_id))
         
         return render_template('copy_to_year.html', 
