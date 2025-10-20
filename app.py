@@ -182,6 +182,14 @@ app.config['SESSION_COOKIE_SECURE'] = True  # Secure cookies for production
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
+# Global cache control to prevent browser caching issues
+@app.after_request
+def add_cache_control_headers(response):
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 
 # Initialize AI client - prefer OpenAI for reliability
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
