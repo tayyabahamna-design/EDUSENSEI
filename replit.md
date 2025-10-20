@@ -47,8 +47,11 @@ Preferred communication style: Simple, everyday language.
 **1. Yearly Planner Module:**
 - Weekly schedule templates with auto-population for entire academic year
 - Grade-wise (1-5) and subject-specific planning for Pakistani curriculum
+- **Single-Day Navigation**: Simplified template creation showing one day at a time with Previous/Next buttons
+- **Saturday Toggle**: Optional Saturday inclusion in weekly schedule (5-day or 6-day week)
 - Individual entry editing with progress tracking
 - Monthly/yearly class count displays
+- Database Tables: `weekly_templates` (includes `include_saturday` field), `weekly_template_periods`, `yearly_schedule_entries`
 
 **2. Grading Buddy Module:**
 - Class Management: Create and manage multiple classes with student rosters
@@ -83,6 +86,12 @@ Preferred communication style: Simple, everyday language.
 - **Progressive Features**: Editable profiles with persistent data storage
 
 ### Recent Updates (October 2025)
+- **Yearly Planner UI Redesign (Oct 20)**: Improved weekly template creation interface
+  - Single-day view with Previous/Next navigation instead of showing all days at once
+  - Saturday toggle option to include/exclude Saturday from weekly schedule
+  - Dynamic day counter showing "Day X of Y" based on Saturday preference
+  - Backend automatically generates 5-day or 6-day weekly schedules based on preference
+  - Improved mobile responsiveness with cleaner, less overwhelming interface
 - **Database Persistence (Oct 1)**: Full PostgreSQL integration for Grading Buddy with cross-device sync
   - Automatic save to database on every change
   - Load data from database on login (works across any device)
