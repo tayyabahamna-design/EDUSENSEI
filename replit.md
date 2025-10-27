@@ -86,6 +86,11 @@ Preferred communication style: Simple, everyday language.
 - **Progressive Features**: Editable profiles with persistent data storage
 
 ### Recent Updates (October 2025)
+- **Code Cleanup (Oct 27)**: Removed unused dependencies and files
+  - Removed Google Drive integration code and dependencies
+  - Removed unused image processing libraries (OpenCV, Tesseract, pdf2image)
+  - Cleaned up test files and old uploads
+  - Streamlined codebase to only essential features
 - **Yearly Planner UI Redesign (Oct 20)**: Improved weekly template creation interface
   - Single-day view with Previous/Next navigation instead of showing all days at once
   - Saturday toggle option to include/exclude Saturday from weekly schedule
@@ -108,10 +113,15 @@ Preferred communication style: Simple, everyday language.
 
 ### Python Dependencies
 - **Flask**: Web framework for routing, templating, and request handling
-- **Google Generative AI**: Gemini API for natural language processing and multimodal AI
+- **OpenAI**: Primary AI API for educational content generation
+- **Google Generative AI**: Gemini API as fallback for AI functionality
 - **Pillow (PIL)**: Image processing and metadata removal
-- **pypdf**: PDF text extraction
+- **pypdf & PyPDF2**: PDF text extraction
 - **python-docx**: DOCX document text extraction
+- **psycopg2-binary**: PostgreSQL database adapter
+- **bcrypt**: Secure password hashing
+- **Werkzeug**: WSGI utilities and secure filename handling
+- **Gunicorn**: Production WSGI server
 - **Standard Library**: `json`, `os`, `datetime`, `uuid`, `mimetypes` for core functionality
 
 ### Frontend Dependencies

@@ -16,24 +16,6 @@ import io
 import re
 import tempfile
 import PyPDF2
-from pdf2image import convert_from_bytes
-from googleapiclient.discovery import build
-from google.auth.exceptions import DefaultCredentialsError
-from google.oauth2 import service_account
-
-# Optional imports for enhanced processing
-try:
-    import pytesseract
-    TESSERACT_AVAILABLE = True
-except ImportError:
-    TESSERACT_AVAILABLE = False
-    
-try:
-    import cv2
-    import numpy as np
-    OPENCV_AVAILABLE = True
-except ImportError:
-    OPENCV_AVAILABLE = False
 
 # Grade-Appropriate Rigor Level Guidelines for Pakistani ESL Students
 GRADE_RIGOR_GUIDELINES = {
