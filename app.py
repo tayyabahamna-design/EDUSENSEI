@@ -803,88 +803,24 @@ def get_predefined_books():
         }
     }
 
-# ============= GOOGLE DRIVE INTEGRATION FUNCTIONS =============
-
-def list_drive_files_paginated(query, fields="files(id, name)", page_size=100):
-    """Helper function to list Google Drive files with pagination support"""
-    if not drive_service:
-        return []
-    
-    all_files = []
-    page_token = None
-    
-    try:
-        while True:
-            request_params = {
-                'q': query,
-                'fields': f"nextPageToken, {fields}",
-                'pageSize': page_size
-            }
-            
-            if page_token:
-                request_params['pageToken'] = page_token
-            
-            results = drive_service.files().list(**request_params).execute()
-            
-            files = results.get('files', [])
-            all_files.extend(files)
-            
-            page_token = results.get('nextPageToken')
-            if not page_token:
-                break
-                
-        return all_files
-        
-    except Exception as e:
-        # Sanitize error logging to prevent credential leakage
-        print(f"Error in paginated Drive listing: {type(e).__name__}")
-        return []
-
 # Removed Google Drive functions - using direct OpenAI responses
 
 def extract_text_from_pdf_bytes(pdf_bytes):
-    """Extract text from PDF bytes using multiple methods"""
+    """Extract text from PDF bytes using PyPDF2"""
     text_content = ""
     
     try:
-        # Method 1: Try PyPDF2 first
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
         for page in pdf_reader.pages:
             page_text = page.extract_text()
             if page_text.strip():
                 text_content += page_text + "\n"
-        
-        # If PyPDF2 didn't extract much text, try OCR
-        if len(text_content.strip()) < 100 and TESSERACT_AVAILABLE:
-            text_content = extract_text_with_ocr(pdf_bytes)
             
     except Exception as e:
         print(f"Error extracting text from PDF: {e}")
-        if TESSERACT_AVAILABLE:
-            text_content = extract_text_with_ocr(pdf_bytes)
     
     return text_content
 
-def extract_text_with_ocr(pdf_bytes):
-    """Extract text using OCR from PDF bytes"""
-    if not TESSERACT_AVAILABLE:
-        return ""
-    
-    try:
-        # Convert PDF to images
-        images = convert_from_bytes(pdf_bytes, first_page=1, last_page=10)  # Limit to first 10 pages
-        
-        extracted_text = ""
-        for i, image in enumerate(images):
-            # Convert PIL image to text
-            page_text = pytesseract.image_to_string(image)
-            extracted_text += f"\n--- Page {i+1} ---\n{page_text}\n"
-        
-        return extracted_text
-        
-    except Exception as e:
-        print(f"Error with OCR extraction: {e}")
-        return ""
 
 def is_title_candidate(line):
     """Check if line could be a story title based on format rules"""
@@ -1198,80 +1134,11 @@ def create_default_chapter_structure(grade, subject, content):
     
     return chapters
 
-def load_books_from_google_drive():
-    """Main function to load all books from Google Drive and process them"""
-    if not drive_service:
-        print("Google Drive service not available - using static books")
-        return get_predefined_books()
-    
-    try:
-        # Scan Google Drive folder structure
-        drive_books = scan_google_drive_folders()
-        
-        if not drive_books:
-            print("No books found in Google Drive - using static books")
-            return get_predefined_books()
-        
-        # Process each book and extract content
-        processed_books = {}
-        
-        for grade_key, subjects in drive_books.items():
-            processed_books[grade_key] = {}
-            
-            for subject_name, books in subjects.items():
-                processed_books[grade_key][subject_name] = {}
-                
-                for book_title, file_id in books.items():
-                    print(f"Processing {grade_key} - {subject_name} - {book_title}")
-                    
-                    # Download and process PDF
-                    pdf_bytes = download_pdf_from_drive(file_id)
-                    
-                    if pdf_bytes:
-                        # Extract text
-                        text_content = extract_text_from_pdf_bytes(pdf_bytes)
-                        
-                        # Categorize into chapters and exercises
-                        grade_num = int(re.search(r'(\d+)', grade_key).group(1))
-                        chapters = categorize_text_into_chapters(text_content, grade_num, subject_name)
-                        
-                        processed_books[grade_key][subject_name][book_title] = {
-                            'file_id': file_id,
-                            'chapters': chapters,
-                            'extracted_text': text_content[:1000] + "..." if len(text_content) > 1000 else text_content
-                        }
-                    else:
-                        print(f"Failed to download {book_title}")
-        
-        print(f"Successfully processed {len(processed_books)} grades from Google Drive")
-        return processed_books
-        
-    except Exception as e:
-        # Sanitize error logging to prevent credential leakage
-        print(f"Error loading books from Google Drive: {type(e).__name__}")
-        return get_predefined_books()
 
 def get_auto_loaded_book_content(grade, subject):
     """Auto-load book content with chapters and exercises based on grade and subject"""
     
-    # PRIORITY: Special handling for Grade 4 English - use JSON file FIRST
-    if str(grade) == "4" and subject and subject.lower() == "english":
-        json_content = load_grade4_english_json()
-        if json_content:
-            debug_info = {
-                'drive_status': '❌ Not Connected (JSON prioritized)',
-                'pdf_status': '✅ Loaded from JSON file',
-                'chapters_found': json_content.get('total_chapters', 0),
-                'content_preview': json_content.get('extracted_text', '')[:100],
-                'source': 'json_file'
-            }
-            json_content['debug_info'] = debug_info
-            print(f"🎯 PRIORITY: Successfully loaded Grade 4 English from JSON file with {json_content.get('total_chapters', 0)} chapters")
-            return json_content
-        else:
-            print("⚠️ Failed to load Grade 4 English JSON file, falling back to other methods")
-    
-    # Standard debug info for all other cases
+    # Standard debug info
     debug_info = {
         'drive_status': '❌ Not Connected',
         'pdf_status': '❌ No PDF Found',
@@ -1279,44 +1146,6 @@ def get_auto_loaded_book_content(grade, subject):
         'content_preview': 'No content extracted',
         'source': 'unknown'
     }
-    
-    # Try Google Drive integration (for all other grades/subjects or if JSON fails)
-    if drive_service:
-        debug_info['drive_status'] = '✅ Connected'
-        try:
-            # Load books from Google Drive
-            drive_books = load_books_from_google_drive()
-            
-            grade_key = f'Grade {grade}'
-            if grade_key in drive_books and subject in drive_books[grade_key]:
-                subject_books = drive_books[grade_key][subject]
-                
-                if subject_books:
-                    # Get the first book for this subject
-                    book_title = list(subject_books.keys())[0]
-                    book_data = subject_books[book_title]
-                    
-                    debug_info['pdf_status'] = '✅ Loaded from Google Drive'
-                    debug_info['chapters_found'] = len(book_data.get('chapters', {}))
-                    debug_info['content_preview'] = book_data.get('extracted_text', '')[:100]
-                    debug_info['source'] = 'google_drive'
-                    
-                    return {
-                        'title': book_title,
-                        'filename': book_data.get('file_id', ''),
-                        'grade': grade,
-                        'subject': subject,
-                        'chapters': book_data.get('chapters', {}),
-                        'total_chapters': len(book_data.get('chapters', {})),
-                        'source': 'google_drive',
-                        'file_id': book_data.get('file_id'),
-                        'debug_info': debug_info
-                    }
-        except Exception as e:
-            # Sanitize error logging to prevent credential leakage
-            print(f"Error loading from Google Drive, falling back to static books: {type(e).__name__}")
-    else:
-        debug_info['drive_status'] = '❌ Service Account Not Configured'
     
     # Try to find and read actual PDF files from attached_assets
     try:
