@@ -1,54 +1,54 @@
-/* USTAAD DOST - Regal & Minimal Classy Design */
+/* USTAAD DOST - Red Theme Design */
 :root {
-    /* Regal & Minimal Color Palette */
-    --primary: #004D40;           /* Deep Emerald Green - The Regal Tone */
-    --secondary: #C8A35C;         /* Soft Gold/Brass - The Classy Pop */
-    --accent: #F9FAFB;            /* Light Off-White Gray - Canvas Background */
+    /* Red Theme Color Palette */
+    --primary: #DC2626;           /* Rich Red - The Primary Tone */
+    --secondary: #EF4444;         /* Vibrant Red - The Accent Pop */
+    --accent: #FFF5F5;            /* Light Red Tint - Canvas Background */
     
-    /* Primary Accent - Deep Emerald Green (Regal Tone) */
-    --emerald-green: #004D40;
-    --emerald-green-light: #00695C;
-    --emerald-green-dark: #00352A;
+    /* Primary Accent - Rich Red (Main Theme) */
+    --emerald-green: #DC2626;
+    --emerald-green-light: #FEE2E2;
+    --emerald-green-dark: #991B1B;
     
-    /* Highlight Accent - Soft Gold (Classy Pop) */
-    --soft-gold: #C8A35C;
-    --soft-gold-light: #D4B574;
-    --soft-gold-dark: #B08F47;
+    /* Highlight Accent - Vibrant Red (Classy Pop) */
+    --soft-gold: #EF4444;
+    --soft-gold-light: #FEE2E2;
+    --soft-gold-dark: #991B1B;
     
     /* Background & Canvas */
-    --canvas-bg: #F9FAFB;
+    --canvas-bg: #FFF5F5;
     --card-bg: #FFFFFF;
     
     /* Text Colors */
     --text-primary: #374151;      /* Soft Dark Gray - Body Text */
-    --text-heading: #004D40;      /* Deep Emerald Green - Headings */
+    --text-heading: #991B1B;      /* Rich Red - Headings */
     --text-light: #6B7280;
     --text-white: #FFFFFF;
     
-    /* Legacy mappings updated to Regal theme */
-    --soft-blue: #004D40;
-    --soft-blue-light: #00695C;
-    --soft-blue-dark: #00352A;
+    /* Legacy mappings updated to Red theme */
+    --soft-blue: #DC2626;
+    --soft-blue-light: #FEE2E2;
+    --soft-blue-dark: #991B1B;
     
-    --sage-green: #004D40;
-    --sage-green-light: #00695C;
-    --sage-green-dark: #00352A;
+    --sage-green: #DC2626;
+    --sage-green-light: #FEE2E2;
+    --sage-green-dark: #991B1B;
     
-    --warm-cream: #F9FAFB;
+    --warm-cream: #FFF5F5;
     --warm-cream-light: #FFFFFF;
-    --warm-cream-dark: #F3F4F6;
+    --warm-cream-dark: #F9FAFB;
     
-    --gentle-mint: #C8A35C;
-    --gentle-mint-light: #D4B574;
-    --gentle-mint-dark: #B08F47;
+    --gentle-mint: #EF4444;
+    --gentle-mint-light: #FEE2E2;
+    --gentle-mint-dark: #991B1B;
     
     --warm-white: #FFFFFF;
     --paper-light: #FFFFFF;
     --paper-dark: #F9FAFB;
     
     --white: #FFFFFF;
-    --gray-50: #F9FAFB;
-    --gray-100: #F3F4F6;
+    --gray-50: #FFF5F5;
+    --gray-100: #F9FAFB;
     --gray-200: #E5E7EB;
     --gray-300: #D1D5DB;
     --gray-400: #9CA3AF;
@@ -80,16 +80,16 @@
     --gray-medium: var(--text-primary);
     --gray-dark: var(--text-heading);
     
-    /* Legacy color tokens - harmonized with Regal theme */
-    --baby-pink: #F9FAFB;
+    /* Legacy color tokens - harmonized with Red theme */
+    --baby-pink: #FFF5F5;
     --baby-pink-light: #FFFFFF;
-    --baby-pink-dark: #F3F4F6;
-    --calm-blue: #004D40;
-    --calm-blue-light: #00695C;
-    --calm-blue-dark: #00352A;
-    --pretty-yellow: #C8A35C;
-    --pretty-yellow-light: #D4B574;
-    --pretty-yellow-dark: #B08F47;
+    --baby-pink-dark: #F9FAFB;
+    --calm-blue: #DC2626;
+    --calm-blue-light: #FEE2E2;
+    --calm-blue-dark: #991B1B;
+    --pretty-yellow: #EF4444;
+    --pretty-yellow-light: #FEE2E2;
+    --pretty-yellow-dark: #991B1B;
     
     /* Additional legacy mappings */
     --pink-primary: var(--canvas-bg);
@@ -167,8 +167,8 @@ body {
 }
 
 .nav-link:hover {
-    background: var(--canvas-bg);
-    color: var(--emerald-green);
+    background: var(--soft-gold-light);
+    color: var(--emerald-green-dark);
     transform: translateY(-1px);
 }
 
@@ -243,9 +243,9 @@ body {
     background: linear-gradient(
         45deg,
         transparent,
-        rgba(102, 126, 234, 0.1),
+        rgba(220, 38, 38, 0.1),
         transparent,
-        rgba(118, 75, 162, 0.1),
+        rgba(239, 68, 68, 0.1),
         transparent
     );
     /* Removed distracting shimmer animation */
@@ -376,7 +376,7 @@ body {
 }
 
 .btn-primary:hover {
-    background: var(--soft-gold);
+    background: var(--emerald-green-dark);
     color: var(--text-white);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
@@ -389,7 +389,8 @@ body {
 }
 
 .btn-secondary:hover {
-    background: var(--soft-gold-light);
+    background: var(--soft-gold-dark);
+    color: var(--text-white);
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
 }
@@ -529,7 +530,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
 @keyframes avatarPulse {
     0%, 100% { 
         transform: scale(1) rotate(0deg);
-        box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 0 20px rgba(220, 38, 38, 0.3);
     }
     25% { 
         transform: scale(1.1) rotate(-2deg);
@@ -537,7 +538,7 @@ input[type="text"], input[type="tel"], input[type="date"], select, textarea {
     }
     50% { 
         transform: scale(1.05) rotate(0deg);
-        box-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+        box-shadow: 0 0 30px rgba(220, 38, 38, 0.5);
     }
     75% { 
         transform: scale(1.1) rotate(2deg);
@@ -666,7 +667,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     border-color: transparent;
     outline: none;
     background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3), 0 8px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.3), 0 8px 25px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
 }
 
@@ -697,12 +698,12 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
 }
 
 .date-info {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.1) 0%, rgba(239, 68, 68, 0.1) 100%);
     padding: 1.5rem;
     border-radius: 16px;
     margin-bottom: 2rem;
     text-align: center;
-    border: 1px solid rgba(102, 126, 234, 0.2);
+    border: 1px solid rgba(220, 38, 38, 0.2);
     backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
@@ -775,7 +776,7 @@ input[type="text"]:focus, input[type="tel"]:focus, input[type="date"]:focus, sel
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(220, 38, 38, 0.1), transparent);
     transition: left 0.5s ease;
 }
 

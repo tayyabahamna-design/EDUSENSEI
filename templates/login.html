@@ -32,10 +32,10 @@
             
             <form method="POST" action="{{ url_for('login') }}" class="auth-form">
                 <div class="form-group">
-                    <label for="phone_number">📱 Phone Number</label>
-                    <input type="tel" id="phone_number" name="phone_number" required 
-                           placeholder="03XX-XXXXXXX" pattern="[0-9]{4}-[0-9]{7}">
-                    <small class="form-help">Enter your phone number (e.g., 0300-1234567)</small>
+                    <label for="username">👤 Username</label>
+                    <input type="text" id="username" name="username" required 
+                           placeholder="Enter your name or username">
+                    <small class="form-help">Enter your name or username to login</small>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-auth">
@@ -55,13 +55,13 @@
     </div>
     
     <script>
-        function handleSuccessfulLogin(userPhone, userData) {
-            console.log("Handling successful login for:", userPhone);
+        function handleSuccessfulLogin(username, userData) {
+            console.log("Handling successful login for:", username);
             
             localStorage.setItem('ustaadDostUser', JSON.stringify({
-                phone: userPhone,
+                username: username,
                 loginTime: new Date().getTime(),
-                userData: userData || { name: userPhone }
+                userData: userData || { name: username }
             }));
             
             console.log("Session stored in localStorage");

@@ -3684,10 +3684,10 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        phone_number = normalize_phone_number(request.form.get('phone_number', ''))
+        username = request.form.get('username', '').strip()
         
-        if not phone_number:
-            flash('Please enter your phone number', 'error')
+        if not username:
+            flash('Please enter your username', 'error')
             return render_template('login.html')
         
         conn = get_db_connection()
@@ -3697,7 +3697,8 @@ def login():
         
         try:
             cursor = conn.cursor()
-            cursor.execute("SELECT id, name FROM users WHERE phone_number = %s", (phone_number,))
+            # Try to find user by username (which can be name or email)
+            cursor.execute("SELECT id, name FROM users WHERE LOWER(name) = LOWER(%s) OR LOWER(COALESCE(email, '')) = LOWER(%s)", (username, username))
             user = cursor.fetchone()
             
             if user:
@@ -3706,12 +3707,11 @@ def login():
                 session.permanent = True  # Enable permanent session FIRST
                 session['user_id'] = user['id']
                 session['user_name'] = user['name']
-                session['phone_number'] = phone_number
                 session['login_time'] = datetime.now().isoformat()
                 flash(f'Welcome back, {user["name"]}!', 'success')
                 return redirect(url_for('index'))
             else:
-                flash('Phone number not found. Please register first.', 'error')
+                flash('Username not found. Please register first.', 'error')
         except Exception as e:
             print(f"Login error occurred")  # Don't log sensitive details
             flash('Login failed. Please try again.', 'error')
@@ -3723,12 +3723,11 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        name = request.form.get('name')
-        phone_number = normalize_phone_number(request.form.get('phone_number', ''))
+        name = request.form.get('name', '').strip()
         
         # Validation
-        if not all([name, phone_number]):
-            flash('Please fill in all required fields', 'error')
+        if not name:
+            flash('Please enter your name', 'error')
             return render_template('register.html')
         
         conn = get_db_connection()
@@ -3738,17 +3737,17 @@ def register():
         
         try:
             cursor = conn.cursor()
-            # Check if phone number already exists
-            cursor.execute("SELECT id FROM users WHERE phone_number = %s", (phone_number,))
+            # Check if name already exists (simple username check)
+            cursor.execute("SELECT id FROM users WHERE LOWER(name) = LOWER(%s)", (name,))
             if cursor.fetchone():
-                flash('Phone number already registered', 'error')
+                flash('This name is already registered. Please choose a different name or login.', 'error')
                 return render_template('register.html')
             
-            # Create user (no password needed - simple phone login)
+            # Create user (no password needed - simple name-based login)
             cursor.execute("""
-                INSERT INTO users (name, phone_number, password_hash) 
-                VALUES (%s, %s, %s) RETURNING id
-            """, (name, phone_number, ''))
+                INSERT INTO users (name, password_hash) 
+                VALUES (%s, %s) RETURNING id
+            """, (name, ''))
             
             result = cursor.fetchone()
             if result:
@@ -3760,7 +3759,7 @@ def register():
                 session.permanent = True  # Enable permanent session FIRST
                 session['user_id'] = user_id
                 session['user_name'] = name
-                session['phone_number'] = phone_number
+                session['login_time'] = datetime.now().isoformat()
                 flash(f'Registration successful! Welcome to USTAAD DOST, {name}!', 'success')
                 return redirect(url_for('profile_setup'))
             else:
@@ -5433,17 +5432,17 @@ def remove_file():
 def save_grading_classes():
     """Save all grading buddy classes data to database"""
     try:
-        user_phone = session.get('phone_number')
-        print(f"📞 Save attempt - Phone from session: {user_phone}")
+        user_id = session.get('user_id')
+        print(f"👤 Save attempt - User ID from session: {user_id}")
         print(f"🔑 Session keys: {list(session.keys())}")
         
-        if not user_phone:
-            print("❌ No phone number in session - authentication failed")
+        if not user_id:
+            print("❌ No user ID in session - authentication failed")
             return jsonify({'error': 'Not authenticated', 'message': 'Session expired. Please refresh and login again.'}), 401
         
         data = request.get_json()
         classes = data.get('classes', [])
-        print(f"💾 Attempting to save {len(classes)} classes for {user_phone}")
+        print(f"💾 Attempting to save {len(classes)} classes for user_id {user_id}")
         print(f"📦 Raw request data: {data}")
         print(f"📦 Classes to save: {classes}")
         print(f"📦 JSON dump of classes: {json.dumps(classes)}")
@@ -5455,18 +5454,19 @@ def save_grading_classes():
         json_data = json.dumps(classes)
         print(f"📦 About to insert JSON: {json_data}")
         
+        # Use user_id instead of phone_number
         cur.execute("""
             INSERT INTO grading_data (user_phone, classes_data, updated_at)
             VALUES (%s, %s::jsonb, CURRENT_TIMESTAMP)
             ON CONFLICT (user_phone) 
             DO UPDATE SET classes_data = %s::jsonb, updated_at = CURRENT_TIMESTAMP
-        """, (user_phone, json_data, json_data))
+        """, (str(user_id), json_data, json_data))
         
         conn.commit()
         cur.close()
         conn.close()
         
-        print(f"✅ Data saved successfully for {user_phone}, {len(classes)} classes")
+        print(f"✅ Data saved successfully for user_id {user_id}, {len(classes)} classes")
         return jsonify({'success': True, 'message': 'Data saved successfully'})
         
     except Exception as e:
@@ -5479,19 +5479,19 @@ def save_grading_classes():
 def load_grading_classes():
     """Load all grading buddy classes data from database"""
     try:
-        user_phone = session.get('phone_number')
-        if not user_phone:
+        user_id = session.get('user_id')
+        if not user_id:
             return jsonify({'error': 'Not authenticated'}), 401
         
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Load data from simple JSON storage
+        # Load data from simple JSON storage using user_id
         cur.execute("""
             SELECT classes_data 
             FROM grading_data 
             WHERE user_phone = %s
-        """, (user_phone,))
+        """, (str(user_id),))
         
         result = cur.fetchone()
         cur.close()
@@ -5509,10 +5509,10 @@ def load_grading_classes():
             else:
                 classes = []
             
-            print(f"✅ Loaded {len(classes)} classes for {user_phone}")
+            print(f"✅ Loaded {len(classes)} classes for user_id {user_id}")
             return jsonify({'success': True, 'classes': classes})
         else:
-            print(f"No data found for {user_phone}")
+            print(f"No data found for user_id {user_id}")
             return jsonify({'success': True, 'classes': []})
         
     except Exception as e:
