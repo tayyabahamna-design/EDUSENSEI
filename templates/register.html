@@ -30,14 +30,7 @@
                     <label for="name">👤 Full Name</label>
                     <input type="text" id="name" name="name" required 
                            placeholder="Enter your full name" value="{{ request.form.get('name', '') }}">
-                </div>
-                
-                <div class="form-group">
-                    <label for="phone_number">📱 Phone Number</label>
-                    <input type="tel" id="phone_number" name="phone_number" required 
-                           placeholder="03XX-XXXXXXX" pattern="[0-9]{4}-[0-9]{7}" 
-                           value="{{ request.form.get('phone_number', '') }}">
-                    <small class="form-help">This will be your login number</small>
+                    <small class="form-help">This will be your username for login</small>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-auth">
@@ -266,16 +259,6 @@
     </style>
     
     <script>
-        // Format phone number as user types
-        document.getElementById('phone_number').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value.length >= 4) {
-                value = value.substring(0, 4) + '-' + value.substring(4, 11);
-            }
-            e.target.value = value;
-        });
-        
-        
         // Track registration page view
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof posthog !== 'undefined') {
